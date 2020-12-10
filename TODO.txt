@@ -1,0 +1,12 @@
+- code style guide
+
+- data import
+  - databasing solution?
+- responsive window size
+- plot configuration
+  - line colouring
+  - data to be plotted
+- plot interaction
+  - cursors
+  - cursor update across group
+- plot

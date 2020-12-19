@@ -4,3 +4,7 @@ Interactive time-series display &amp; analysis. Configurable &amp; extensible pe
 ## Requirements
 Qt version 5.15
 Qwt version 6.1.5
+
+## Instructions
+````
+git submodule update --init --recursive

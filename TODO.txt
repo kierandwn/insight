@@ -1,6 +1,8 @@
 - code style guide
 
 - data import
+  - data layer
+    - bring data into table of channels from single csv
   - databasing solution?
 - responsive window size
 - plot configuration

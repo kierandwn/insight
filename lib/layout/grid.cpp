@@ -1,5 +1,5 @@
-#include "include/insightLayout.h"
-#include "include/insightgraphic.h"
+#include "lib/layout/include/grid.h"
+#include "lib/graphic/include/graphic.h"
 
 #include "lib/rapidjson/include/rapidjson/document.h"
 #include <lib/rapidjson/include/rapidjson/istreamwrapper.h>

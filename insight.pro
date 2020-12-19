@@ -8,26 +8,23 @@ CONFIG += c++11
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-SOURCES += \
-    main.cpp \
-    src/insightLayout.cpp \
-    src/mainwindow.cpp \
-    src/insightgraphic.cpp
+include ( C:/qwt-6.1.5/features/qwt.prf )
 
-HEADERS += \
-    include/insightLayout.h \
-    include/insightgraphic.h \
-    include/mainwindow.h
+include ( lib/config/config.pro )
+# include ( lib/data/data.pro )
+include ( lib/graphic/graphic.pro )
+include ( lib/layout/layout.pro )
+
+SOURCES += \
+    main.cpp
 
 FORMS += \
     ui/mainwindow.ui
 
-include ( C:/qwt-6.1.5/features/qwt.prf )
+DISTFILES += \
+    config/layout.config
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
-
-DISTFILES += \
-    config/layout.config

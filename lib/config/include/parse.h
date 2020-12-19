@@ -5,7 +5,7 @@
 #include <fstream>
 #include <map>
 
-#include "include/insightgraphic.h"
+#include "lib/graphic/include/graphic.h"
 
 static const char* kTypeNames[] =
     { "Null", "False", "True", "Object", "Array", "String", "Number" };

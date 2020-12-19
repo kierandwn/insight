@@ -1,7 +1,7 @@
 #ifndef INSIGHTLAYOUT_H
 #define INSIGHTLAYOUT_H
 
-#include "include/insightgraphic.h"
+#include "lib/graphic/include/graphic.h"
 
 #include "lib/rapidjson/include/rapidjson/document.h"
 

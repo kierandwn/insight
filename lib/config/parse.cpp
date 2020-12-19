@@ -1,4 +1,4 @@
-#include "include/configparse.h"
+#include "lib/config/include/parse.h"
 
 #include "lib/rapidjson/include/rapidjson/document.h"
 #include <lib/rapidjson/include/rapidjson/istreamwrapper.h>

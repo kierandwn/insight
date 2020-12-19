@@ -1,5 +1,5 @@
-#include "include/mainwindow.h"
-#include "include/insightLayout.h"
+#include "lib/layout/include/mainwindow.h"
+#include "lib/layout/include/grid.h"
 
 #include <qapplication.h>
 #include <qwt_plot.h>

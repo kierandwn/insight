@@ -11,7 +11,7 @@ Some demonstrative use cases, based on authors' experience:
 
 We aim to make this tool relevant across many industries, so will develop with generality in mind, abstracting the both core functionality (data display) and peripheral operations (data parsing, storage) such that these can be extended with minimal effort, and fit into the same workflow.
 
-Key feature:
+Key features:
  - A number of data display forms. Core options will include waveform/time-series display, line and scatter plots. Linked displays update together.
  - Application configuration (display layout, data shown) is described in human-readable format that is portable and easily modifiable. User can save/load configurations that suit their workflow, and maintain a number to suit the different aspects of their role.
  - Extensible data parsing layer. Core CSV parser, custom functions can be implemented to support other file types.
@@ -19,8 +19,13 @@ Key feature:
  - Interface with databasing solution either locally or on common server. Extensible so each user/team can configure/author their own.
  - Live data support.
  
-Watch this space. We look forward to releasing our first prototype of insight. The concept for this tool was born from the desire for complete control over our workflow(s), and to understand exactly what data is being displayed. This will be open-sourced to benefit any who find a use for it: all suggestions/comments/requests are welcome, please reach out to. 
+***
+Watch this space. We look forward to releasing our first prototype of insight. The concept for this tool was born from the desire for complete control over our workflow(s), and to understand exactly what data is being displayed. 
+
+This will be open-sourced to benefit any who find a use for it: all suggestions/comments/requests are welcome, please reach out to us on either:
+ - [kieran.downie@outlook.com](mailto:kieran.downie@outlook.com)
+ - [emiliepham95@gmail.com](mailto:emiliepham95@gmail.com)
 
 
-Based on:
-Qt version 5.15; Qwt version 6.1.5
+***
+Based on: Qt (v5.15); Qwt (v6.1.5)

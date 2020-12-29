@@ -4,3 +4,6 @@
 [submodule "lib/rapidjson"]
 	path = lib/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
+[submodule "lib/csv"]
+	path = lib/csv
+	url = https://github.com/ben-strasser/fast-cpp-csv-parser.git

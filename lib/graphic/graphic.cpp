@@ -19,3 +19,6 @@ bool is_viable(string graphicClassName)
 //private:
 
 //}
+
+void insightGraphic::setChannelName(string c) { m_channelName = c; }
+string insightGraphic::getChannelName() { return m_channelName; }

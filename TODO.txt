@@ -1,14 +1,22 @@
 - code style guide
 
 - data import
-  - data layer
-    - bring data into table of channels from single csv
+  x csv parser (out the box, for now?)
+    * open file
+    * read header
+    * read units [?]
+    - parse different data types?
+    - read into data table object
+  - error checking
+- data layer
+  x bring data into table of channels from single csv
+  x plot
   - databasing solution?
-- responsive window size
 - plot configuration
+  - first 'theme'/configuration
   - line colouring
   - data to be plotted
 - plot interaction
   - cursors
   - cursor update across group
-- plot
+- responsive window size

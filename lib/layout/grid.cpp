@@ -11,8 +11,10 @@
 using namespace std;
 using namespace rapidjson;
 
+map<string, insightGraphic *>::iterator gridLayout::first() { return m_map.begin(); }
+map<string, insightGraphic *>::iterator gridLayout::last()  { return m_map.end(); }
 
-void insightLayout::importFromConfig( Value& jsonConfig, QGridLayout * grid )
+map<string, insightGraphic *> insightLayout::importFromConfig( Value& jsonConfig, QGridLayout * grid )
 {
     const int count = 100;
     double gain = 10.;
@@ -29,52 +31,50 @@ void insightLayout::importFromConfig( Value& jsonConfig, QGridLayout * grid )
     }
 
     int i = 0;
-    string t;
+    string id, typ;
+
+    ::map<string, insightGraphic *> mp;
 
     int rows = jsonConfig["size"][0].GetInt();
 //    int cols = jsonConfig["size"][1].GetInt();
 
     for ( auto& m : jsonConfig["children"].GetObject() )
     {
-        t = m.value.GetObject()["type"].GetString();
+        id = m.name.GetString();
+        typ = m.value.GetObject()["type"].GetString();
 
-        if ( t == "Waveform" )
+        if ( typ == "Waveform" )
         {
-            QwtPlotCurve * curve = new QwtPlotCurve;
             insightGraphic * plot = new insightGraphic;
 
-//            if (m.value.GetObject().HasMember("data")) {
-//                string col = m.value.GetObject()["data"]["lineColor"].GetString();
-//                int w = m.value.GetObject()["data"]["lineWidth"].GetInt();
+            string channelName;
 
-//                curve->setPen(new QColor(col));
-//            }
-
-            // make a plot curve from the data and attach it to the plot
-            curve->setSamples(xData, yData, count);
-            curve->attach(plot);
+            if (m.value.GetObject().HasMember("data")) {
+                channelName = m.value.GetObject()["data"]["channel"].GetString();
+                plot->setChannelName(channelName);
+            }
 
             grid->addWidget(plot, i % rows, i / rows);
-            i++;
+            mp[id] = plot;
 
-            plot->replot();
-            plot->show();
+            i++;
         }
 
-        else if ( t == "Grid" )
+        else if ( typ == "Grid" )
         {
             QGridLayout * childGrid = new QGridLayout;
             grid->addLayout(childGrid, i % rows, i / rows);
             i++;
 
-            importFromConfig( m.value, childGrid );
+            ::map<string, insightGraphic *> sub_mp = importFromConfig( m.value, childGrid );
+            mp.insert( sub_mp.begin(), sub_mp.end() );
         }
     }
+    return mp;
 }
 
 void insightLayout::importFromConfig( string filename, QGridLayout * grid )
 {
-    printf("from file.\n");
     ifstream ifs { filename };
     if ( !ifs.is_open() ) { cerr << "Could not open file for reading!\n"; return; }
 
@@ -83,5 +83,6 @@ void insightLayout::importFromConfig( string filename, QGridLayout * grid )
     Document d;
     d.ParseStream( isw );
 
-    insightLayout::importFromConfig( d, grid );
+    ::map<string, insightGraphic *> mp = importFromConfig( d, grid );
+    m_map.insert( mp.begin(), mp.end() );
 }

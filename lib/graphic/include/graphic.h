@@ -11,6 +11,7 @@
 #include <QWidget>
 
 #include <map>
+#include <string>
 #include <array>
 
 using namespace std;
@@ -18,9 +19,13 @@ using namespace std;
 const array<string, 2> INSIGHT_GRAPHICS{ "Waveform", "Grid" };
 
 
-class insightGraphic : public QwtPlot
+class insightGraphic : virtual public QwtPlot
 {
-
+private:
+    string m_channelName;
+public:
+    void setChannelName(string);
+    string getChannelName();
 };
 
 #endif // INSIGHTGRAPHIC_H

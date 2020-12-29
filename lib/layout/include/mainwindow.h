@@ -11,7 +11,7 @@
 #include <qwt_symbol.h>
 #include <qwt_legend.h>
 
-#include "ui_insightmainwindow.h"
+#include "ui_mainwindow.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class InsightMainWindow; }

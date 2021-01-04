@@ -25,9 +25,6 @@ public:
 
     void init()
     {
-        double * xData = new double[101];
-        for (int i = 0; i < 101; ++i) { xData[i] = i; }
-
         std::map<std::string, insightGraphic *>::iterator p;
         for (p = m_plotGrid->first(); p != m_plotGrid->last(); ++p)
         {
@@ -37,11 +34,19 @@ public:
 
             QwtPlotCurve * curve = new QwtPlotCurve;
 
-            double * yData = *(m_dataTable->get(id));
+            channel * c = m_dataTable->get(id);
+            size_t n = c->length();
+
+            double * xData = new double[n];
+            for (size_t i = 0; i < n; ++i) { xData[i] = i; }
+
+            channel yData = *(m_dataTable->get(id));
 
             // make a plot curve from the data and attach it to the plot
-            curve->setSamples(xData, yData, 101);
+            curve->setSamples(xData, c->begin(), n);
             curve->attach(g);
+
+            delete[] xData;
 
             g->replot();
             g->show();

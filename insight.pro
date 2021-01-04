@@ -14,6 +14,7 @@ include ( lib/config/config.pro )
 include ( lib/data/data.pro )
 include ( lib/graphic/graphic.pro )
 include ( lib/layout/layout.pro )
+include ( lib/csv/csv.pro )
 
 SOURCES += \
     main.cpp

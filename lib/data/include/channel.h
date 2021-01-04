@@ -2,32 +2,34 @@
 #define DATACHANNEL_H
 
 #include <iostream>
+#include <vector>
+
+using namespace std;
 
 // template <typename Tp>
 class channel {
 private:
-    double * m_dataArray;
+    vector<double> m_dataArray;
 
     double m_get(int);
     void m_set(int, double);
 
-    int count = 0;
+    size_t len = 0;
 
 public:
-    channel() {
-        m_dataArray = new double[101]{ 0. };
-        printf("hello.\n");
-    }
+    channel() {}
     // channel() {}
 
-    ~channel() {
-        delete[] m_dataArray;
-    }
+    ~channel() {}
 
-    void push(double val) { m_dataArray[count] = val; count += 1; }
-    double * buffer() { return &m_dataArray[count]; count += 1; }
+    void push(double val) { m_dataArray.push_back(val); len += 1; }
+    // double * buffer() { return &m_dataArray[count]; len += 1; }
 
-    operator double * () const { return m_dataArray; }
+    size_t length () { return len; }
+    double * begin() { return &m_dataArray[0]; }
+
+    double * operator[] (int i) { return &m_dataArray[i]; }
+    // operator double * () const { return m_dataArray; }
 };
 
 #endif // DATACHANNEL_H

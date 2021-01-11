@@ -76,7 +76,7 @@ map<string, insightGraphic *> insightLayout::importFromConfig( Value& jsonConfig
 void insightLayout::importFromConfig( string filename, QGridLayout * grid )
 {
     ifstream ifs { filename };
-    if ( !ifs.is_open() ) { cerr << "Could not open file for reading!\n"; return; }
+    if ( !ifs.is_open() ) { cerr << "Could not open file for reading!\n"; throw; }
 
     IStreamWrapper isw{ ifs };
 

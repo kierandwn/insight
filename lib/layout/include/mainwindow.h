@@ -1,6 +1,10 @@
 #ifndef INSIGHTMAINWINDOW_H
 #define INSIGHTMAINWINDOW_H
 
+#include "ui_mainwindow.h"
+
+#include <string.h>
+
 #include <QMainWindow>
 #include <QBoxLayout>
 
@@ -11,7 +15,8 @@
 #include <qwt_symbol.h>
 #include <qwt_legend.h>
 
-#include "ui_mainwindow.h"
+
+using namespace std;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class InsightMainWindow; }
@@ -22,7 +27,7 @@ class InsightMainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    InsightMainWindow(QWidget *parent = nullptr);
+    InsightMainWindow(std::string source_main_directory, QWidget *parent = nullptr);
     ~InsightMainWindow();
 
     double gain = 10.;

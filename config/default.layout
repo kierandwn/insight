@@ -13,7 +13,7 @@
         "1" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : "omega_0",
+                "channel" : "err_sigma_0",
                 "lineColour" : "red",
                 "lineWidth" : 2.0
             }
@@ -29,7 +29,7 @@
         "3" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : "omega_1",
+                "channel" : "err_sigma_1",
                 "lineColour" : "red",
                 "lineWidth" : 2.0
             }
@@ -45,7 +45,7 @@
         "5" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : "omega_2",
+                "channel" : "err_sigma_2",
                 "lineColour" : "red",
                 "lineWidth" : 2.0
             }

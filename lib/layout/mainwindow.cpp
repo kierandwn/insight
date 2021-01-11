@@ -17,13 +17,17 @@
 
 using namespace std;
 
-InsightMainWindow::InsightMainWindow(QWidget *parent) : QMainWindow(parent),
-                                                        ui(new Ui::InsightMainWindow)
+InsightMainWindow::InsightMainWindow(string source_root_dir, QWidget *parent)
+    : QMainWindow(parent),
+      ui(new Ui::InsightMainWindow)
 {
     ui->setupUi(this);
 
+    QString layout_filename = QFileDialog::getOpenFileName(this,
+        tr("Load Data File"), source_root_dir.append("/config", 8).c_str(), tr("Layout File (*.layout)"));
+
     insightLayout l;
-    l.importFromConfig("C:/Users/kdwn/projects/insight/config/propagate-test.config", ui->PlotGrid);
+    l.importFromConfig(layout_filename.toStdString(), ui->PlotGrid);
 
     QString filename = QFileDialog::getOpenFileName(this,
         tr("Load Data File"), "C:/Users/kdwn/projects/insight/demo", tr("CSV Files (*.csv)"));

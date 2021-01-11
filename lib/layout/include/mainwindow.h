@@ -15,6 +15,9 @@
 #include <qwt_symbol.h>
 #include <qwt_legend.h>
 
+#include "lib/layout/include/grid.h"
+#include "lib/data/include/table.h"
+#include "lib/graphic/include/plotupdate.h"
 
 using namespace std;
 
@@ -38,6 +41,14 @@ public:
 
     double y1Data[count];
     double y2Data[count];
+
+    insightLayout layout;
+    table data;
+
+    plotUpdater updater = plotUpdater(&layout, &data);
+
+private slots:
+    void on_actionLoad_File_triggered();
 
 private:
     Ui::InsightMainWindow *ui;

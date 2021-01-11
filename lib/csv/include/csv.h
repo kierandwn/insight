@@ -53,7 +53,7 @@ double convert_to_type(string var) {
     return stod(var.c_str());
 }
 
-table * import_from_csv (string filename, string delim=",", table * t=new table)
+table * import_from_csv (string filename, table * t=new table, string delim=",")
 {
     ifstream f;
     f.open(filename);

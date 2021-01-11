@@ -20,11 +20,7 @@ private:
 
 public:
     table() {}
-
-    ~table() {
-        for (map<string, channel *>::iterator c = m_channelMap.begin(); c != m_channelMap.end(); ++c)
-            delete c->second;
-    }
+    ~table() { clear(); }
 
     channel * get(std::string id) {
         return m_channelMap[id];
@@ -32,16 +28,21 @@ public:
 
     void add_channel(string channel_name)
     {
-        if (m_channelMap.find(channel_name) == m_channelMap.end())
-        {
+        if (m_channelMap.find(channel_name) == m_channelMap.end()) {
             m_channelMap[channel_name] = new channel;
         }
     }
 
-    channel * operator[] (string id) {
-        channel * c = m_channelMap[id];
-        return m_channelMap[id];
+    bool exists(string id) { return (!(m_channelMap.find(id) == m_channelMap.end())); }
+
+    void clear() {
+        for (map<string, channel *>::iterator c = m_channelMap.begin(); c != m_channelMap.end(); ++c) {
+            delete c->second;
+        }
+        m_channelMap.clear();
     }
+
+    channel * operator[] (string id) { return m_channelMap[id]; }
 };
 
 #endif // DATATABLE_H

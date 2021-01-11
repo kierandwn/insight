@@ -16,20 +16,6 @@ map<string, insightGraphic *>::iterator gridLayout::last()  { return m_map.end()
 
 map<string, insightGraphic *> insightLayout::importFromConfig( Value& jsonConfig, QGridLayout * grid )
 {
-    const int count = 100;
-    double gain = 10.;
-
-    // data arrays for the plot
-    double xData[count];
-    double yData[count];
-
-    // set up the initial plot data
-    for (int index = 0; index < count; ++index)
-    {
-        xData[index] = 2 * M_PI * index / count;
-        yData[index] = gain * std::rand() / RAND_MAX;
-    }
-
     int i = 0;
     string id, typ;
 

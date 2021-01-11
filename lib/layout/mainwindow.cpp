@@ -32,8 +32,6 @@ InsightMainWindow::InsightMainWindow(QWidget *parent) : QMainWindow(parent),
 
     plotUpdater u(&l, t);
     u.init();
-
-    std::cout << "hello." << std::endl;
 }
 
 InsightMainWindow::~InsightMainWindow()

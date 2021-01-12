@@ -28,4 +28,5 @@ This will be open-sourced to benefit any who find a use for it: all suggestions/
 
 
 ***
-Based on: Qt (v5.15); Qwt (v6.1.5)
+Based on: Qt (v5.15); Qwt (v6.1.5)  
+_Check DEPENDENCIES.md for install procedures._

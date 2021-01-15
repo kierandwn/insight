@@ -43,9 +43,6 @@ InsightMainWindow::InsightMainWindow(string source_root_dir, QWidget * parent)
 {
     ui->setupUi(this);
 
-//    QGridLayout * grid = ui->PlotGrid;
-//    grid->addWidget(new WaveformDisplay(), 0, 0);
-
     QString layout_filename = QFileDialog::getOpenFileName(this,
         tr("Load Data File"), src_root_dir_.append("/config", 8).c_str(), tr("Layout File (*.layout)"));
 

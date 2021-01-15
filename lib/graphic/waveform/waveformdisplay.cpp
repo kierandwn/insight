@@ -26,8 +26,12 @@
 
 void WaveformDisplay::update()
 {
+  int channels_to_plot = get_number_of_channels();
+
+  for (int i = 0; i < channels_to_plot; ++i) {
+
     // create curve object
-    string id = get_channel_name();
+    string id = get_channel_name(i);
 
     if (data_->exists(id)) {
         QwtPlotCurve * curve = new QwtPlotCurve;
@@ -44,6 +48,7 @@ void WaveformDisplay::update()
 
         replot();
     }
+  }
 }
 
 void WaveformDisplay::reset()

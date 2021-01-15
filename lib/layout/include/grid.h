@@ -1,11 +1,3 @@
-#ifndef INSIGHTLAYOUT_H
-#define INSIGHTLAYOUT_H
-
-//#include "lib/graphic/include/graphic.h"
-#include "lib/data/include/table.h"
-#include "lib/graphic/waveform/include/waveformdisplay.h"
-
-#include "lib/rapidjson/include/rapidjson/document.h"
 // Copyright (c) 2020 Kieran Downie. All rights reserved.
 //
 // This file is part of insight.
@@ -24,32 +16,48 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with attitude.  If not, see <https://www.gnu.org/licenses/>.
 //
-#include <QGridLayout>
+#ifndef INSIGHTLAYOUT_H
+#define INSIGHTLAYOUT_H
 
 #include <string>
 #include <map>
+
+#include <QGridLayout>
+
+#include "lib/rapidjson/include/rapidjson/document.h"
+
+#include "lib/data/include/table.h"
+#include "lib/graphic/waveform/include/waveformdisplay.h"
+
 
 using namespace std;
 
 class gridLayout {
 protected:
-    int m_gridSize = 1;
-    map<string, InsightBaseGraphic *> m_map;
+  int m_size[2];
+  map<string, InsightBaseGraphic *> m_map;
 
 public:
-    map<string, InsightBaseGraphic *>::iterator first();
-    map<string, InsightBaseGraphic *>::iterator next();
-    map<string, InsightBaseGraphic *>::iterator last();
+  gridLayout() : m_size{0, 0} {}
+  gridLayout(int rows, int cols) : m_size{rows, cols} {}
 
-    map<string, InsightBaseGraphic *> map() { return m_map; }
+  map<string, InsightBaseGraphic *>::iterator first();
+  map<string, InsightBaseGraphic *>::iterator next();
+  map<string, InsightBaseGraphic *>::iterator last();
+
+  map<string, InsightBaseGraphic *> map() { return m_map; }
 };
 
 class insightLayout : public gridLayout {
-public:
-    insightLayout() {};
+private:
+//  gridLayout m_plotgrid;
 
-    void importFromConfig( string filename, QGridLayout * grid, table * data );
-    ::map<string, InsightBaseGraphic *> importFromConfig( rapidjson::Value&, QGridLayout * grid, table * data );
+public:
+  insightLayout() {}
+
+  void importFromConfig( string filename, QGridLayout * grid, table * data );
+  ::map<string, InsightBaseGraphic *> importFromConfig( rapidjson::Value&, QGridLayout * grid, table * data );
 };
+
 
 #endif // INSIGHTLAYOUT_H

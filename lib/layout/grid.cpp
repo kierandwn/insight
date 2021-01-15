@@ -17,16 +17,19 @@
 // along with attitude.  If not, see <https://www.gnu.org/licenses/>.
 //
 #include "lib/layout/include/grid.h"
-#include "lib/data/include/table.h"
-//#include "lib/graphic/include/graphic.h"
-#include "lib/graphic/waveform/include/waveformdisplay.h"
-
-#include "lib/rapidjson/include/rapidjson/document.h"
-#include <lib/rapidjson/include/rapidjson/istreamwrapper.h>
 
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <string>
+#include <map>
+
+#include "lib/rapidjson/include/rapidjson/document.h"
+#include <lib/rapidjson/include/rapidjson/istreamwrapper.h>
+
+#include "lib/data/include/table.h"
+#include "lib/graphic/waveform/include/waveformdisplay.h"
+
 
 using namespace std;
 using namespace rapidjson;
@@ -36,52 +39,52 @@ map<string, InsightBaseGraphic *>::iterator gridLayout::last()  { return m_map.e
 
 map<string, InsightBaseGraphic *> insightLayout::importFromConfig( Value& jsonConfig, QGridLayout * grid, table * data)
 {
-    int i = 0;
-    string id, typ;
+  int i = 0;
+  string id, typ;
 
-    ::map<string, InsightBaseGraphic *> mp;
+  ::map<string, InsightBaseGraphic *> mp;
 
-    grid->setSpacing(0);
-    grid->setContentsMargins(0, 0, 0, 0);
+  grid->setSpacing(0);
+  grid->setContentsMargins(0, 0, 0, 0);
 
 
-    int rows = jsonConfig["size"][0].GetInt();
+  int rows = jsonConfig["size"][0].GetInt();
 //    int cols = jsonConfig["size"][1].GetInt();
 
-    for ( auto& m : jsonConfig["children"].GetObject() )
+  for ( auto& m : jsonConfig["children"].GetObject() )
+  {
+    id = m.name.GetString();
+    typ = m.value.GetObject()["type"].GetString();
+
+    if ( typ == "Waveform" )
     {
-        id = m.name.GetString();
-        typ = m.value.GetObject()["type"].GetString();
+      WaveformDisplay * plot = new WaveformDisplay(data);
 
-        if ( typ == "Waveform" )
-        {
-            WaveformDisplay * plot = new WaveformDisplay(data);
-            // QwtPlot * plot = new QwtPlot();
+      vector<string> channel_names;
 
-            string channelName;
-
-            if (m.value.GetObject().HasMember("data")) {
-                channelName = m.value.GetObject()["data"]["channel"].GetString();
-                plot->set_channel_name(channelName);
-            }
-
-            grid->addWidget(plot, i % rows, i / rows);
-            mp[id] = plot;
-
-            i++;
+      if (m.value.GetObject().HasMember("data")) {
+        const Value& channel_list = m.value.GetObject()["data"]["channel"].GetArray();
+        for (SizeType i = 0; i < channel_list.Size(); ++i) {
+          plot->add_channel_name(channel_list[i].GetString());
         }
+      }
 
-        else if ( typ == "Grid" )
-        {
-            QGridLayout * childGrid = new QGridLayout;
-            grid->addLayout(childGrid, i % rows, i / rows);
-            i++;
+      grid->addWidget(plot, i % rows, i / rows);
+      mp[id] = plot;
 
-            ::map<string, InsightBaseGraphic *> sub_mp = importFromConfig( m.value, childGrid, data );
-            mp.insert( sub_mp.begin(), sub_mp.end() );
-        }
+      i++;
     }
-    return mp;
+    else if ( typ == "Grid" )
+    {
+      QGridLayout * childGrid = new QGridLayout;
+      grid->addLayout(childGrid, i % rows, i / rows);
+      i++;
+
+      ::map<string, InsightBaseGraphic *> sub_mp = importFromConfig( m.value, childGrid, data );
+      mp.insert( sub_mp.begin(), sub_mp.end() );
+    }
+  }
+  return mp;
 }
 
 void insightLayout::importFromConfig( string filename, QGridLayout * grid, table * data )

@@ -36,11 +36,8 @@
 #include "lib/layout/include/grid.h"
 #include "lib/data/include/table.h"
 
-using namespace std;
 
-//QT_BEGIN_NAMESPACE
-//namespace Ui { class InsightMainWindow; }
-//QT_END_NAMESPACE
+using namespace std;
 
 class InsightMainWindow : public QMainWindow
 {
@@ -49,15 +46,6 @@ class InsightMainWindow : public QMainWindow
 public:
     InsightMainWindow(std::string source_main_directory, QWidget *parent = nullptr);
     ~InsightMainWindow();
-
-    double gain = 10.;
-    static const int count = 100;
-
-    // data arrays for the plot
-    double xData[count];
-
-    double y1Data[count];
-    double y2Data[count];
 
     insightLayout layout;
     table data;
@@ -71,4 +59,6 @@ private:
     Ui::InsightMainWindow *ui;
     string src_root_dir_;
 };
+
+
 #endif // INSIGHTMAINWINDOW_H

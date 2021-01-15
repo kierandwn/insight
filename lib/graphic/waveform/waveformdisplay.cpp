@@ -16,13 +16,30 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with attitude.  If not, see <https://www.gnu.org/licenses/>.
 //
+#include "include/waveformdisplay.h"
+
 #include <qwt_plot_curve.h>
 #include <qwt_plot_item.h>
 
-#include "include/waveformdisplay.h"
-
+#include "lib/rapidjson/include/rapidjson/document.h"
 #include "lib/graphic/include/insight_graphic_base.h"
 
+
+WaveformDisplay::WaveformDisplay(table * data)
+    : InsightBaseGraphic(data) {
+  ui->setupUi(this);
+}
+
+// Apply configuation parameters held in json_config
+void WaveformDisplay::apply_config(rapidjson::Value & json_config) {
+  if (json_config.HasMember("data")) {
+    const rapidjson::Value& channel_list = json_config["data"]["channel"].GetArray();
+
+    for (rapidjson::SizeType i = 0; i < channel_list.Size(); ++i) {
+      add_channel_name(channel_list[i].GetString());
+    }
+  }
+}
 
 void WaveformDisplay::update()
 {

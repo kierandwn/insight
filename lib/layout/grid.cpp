@@ -56,18 +56,12 @@ map<string, InsightBaseGraphic *> insightLayout::importFromConfig( Value& jsonCo
     id = m.name.GetString();
     typ = m.value.GetObject()["type"].GetString();
 
+    Value json_config_obj = m.value.GetObject();
+
     if ( typ == "Waveform" )
     {
       WaveformDisplay * plot = new WaveformDisplay(data);
-
-      vector<string> channel_names;
-
-      if (m.value.GetObject().HasMember("data")) {
-        const Value& channel_list = m.value.GetObject()["data"]["channel"].GetArray();
-        for (SizeType i = 0; i < channel_list.Size(); ++i) {
-          plot->add_channel_name(channel_list[i].GetString());
-        }
-      }
+      plot->apply_config(json_config_obj);
 
       grid->addWidget(plot, i % rows, i / rows);
       mp[id] = plot;

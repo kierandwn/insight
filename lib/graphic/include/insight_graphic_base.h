@@ -22,6 +22,7 @@
 #include <QWidget>
 #include <QDesignerCustomWidgetInterface>
 
+#include "lib/rapidjson/include/rapidjson/document.h"
 #include "lib/data/include/table.h"
 
 using namespace std;
@@ -57,6 +58,7 @@ public:
 //    QString toolTip() const override { return QString(); }
 //    QString whatsThis() const override { return QString(); }
 
+    virtual void apply_config(rapidjson::Value&);
     virtual void reset () {}
     virtual void update() {}
 

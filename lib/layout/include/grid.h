@@ -1,7 +1,9 @@
 #ifndef INSIGHTLAYOUT_H
 #define INSIGHTLAYOUT_H
 
-#include "lib/graphic/include/graphic.h"
+//#include "lib/graphic/include/graphic.h"
+#include "lib/data/include/table.h"
+#include "lib/graphic/waveform/include/waveformdisplay.h"
 
 #include "lib/rapidjson/include/rapidjson/document.h"
 
@@ -15,22 +17,22 @@ using namespace std;
 class gridLayout {
 protected:
     int m_gridSize = 1;
-    map<string, insightGraphic *> m_map;
+    map<string, InsightBaseGraphic *> m_map;
 
 public:
-    map<string, insightGraphic *>::iterator first();
-    map<string, insightGraphic *>::iterator next();
-    map<string, insightGraphic *>::iterator last();
+    map<string, InsightBaseGraphic *>::iterator first();
+    map<string, InsightBaseGraphic *>::iterator next();
+    map<string, InsightBaseGraphic *>::iterator last();
 
-    map<string, insightGraphic *> map() { return m_map; }
+    map<string, InsightBaseGraphic *> map() { return m_map; }
 };
 
 class insightLayout : public gridLayout {
 public:
     insightLayout() {};
 
-    void importFromConfig( string filename, QGridLayout * grid );
-    ::map<string, insightGraphic *> importFromConfig( rapidjson::Value&, QGridLayout * grid );
+    void importFromConfig( string filename, QGridLayout * grid, table * data );
+    ::map<string, InsightBaseGraphic *> importFromConfig( rapidjson::Value&, QGridLayout * grid, table * data );
 };
 
 #endif // INSIGHTLAYOUT_H

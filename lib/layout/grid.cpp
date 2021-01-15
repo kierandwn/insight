@@ -1,5 +1,7 @@
 #include "lib/layout/include/grid.h"
-#include "lib/graphic/include/graphic.h"
+#include "lib/data/include/table.h"
+//#include "lib/graphic/include/graphic.h"
+#include "lib/graphic/waveform/include/waveformdisplay.h"
 
 #include "lib/rapidjson/include/rapidjson/document.h"
 #include <lib/rapidjson/include/rapidjson/istreamwrapper.h>
@@ -11,15 +13,19 @@
 using namespace std;
 using namespace rapidjson;
 
-map<string, insightGraphic *>::iterator gridLayout::first() { return m_map.begin(); }
-map<string, insightGraphic *>::iterator gridLayout::last()  { return m_map.end(); }
+map<string, InsightBaseGraphic *>::iterator gridLayout::first() { return m_map.begin(); }
+map<string, InsightBaseGraphic *>::iterator gridLayout::last()  { return m_map.end(); }
 
-map<string, insightGraphic *> insightLayout::importFromConfig( Value& jsonConfig, QGridLayout * grid )
+map<string, InsightBaseGraphic *> insightLayout::importFromConfig( Value& jsonConfig, QGridLayout * grid, table * data)
 {
     int i = 0;
     string id, typ;
 
-    ::map<string, insightGraphic *> mp;
+    ::map<string, InsightBaseGraphic *> mp;
+
+    grid->setSpacing(0);
+    grid->setContentsMargins(0, 0, 0, 0);
+
 
     int rows = jsonConfig["size"][0].GetInt();
 //    int cols = jsonConfig["size"][1].GetInt();
@@ -31,13 +37,14 @@ map<string, insightGraphic *> insightLayout::importFromConfig( Value& jsonConfig
 
         if ( typ == "Waveform" )
         {
-            insightGraphic * plot = new insightGraphic;
+            WaveformDisplay * plot = new WaveformDisplay(data);
+            // QwtPlot * plot = new QwtPlot();
 
             string channelName;
 
             if (m.value.GetObject().HasMember("data")) {
                 channelName = m.value.GetObject()["data"]["channel"].GetString();
-                plot->setChannelName(channelName);
+                plot->set_channel_name(channelName);
             }
 
             grid->addWidget(plot, i % rows, i / rows);
@@ -52,14 +59,14 @@ map<string, insightGraphic *> insightLayout::importFromConfig( Value& jsonConfig
             grid->addLayout(childGrid, i % rows, i / rows);
             i++;
 
-            ::map<string, insightGraphic *> sub_mp = importFromConfig( m.value, childGrid );
+            ::map<string, InsightBaseGraphic *> sub_mp = importFromConfig( m.value, childGrid, data );
             mp.insert( sub_mp.begin(), sub_mp.end() );
         }
     }
     return mp;
 }
 
-void insightLayout::importFromConfig( string filename, QGridLayout * grid )
+void insightLayout::importFromConfig( string filename, QGridLayout * grid, table * data )
 {
     ifstream ifs { filename };
     if ( !ifs.is_open() ) { cerr << "Could not open file for reading!\n"; throw; }
@@ -69,6 +76,6 @@ void insightLayout::importFromConfig( string filename, QGridLayout * grid )
     Document d;
     d.ParseStream( isw );
 
-    ::map<string, insightGraphic *> mp = importFromConfig( d, grid );
+    ::map<string, InsightBaseGraphic *> mp = importFromConfig( d, grid, data );
     m_map.insert( mp.begin(), mp.end() );
 }

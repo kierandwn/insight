@@ -14,25 +14,34 @@
 #include "lib/layout/include/grid.h"
 #include "lib/data/include/table.h"
 #include "lib/csv/include/csv.h"
-#include "lib/graphic/include/plotupdate.h"
 
 
 using namespace std;
 
-InsightMainWindow::InsightMainWindow(string source_root_dir, QWidget *parent)
+InsightMainWindow::InsightMainWindow(string source_root_dir, QWidget * parent)
     : QMainWindow(parent),
-      ui(new Ui::InsightMainWindow)
+      ui(new Ui::InsightMainWindow),
+      src_root_dir_(source_root_dir)
 {
     ui->setupUi(this);
 
-    QString layout_filename = QFileDialog::getOpenFileName(this,
-        tr("Load Data File"), source_root_dir.append("/config", 8).c_str(), tr("Layout File (*.layout)"));
+//    QGridLayout * grid = ui->PlotGrid;
+//    grid->addWidget(new WaveformDisplay(), 0, 0);
 
-    layout.importFromConfig(layout_filename.toStdString(), ui->PlotGrid);
-    updater.init();
+    QString layout_filename = QFileDialog::getOpenFileName(this,
+        tr("Load Data File"), src_root_dir_.append("/config", 8).c_str(), tr("Layout File (*.layout)"));
+
+    layout.importFromConfig(layout_filename.toStdString(), ui->PlotGrid, &data);
 }
 
 InsightMainWindow::~InsightMainWindow() { delete ui; }
+
+void InsightMainWindow::update() {
+    map<string, InsightBaseGraphic *>::iterator p;
+    for (p = layout.first(); p != layout.last(); ++p) {
+        p->second->update();
+    }
+}
 
 
 void InsightMainWindow::on_actionLoad_File_triggered()
@@ -40,8 +49,8 @@ void InsightMainWindow::on_actionLoad_File_triggered()
     data.clear();
 
     QString filename = QFileDialog::getOpenFileName(this,
-        tr("Load Data File"), "C:/Users/kdwn/projects/insight/demo", tr("CSV Files (*.csv)"));
+        tr("Load Data File"), tr(src_root_dir_.append("/demo", 5).c_str()), tr("CSV Files (*.csv)"));
 
     import_from_csv(filename.toStdString(), &data);
-    updater.update();
+    update();
 }

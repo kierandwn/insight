@@ -17,13 +17,12 @@
 
 #include "lib/layout/include/grid.h"
 #include "lib/data/include/table.h"
-#include "lib/graphic/include/plotupdate.h"
 
 using namespace std;
 
-QT_BEGIN_NAMESPACE
-namespace Ui { class InsightMainWindow; }
-QT_END_NAMESPACE
+//QT_BEGIN_NAMESPACE
+//namespace Ui { class InsightMainWindow; }
+//QT_END_NAMESPACE
 
 class InsightMainWindow : public QMainWindow
 {
@@ -45,12 +44,13 @@ public:
     insightLayout layout;
     table data;
 
-    plotUpdater updater = plotUpdater(&layout, &data);
+    void update();
 
 private slots:
     void on_actionLoad_File_triggered();
 
 private:
     Ui::InsightMainWindow *ui;
+    string src_root_dir_;
 };
 #endif // INSIGHTMAINWINDOW_H

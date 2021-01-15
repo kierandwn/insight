@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>WaveformDisplay</class>
+ <widget class="QwtPlot" name="WaveformDisplay">
+  <property name="contextMenuPolicy">
+   <enum>Qt::NoContextMenu</enum>
+  </property>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

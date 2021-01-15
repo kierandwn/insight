@@ -1,6 +1,5 @@
-SOURCES += \
-    lib/graphic/graphic.cpp
 
 HEADERS += \
-    lib/graphic/include/plotupdate.h \
-    lib/graphic/include/graphic.h
+    lib/graphic/include/insight_graphic_base.h
+
+include(waveform/waveform.pri)

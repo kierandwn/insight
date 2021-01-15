@@ -1,11 +1,17 @@
 #include "lib/config/include/parse.h"
 
+#include <iostream>
+#include <fstream>
+#include <map>
+
 #include "lib/rapidjson/include/rapidjson/document.h"
 #include <lib/rapidjson/include/rapidjson/istreamwrapper.h>
 
 using namespace std;
 using namespace rapidjson;
 
+static const char* kTypeNames[] =
+    { "Null", "False", "True", "Object", "Array", "String", "Number" };
 
 void parseConfig()
 {

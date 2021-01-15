@@ -5,7 +5,7 @@
         "0" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : "sigma_0",
+                "channel" : "a",
                 "lineColour" : "red",
                 "lineWidth" : 2.0
             }
@@ -13,7 +13,7 @@
         "1" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : "err_sigma_0",
+                "channel" : "b",
                 "lineColour" : "red",
                 "lineWidth" : 2.0
             }
@@ -21,7 +21,7 @@
         "2" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : "sigma_1",
+                "channel" : "c",
                 "lineColour" : "red",
                 "lineWidth" : 2.0
             }
@@ -29,7 +29,7 @@
         "3" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : "err_sigma_1",
+                "channel" : "d",
                 "lineColour" : "red",
                 "lineWidth" : 2.0
             }
@@ -37,7 +37,7 @@
         "4" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : "sigma_2",
+                "channel" : "e",
                 "lineColour" : "red",
                 "lineWidth" : 2.0
             }
@@ -45,7 +45,7 @@
         "5" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : "err_sigma_2",
+                "channel" : "f",
                 "lineColour" : "red",
                 "lineWidth" : 2.0
             }

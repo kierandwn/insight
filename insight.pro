@@ -10,7 +10,7 @@ CONFIG += c++11
 
 include ( C:/qwt-6.1.5/features/qwt.prf )
 
-include ( lib/config/config.pro )
+#include ( lib/config/config.pro )
 include ( lib/data/data.pro )
 include ( lib/graphic/graphic.pro )
 include ( lib/layout/layout.pro )

@@ -20,16 +20,18 @@
 #define WAVEFORMDISPLAY_H
 
 #include "ui_waveform.h"
-
-#include "lib/rapidjson/include/rapidjson/document.h"
-#include "lib/data/include/table.h"
 #include "lib/graphic/include/insight_graphic_base.h"
+
+#include "lib/json/single_include/nlohmann/json.hpp"
+#include "lib/data/include/table.h"
 
 
 using namespace std;
 
 class WaveformDisplay : public QwtPlot, virtual public InsightBaseGraphic
 {
+  Q_OBJECT
+
 private:
   vector<string> channel_names_;
   string test_;
@@ -72,7 +74,7 @@ public:
     string get_channel_name(int i) { return channel_names_[i]; }
     int get_number_of_channels() { return channel_names_.size(); }
 
-  void apply_config(rapidjson::Value&) override;
+  void apply_config(nlohmann::json) override;
   void reset () override;
   void update () override;
 

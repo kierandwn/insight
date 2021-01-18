@@ -24,7 +24,7 @@
 
 #include <QGridLayout>
 
-#include "lib/rapidjson/include/rapidjson/document.h"
+#include "lib/json/single_include/nlohmann/json.hpp"
 
 #include "lib/data/include/table.h"
 #include "lib/graphic/waveform/include/waveformdisplay.h"
@@ -56,7 +56,7 @@ public:
   insightLayout() {}
 
   void importFromConfig( string filename, QGridLayout * grid, table * data );
-  ::map<string, InsightBaseGraphic *> importFromConfig( rapidjson::Value&, QGridLayout * grid, table * data );
+  ::map<string, InsightBaseGraphic *> importFromConfig( nlohmann::json, QGridLayout *, table * );
 };
 
 

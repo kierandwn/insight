@@ -1,5 +1,11 @@
+TEMPLATE = lib
+
+GRAPHIC_INCLUDE_PATH = "$$PWD/include"
+
+INCLUDEPATH += \
+    $$GRAPHIC_INCLUDE_PATH
 
 HEADERS += \
-    lib/graphic/include/insight_graphic_base.h
+    $$GRAPHIC_INCLUDE_PATH/insight_graphic_base.h
 
 include(waveform/waveform.pri)

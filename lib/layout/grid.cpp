@@ -24,20 +24,19 @@
 #include <string>
 #include <map>
 
-#include "lib/rapidjson/include/rapidjson/document.h"
-#include <lib/rapidjson/include/rapidjson/istreamwrapper.h>
+#include "lib/json/single_include/nlohmann/json.hpp"
 
 #include "lib/data/include/table.h"
 #include "lib/graphic/waveform/include/waveformdisplay.h"
 
 
 using namespace std;
-using namespace rapidjson;
+using json = nlohmann::json;
 
 map<string, InsightBaseGraphic *>::iterator gridLayout::first() { return m_map.begin(); }
 map<string, InsightBaseGraphic *>::iterator gridLayout::last()  { return m_map.end(); }
 
-map<string, InsightBaseGraphic *> insightLayout::importFromConfig( Value& jsonConfig, QGridLayout * grid, table * data)
+map<string, InsightBaseGraphic *> insightLayout::importFromConfig(json jsonConfig, QGridLayout * grid, table * data)
 {
   int i = 0;
   string id, typ;
@@ -48,20 +47,22 @@ map<string, InsightBaseGraphic *> insightLayout::importFromConfig( Value& jsonCo
   grid->setContentsMargins(0, 0, 0, 0);
 
 
-  int rows = jsonConfig["size"][0].GetInt();
+  int rows = jsonConfig["size"][0];
 //    int cols = jsonConfig["size"][1].GetInt();
 
-  for ( auto& m : jsonConfig["children"].GetObject() )
-  {
-    id = m.name.GetString();
-    typ = m.value.GetObject()["type"].GetString();
+  json children = jsonConfig["children"];
 
-    Value json_config_obj = m.value.GetObject();
+  for ( json::iterator child = children.begin(); child != children.end(); ++child )
+  {
+    id = child.key();
+    json child_config = child.value();
+
+    typ = child_config["type"];
 
     if ( typ == "Waveform" )
     {
       WaveformDisplay * plot = new WaveformDisplay(data);
-      plot->apply_config(json_config_obj);
+      plot->apply_config(child_config);
 
       grid->addWidget(plot, i % rows, i / rows);
       mp[id] = plot;
@@ -74,7 +75,7 @@ map<string, InsightBaseGraphic *> insightLayout::importFromConfig( Value& jsonCo
       grid->addLayout(childGrid, i % rows, i / rows);
       i++;
 
-      ::map<string, InsightBaseGraphic *> sub_mp = importFromConfig( m.value, childGrid, data );
+      ::map<string, InsightBaseGraphic *> sub_mp = importFromConfig( child_config, childGrid, data );
       mp.insert( sub_mp.begin(), sub_mp.end() );
     }
   }
@@ -83,14 +84,12 @@ map<string, InsightBaseGraphic *> insightLayout::importFromConfig( Value& jsonCo
 
 void insightLayout::importFromConfig( string filename, QGridLayout * grid, table * data )
 {
-    ifstream ifs { filename };
-    if ( !ifs.is_open() ) { cerr << "Could not open file for reading!\n"; throw; }
+  ifstream ifs { filename };
+  if ( !ifs.is_open() ) { cerr << "Could not open file for reading!\n"; throw; }
 
-    IStreamWrapper isw{ ifs };
+  json config;
+  ifs >> config;
 
-    Document d;
-    d.ParseStream( isw );
-
-    ::map<string, InsightBaseGraphic *> mp = importFromConfig( d, grid, data );
-    m_map.insert( mp.begin(), mp.end() );
+  ::map<string, InsightBaseGraphic *> mp = importFromConfig( config, grid, data );
+  m_map.insert( mp.begin(), mp.end() );
 }

@@ -1,0 +1,54 @@
+{
+    "type" : "Grid",
+    "size" : [2, 3],
+    "children" : {
+        "0" : {
+            "type" : "Waveform",
+            "data" : {
+                "channel" : "omega_0",
+                "lineColour" : "red",
+                "lineWidth" : 2.0
+            }
+        },
+        "1" : {
+            "type" : "Waveform",
+            "data" : {
+                "channel" : "ref_omega_0",
+                "lineColour" : "red",
+                "lineWidth" : 2.0
+            }
+        },
+        "2" : {
+            "type" : "Waveform",
+            "data" : {
+                "channel" : "omega_1",
+                "lineColour" : "red",
+                "lineWidth" : 2.0
+            }
+        },
+        "3" : {
+            "type" : "Waveform",
+            "data" : {
+                "channel" : "ref_omega_1",
+                "lineColour" : "red",
+                "lineWidth" : 2.0
+            }
+        },
+        "4" : {
+            "type" : "Waveform",
+            "data" : {
+                "channel" : "omega_2",
+                "lineColour" : "red",
+                "lineWidth" : 2.0
+            }
+        },
+        "5" : {
+            "type" : "Waveform",
+            "data" : {
+                "channel" : "ref_omega_2",
+                "lineColour" : "red",
+                "lineWidth" : 2.0
+            }
+        }
+    }
+}

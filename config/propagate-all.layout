@@ -5,37 +5,37 @@
         "0" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : ["a"]
+                "channel" : ["sigma_0", "sigma_1", "sigma_2"]
             }
         },
         "1" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : ["b"]
+                "channel" : ["omega_0"]
             }
         },
         "2" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : ["c"]
+                "channel" : ["sigma_1"]
             }
         },
         "3" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : ["d"]
+                "channel" : ["omega_1"]
             }
         },
         "4" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : ["e"]
+                "channel" : ["sigma_2"]
             }
         },
         "5" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : ["f"]
+                "channel" : ["omega_2"]
             }
         }
     }

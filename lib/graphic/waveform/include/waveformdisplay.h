@@ -74,7 +74,7 @@ public:
     string get_channel_name(int i) { return channel_names_[i]; }
     int get_number_of_channels() { return channel_names_.size(); }
 
-  void apply_config(nlohmann::json) override;
+  void apply_config(nlohmann::json *) override;
   void reset () override;
   void update () override;
 

@@ -62,7 +62,7 @@ map<string, InsightBaseGraphic *> insightLayout::importFromConfig(json jsonConfi
     if ( typ == "Waveform" )
     {
       WaveformDisplay * plot = new WaveformDisplay(data);
-      plot->apply_config(child_config);
+      plot->apply_config(&child_config);
 
       grid->addWidget(plot, i % rows, i / rows);
       mp[id] = plot;

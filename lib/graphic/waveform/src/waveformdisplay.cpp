@@ -30,9 +30,9 @@ WaveformDisplay::WaveformDisplay(table * data)
 }
 
 // Apply configuation parameters held in json_config
-void WaveformDisplay::apply_config(nlohmann::json json_config) {
-  if (json_config.contains("data")) {
-    for (auto& channel_name : json_config["data"]["channel"]) {
+void WaveformDisplay::apply_config(nlohmann::json * json_config) {
+  if (json_config->contains("data")) {
+    for (auto& channel_name : json_config->operator[]("data")["channel"]) {
       add_channel_name(channel_name);
     }
   }

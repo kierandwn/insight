@@ -58,7 +58,7 @@ public:
 //    QString toolTip() const override { return QString(); }
 //    QString whatsThis() const override { return QString(); }
 
-    virtual void apply_config(const nlohmann::json);
+    virtual void apply_config(nlohmann::json *);
     virtual void reset () {}
     virtual void update() {}
 

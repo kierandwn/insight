@@ -20,10 +20,10 @@
 #define WAVEFORMDISPLAY_H
 
 #include "ui_waveform.h"
-#include "lib/graphic/include/insight_graphic_base.h"
+#include "insight_graphic_base.h"
 
 #include "lib/json/single_include/nlohmann/json.hpp"
-#include "lib/data/include/table.h"
+#include "table.h"
 
 
 using namespace std;

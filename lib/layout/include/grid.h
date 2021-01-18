@@ -26,8 +26,8 @@
 
 #include "lib/json/single_include/nlohmann/json.hpp"
 
-#include "lib/data/include/table.h"
-#include "lib/graphic/waveform/include/waveformdisplay.h"
+#include "table.h"
+#include "waveformdisplay.h"
 
 
 using namespace std;

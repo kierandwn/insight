@@ -29,9 +29,9 @@
 #include <qwt_symbol.h>
 #include <qwt_legend.h>
 
-#include "lib/layout/include/grid.h"
-#include "lib/data/include/table.h"
-#include "lib/csv/include/csv.h"
+#include "grid.h"
+#include "table.h"
+#include "csv.h"
 
 
 using namespace std;

@@ -25,7 +25,7 @@
 #include <vector>
 #include <fstream>
 
-#include "lib/data/include/table.h"
+#include "table.h"
 
 using namespace std;
 

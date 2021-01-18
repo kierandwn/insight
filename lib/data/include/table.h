@@ -19,10 +19,7 @@
 #ifndef DATATABLE_H
 #define DATATABLE_H
 
-#define CSV_IO_NO_THREAD
-
-#include "lib/data/include/channel.h"
-// #include "lib/csv/include/csv.h"
+#include "channel.h"
 
 #include <fstream>
 #include <string>

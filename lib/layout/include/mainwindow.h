@@ -33,8 +33,8 @@
 #include <qwt_symbol.h>
 #include <qwt_legend.h>
 
-#include "lib/layout/include/grid.h"
-#include "lib/data/include/table.h"
+#include "grid.h"
+#include "table.h"
 
 
 using namespace std;

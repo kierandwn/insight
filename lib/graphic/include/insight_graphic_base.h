@@ -22,7 +22,7 @@
 #include <QWidget>
 #include <QDesignerCustomWidgetInterface>
 
-#include "lib/data/include/table.h"
+#include "table.h"
 #include "lib/json/single_include/nlohmann/json.hpp"
 
 using namespace std;

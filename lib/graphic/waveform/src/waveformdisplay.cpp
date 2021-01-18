@@ -21,7 +21,7 @@
 #include <qwt_plot_curve.h>
 #include <qwt_plot_item.h>
 
-#include "lib/graphic/include/insight_graphic_base.h"
+#include "insight_graphic_base.h"
 
 
 WaveformDisplay::WaveformDisplay(table * data)

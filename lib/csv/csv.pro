@@ -1,2 +1,9 @@
+TEMPLATE = lib
+
+CSV_INCLUDE_PATH = "$$PWD/include"
+
+INCLUDEPATH += \
+    $$CSV_INCLUDE_PATH
+
 HEADERS += \
-    lib/csv/include/csv.h
+    $$CSV_INCLUDE_PATH/csv.h

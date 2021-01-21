@@ -1,3 +1,7 @@
+QT += designer widgets uiplugin
+CONFIG += plugin
+TEMPLATE = lib
+
 WAVEFORM_SRC_PATH = "$$PWD/src"
 WAVEFORM_INCLUDE_PATH = "$$PWD/include"
 WAVEFORM_UI_PATH = "$$PWD/ui"
@@ -14,5 +18,4 @@ HEADERS += \
 FORMS += \
     $${WAVEFORM_UI_PATH}/waveform.ui
     
-QT += designer widgets uiplugin
-CONFIG += plugin
+

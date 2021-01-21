@@ -1,3 +1,5 @@
+# TEMPLATE = lib
+
 GRAPHIC_INCLUDE_PATH = "$$PWD/include"
 
 INCLUDEPATH += \

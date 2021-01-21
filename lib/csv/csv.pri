@@ -1,3 +1,5 @@
+# TEMPLATE = lib
+
 CSV_INCLUDE_PATH = "$$PWD/include"
 
 INCLUDEPATH += \

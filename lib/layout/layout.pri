@@ -1,3 +1,5 @@
+# TEMPLATE = lib
+
 LAYOUT_SRC_PATH = "$$PWD/src"
 LAYOUT_INCLUDE_PATH = "$$PWD/include"
 

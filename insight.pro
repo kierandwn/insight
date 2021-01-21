@@ -8,7 +8,9 @@ CONFIG += c++11
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-include ( C:/qwt-6.1.5/features/qwt.prf )
+
+include ( /usr/local/qwt-6.1.5/features/qwt.prf )
+#include ( C:/qwt-6.1.5/features/qwt.prf )
 
 #include ( lib/config/config.pro )
 include ( lib/data/data.pro )

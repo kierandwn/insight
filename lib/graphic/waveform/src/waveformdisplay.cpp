@@ -39,19 +39,22 @@ WaveformDisplay::WaveformDisplay(table * data)
 
 // Apply configuation parameters held in json_config
 void WaveformDisplay::apply_config(nlohmann::json * json_config) {
+  string label = "";
   if (json_config->contains("data")) {
     for (auto& channel_name : json_config->operator[]("data")["channel"]) {
       add_channel_name(channel_name);
+//      label += channel_names_[channel_names_.size() - 1] + "; ";
     }
   }
+//  ui->data_label->setText(QString(label.c_str()));
 }
 
 void WaveformDisplay::update()
 {
   int channels_to_plot = get_number_of_channels();
 
-//  QPen default_pen(QColor(0, 0, 0, 255));
-//  default_pen.setWidth(2);
+  QPen default_pen(QColor(0, 0, 0, 255));
+  default_pen.setWidth(2);
 
   for (int i = 0; i < channels_to_plot; ++i) {
 
@@ -63,7 +66,10 @@ void WaveformDisplay::update()
         channel * c = data_->get(id);
         size_t n = c->length();
 
-//        curve->setPen(default_pen);
+        QPen pen = default_pen;
+        vector<int> color = color_order[i];
+        pen.setColor(QColor(color[0], color[1], color[2], color[3]));
+        curve->setPen(pen);
 
         // obtain an x channel from data?
         double * xData = new double[n];

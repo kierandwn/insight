@@ -38,6 +38,16 @@ private:
 
   Ui::WaveformDisplay * ui = new Ui::WaveformDisplay;
 
+  vector<vector<int>> color_order{
+    {0,	114, 189, 180},
+    {217, 83, 250, 180},
+    {237, 177, 32, 180},
+    {126, 47, 142, 180},
+    {119, 172, 48, 180},
+    {77, 190, 238, 180},
+    {162, 199, 47, 180}
+  };
+
 public:
   WaveformDisplay(table * data);
   QWidget * PlotArea;

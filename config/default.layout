@@ -1,0 +1,42 @@
+{
+    "type" : "Grid",
+    "size" : [2, 3],
+    "children" : {
+        "0" : {
+            "type" : "Waveform",
+            "data" : {
+                "channel" : ["a"]
+            }
+        },
+        "1" : {
+            "type" : "Waveform",
+            "data" : {
+                "channel" : ["b"]
+            }
+        },
+        "2" : {
+            "type" : "Waveform",
+            "data" : {
+                "channel" : ["c"]
+            }
+        },
+        "3" : {
+            "type" : "Waveform",
+            "data" : {
+                "channel" : ["d"]
+            }
+        },
+        "4" : {
+            "type" : "Waveform",
+            "data" : {
+                "channel" : ["e"]
+            }
+        },
+        "5" : {
+            "type" : "Waveform",
+            "data" : {
+                "channel" : ["f"]
+            }
+        }
+    }
+}

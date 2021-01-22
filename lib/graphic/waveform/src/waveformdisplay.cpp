@@ -43,10 +43,10 @@ void WaveformDisplay::apply_config(nlohmann::json * json_config) {
   if (json_config->contains("data")) {
     for (auto& channel_name : json_config->operator[]("data")["channel"]) {
       add_channel_name(channel_name);
-//      label += channel_names_[channel_names_.size() - 1] + "; ";
+      label += channel_names_[channel_names_.size() - 1] + "; ";
     }
   }
-//  ui->data_label->setText(QString(label.c_str()));
+  ui->data_label->setText(QString(label.c_str()));
 }
 
 void WaveformDisplay::update()

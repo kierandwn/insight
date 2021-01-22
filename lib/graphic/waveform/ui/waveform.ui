@@ -6,13 +6,43 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>337</width>
+    <width>443</width>
     <height>432</height>
    </rect>
   </property>
   <property name="contextMenuPolicy">
    <enum>Qt::NoContextMenu</enum>
   </property>
+  <widget class="QLabel" name="data_label">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>101</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Courier</family>
+     <pointsize>10</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::MarkdownText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>true</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+   </property>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>

@@ -23,10 +23,18 @@
 
 #include "insight_graphic_base.h"
 
-
 WaveformDisplay::WaveformDisplay(table * data)
     : InsightBaseGraphic(data) {
   ui->setupUi(this);
+
+  setAutoFillBackground( true );
+  QPalette p = palette();
+
+  p.setColor(QPalette::Window, QColor(255, 255, 255, 255));
+  setPalette(p);
+
+  enableAxis(xBottom, false);
+  enableAxis(yLeft, false);
 }
 
 // Apply configuation parameters held in json_config
@@ -42,6 +50,9 @@ void WaveformDisplay::update()
 {
   int channels_to_plot = get_number_of_channels();
 
+//  QPen default_pen(QColor(0, 0, 0, 255));
+//  default_pen.setWidth(2);
+
   for (int i = 0; i < channels_to_plot; ++i) {
 
     // create curve object
@@ -52,12 +63,14 @@ void WaveformDisplay::update()
         channel * c = data_->get(id);
         size_t n = c->length();
 
+//        curve->setPen(default_pen);
+
         // obtain an x channel from data?
         double * xData = new double[n];
         for (size_t i = 0; i < n; ++i) { xData[i] = i; }
 
         // attach curve to graphic
-        curve->setSamples(xData, c->begin(), n);
+        curve->setRawSamples(xData, c->begin(), n);
         curve->attach(this);
 
         replot();

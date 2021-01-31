@@ -43,3 +43,13 @@ sudo apt-get install qt5-default
 sudo apt-get install qt5-doc qtbase5-doc-html
 sudo apt-get install qttools5-dev
 ```
+
+Download & extract Qwt source, enter the Qwt-6.1.5 directory and:
+
+```
+qmake qwt.pro
+make
+sudo make install
+```
+
+Open QtCreator, open project (by selecting project file insight.pro) and hit Run to build.

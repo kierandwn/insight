@@ -1,5 +1,7 @@
 # Dependency Install Procedures 
 
+Qwt source available [here](https://sourceforge.net/projects/qwt/files/qwt/6.1.5/qwt-6.1.5.zip/download).  
+
 ## Windows 10
 _This guide assumes that Microsoft Visual Studio is already installed._
 
@@ -11,7 +13,7 @@ Personally, I used the online installer, selected `Qt v5.15.1` with compiler `MS
 
 ### Qwt 6.1.5
 
-- Download Qwt source .zip [here](https://sourceforge.net/projects/qwt/files/qwt/6.1.5/qwt-6.1.5.zip/download).
+- Download Qwt source .zip.
 - Extract to C:\Qwt-6.1.5
 - Open Qt 5.15.1 (MSVC2019 64-bit) command line, and:
   - execute `C:\Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Auxiliary/Build/vcvars64.bat`

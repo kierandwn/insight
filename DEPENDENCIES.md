@@ -30,3 +30,14 @@ namke install
  - `QWT_ROOT` : `C:\Qwt-6.1.5`
  - Add `C:\Qwt-6.1.5` to `PATH`
 - Copy `C:\qwt-6.1.5\designer\plugins\designer\qwt_designer_plugin.dll` to `C:\Qt\Tools\QtCreator\bin\plugins\designer`
+
+## Linux (Debian)
+
+Install Qt5:
+
+```
+sudo apt-get install qtcreator
+sudo apt-get install qt5-default
+sudo apt-get install qt5-doc qtbase5-doc-html
+sudo apt-get install qttools5-dev
+```

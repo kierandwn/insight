@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -45,6 +46,16 @@ public:
 
     size_t length () { return len; }
     double * begin() { return &m_dataArray[0]; }
+
+    double max() {
+      vector<double>::iterator it = std::max_element(m_dataArray.begin(), m_dataArray.end());
+      return *it;
+    }
+    double min() {
+      vector<double>::iterator it = std::min_element(m_dataArray.begin(), m_dataArray.end());
+      return *it;
+    }
+
 
     double * operator[] (int i) { return &m_dataArray[i]; }
     // operator double * () const { return m_dataArray; }

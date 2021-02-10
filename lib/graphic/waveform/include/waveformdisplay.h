@@ -38,6 +38,7 @@ private:
 
   Ui::WaveformDisplay * ui = new Ui::WaveformDisplay;
 
+  vector<int> default_inactive_color {150, 150, 150, 180};
   vector<vector<int>> color_order{
     {0,	114, 189, 180},
     {217, 83, 250, 180},

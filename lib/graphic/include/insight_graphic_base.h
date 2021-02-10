@@ -20,7 +20,7 @@
 #define INSIGHT_GRAPHIC_BASE_H
 
 #include <QWidget>
-#include <QDesignerCustomWidgetInterface>
+#include <QtUiPlugin/QDesignerCustomWidgetInterface>
 
 #include "table.h"
 #include "lib/json/single_include/nlohmann/json.hpp"

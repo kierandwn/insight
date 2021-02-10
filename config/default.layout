@@ -5,7 +5,7 @@
         "0" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : ["a"]
+                "channel" : ["a", "b"]
             }
         },
         "1" : {

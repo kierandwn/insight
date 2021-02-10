@@ -36,6 +36,8 @@ using json = nlohmann::json;
 map<string, InsightBaseGraphic *>::iterator gridLayout::first() { return m_map.begin(); }
 map<string, InsightBaseGraphic *>::iterator gridLayout::last()  { return m_map.end(); }
 
+map<string, InsightBaseGraphic *>& gridLayout::map() { return m_map; }
+
 map<string, InsightBaseGraphic *> insightLayout::importFromConfig(json jsonConfig, QGridLayout * grid, table * data)
 {
   int i = 0;

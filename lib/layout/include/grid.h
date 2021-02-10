@@ -26,16 +26,14 @@
 
 #include "lib/json/single_include/nlohmann/json.hpp"
 
-#include "table.h"
+#include "insight_graphic_base.h"
 #include "waveformdisplay.h"
-
-
-using namespace std;
+#include "table.h"
 
 class gridLayout {
 protected:
   int m_size[2];
-  map<string, InsightBaseGraphic *> m_map;
+  std::map<string, InsightBaseGraphic *> m_map;
 
 public:
   gridLayout() : m_size{0, 0} {}
@@ -45,7 +43,7 @@ public:
   map<string, InsightBaseGraphic *>::iterator next();
   map<string, InsightBaseGraphic *>::iterator last();
 
-  map<string, InsightBaseGraphic *> map() { return m_map; }
+  std::map<string, InsightBaseGraphic *>& map();
 };
 
 class insightLayout : public gridLayout {
@@ -56,7 +54,7 @@ public:
   insightLayout() {}
 
   void importFromConfig( string filename, QGridLayout * grid, table * data );
-  ::map<string, InsightBaseGraphic *> importFromConfig( nlohmann::json, QGridLayout *, table * );
+  std::map<string, InsightBaseGraphic *> importFromConfig( nlohmann::json, QGridLayout *, table * );
 };
 
 

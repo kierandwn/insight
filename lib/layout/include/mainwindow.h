@@ -52,7 +52,7 @@ public:
     ~ApplicationMainWindow();
 
     layout::GridFromConfig m_layout;
-    table data;
+    data::Table m_data;
 
     void update();
 

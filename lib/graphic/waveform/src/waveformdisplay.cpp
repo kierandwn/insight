@@ -25,7 +25,9 @@
 
 #include "insight_graphic_base.h"
 
-WaveformDisplay::WaveformDisplay(table * data)
+namespace insight {
+
+WaveformDisplay::WaveformDisplay(data::Table * data)
     : InsightBaseGraphic(data) {
   ui->setupUi(this);
 
@@ -105,7 +107,7 @@ void WaveformDisplay::update()
 
     if (data_->exists(id)) {
         QwtPlotCurve * curve = new QwtPlotCurve;
-        channel * c = data_->get(id);
+        data::Channel * c = data_->get(id);
         size_t n = c->length();
 
         QPen pen = default_pen;
@@ -151,3 +153,6 @@ void WaveformDisplay::reset()
     detachItems();
     replot();
 }
+
+
+}  // namespace insight

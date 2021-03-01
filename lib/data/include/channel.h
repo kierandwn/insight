@@ -14,7 +14,7 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with attitude.  If not, see <https://www.gnu.org/licenses/>.
+// along with insight.  If not, see <https://www.gnu.org/licenses/>.
 //
 #ifndef DATACHANNEL_H
 #define DATACHANNEL_H
@@ -25,40 +25,44 @@
 
 using namespace std;
 
-// template <typename Tp>
-class channel {
-private:
-    vector<double> m_dataArray;
+namespace insight {
+namespace data {
 
-    double m_get(int);
-    void m_set(int, double);
+
+// template <typename Tp>
+class Channel {
+private:
+    vector<double> m_items;
+
+//    double m_get(int);
+//    void m_set(int, double);
 
     size_t len = 0;
 
 public:
-    channel() {}
-    // channel() {}
+    Channel() {}
+    ~Channel() {}
 
-    ~channel() {}
-
-    void push(double val) { m_dataArray.push_back(val); len += 1; }
-    // double * buffer() { return &m_dataArray[count]; len += 1; }
+    void push(double val) { m_items.push_back(val); len += 1; }
+    // double * buffer() { return &m_items[count]; len += 1; }
 
     size_t length () { return len; }
-    double * begin() { return &m_dataArray[0]; }
+    double * begin() { return &m_items[0]; }
 
     double max() {
-      vector<double>::iterator it = std::max_element(m_dataArray.begin(), m_dataArray.end());
+      vector<double>::iterator it = std::max_element(m_items.begin(), m_items.end());
       return *it;
     }
     double min() {
-      vector<double>::iterator it = std::min_element(m_dataArray.begin(), m_dataArray.end());
+      vector<double>::iterator it = std::min_element(m_items.begin(), m_items.end());
       return *it;
     }
 
-
-    double * operator[] (int i) { return &m_dataArray[i]; }
-    // operator double * () const { return m_dataArray; }
+    double * operator[] (int i) { return &m_items[i]; }
+    // operator double * () const { return m_items; }
 };
 
+
+}  // namespace data
+}  // namespace insight
 #endif // DATACHANNEL_H

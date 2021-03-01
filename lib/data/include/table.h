@@ -29,35 +29,38 @@
 using namespace std;
 
 
-class table {
+namespace insight {
+namespace data {
+
+class Table {
 private:
-    std::map<std::string, channel *> m_channelMap;
+    std::map<string, Channel *> m_channels;
 
 public:
-    table() {}
-    ~table() { clear(); }
+    Table() {}
+    ~Table() { clear(); }
 
-    channel * get(std::string id) {
-        return m_channelMap[id];
-    }
+    Channel * get(string id) { return m_channels[id]; }
 
-    void add_channel(string channel_name)
+    void add(string channel_name)
     {
-        if (m_channelMap.find(channel_name) == m_channelMap.end()) {
-            m_channelMap[channel_name] = new channel;
+        if (m_channels.find(channel_name) == m_channels.end()) {
+            m_channels[channel_name] = new Channel;
         }
     }
 
-    bool exists(string id) { return (!(m_channelMap.find(id) == m_channelMap.end())); }
+    bool exists(string id) { return (!(m_channels.find(id) == m_channels.end())); }
 
     void clear() {
-        for (map<string, channel *>::iterator c = m_channelMap.begin(); c != m_channelMap.end(); ++c) {
+        for (map<string, Channel *>::iterator c = m_channels.begin(); c != m_channels.end(); ++c) {
             delete c->second;
         }
-        m_channelMap.clear();
+        m_channels.clear();
     }
 
-    channel * operator[] (string id) { return m_channelMap[id]; }
+    Channel * operator[] (string id) { return m_channels[id]; }
 };
 
+}  // namespace data
+}  // namespace insight
 #endif // DATATABLE_H

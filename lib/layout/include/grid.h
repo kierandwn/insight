@@ -58,8 +58,8 @@ private:
 public:
   GridFromConfig() {}
 
-  void importFromConfig( string filename, QGridLayout * grid, table * data );
-  std::map<string, InsightBaseGraphic *> importFromConfig( nlohmann::json, QGridLayout *, table * );
+  void import_from_config( string filename, QGridLayout * grid, data::Table * data );
+  std::map<string, InsightBaseGraphic *> import_from_config( nlohmann::json, QGridLayout *, data::Table * );
 };
 
 }  // namespace layout

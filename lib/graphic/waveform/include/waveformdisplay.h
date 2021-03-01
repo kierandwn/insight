@@ -28,6 +28,8 @@
 
 using namespace std;
 
+namespace insight {
+
 class WaveformDisplay : public QwtPlot, virtual public InsightBaseGraphic
 {
   Q_OBJECT
@@ -50,7 +52,7 @@ private:
   };
 
 public:
-  WaveformDisplay(table * data);
+  WaveformDisplay(data::Table * data);
   QWidget * PlotArea;
 
 //    QString includeFile() const override { return QStringLiteral("waveformdisplay.h"); }
@@ -91,4 +93,5 @@ public:
 
 };
 
+}  // namespace insight
 #endif // WAVEFORMDISPLAY_H

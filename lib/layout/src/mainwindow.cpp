@@ -50,7 +50,7 @@ ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * p
     QString layout_filename = QFileDialog::getOpenFileName(this,
         tr("Load Data File"), src_root_dir_.append("/config", 8).c_str(), tr("Layout File (*.layout)"));
 
-    m_layout.importFromConfig(layout_filename.toStdString(), ui->PlotGrid, &data);
+    m_layout.import_from_config(layout_filename.toStdString(), ui->PlotGrid, &m_data);
 }
 
 ApplicationMainWindow::~ApplicationMainWindow() { delete ui; }
@@ -65,12 +65,12 @@ void ApplicationMainWindow::update() {
 
 void ApplicationMainWindow::on_actionLoad_File_triggered()
 {
-    data.clear();
+    m_data.clear();
 
     QString filename = QFileDialog::getOpenFileName(this,
         tr("Load Data File"), tr(src_root_dir_.append("/demo", 5).c_str()), tr("CSV Files (*.csv)"));
 
-    import_from_csv(filename.toStdString(), &data);
+    import_from_csv(filename.toStdString(), &m_data);
     update();
 }
 

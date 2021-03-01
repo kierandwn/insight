@@ -27,17 +27,18 @@
 
 using namespace std;
 
+namespace insight {
 
 class InsightBaseGraphic //, public virtual QDesignerCustomWidgetInterface
 {
 protected:
-    table * data_;
+    data::Table * data_;
 
     bool initialized_ = false;
 
 public:
     InsightBaseGraphic() {}
-    InsightBaseGraphic(table * data)
+    InsightBaseGraphic(data::Table * data)
         : data_(data)
     {}
 
@@ -62,7 +63,8 @@ public:
     virtual void reset () = 0;
     virtual void update() = 0;
 
-    void update_data_ref(table * data) { data_ = data; }
+    void update_data_ref(data::Table * data) { data_ = data; }
 };
 
+}  // namespace insight
 #endif // INSIGHT_GRAPHIC_BASE_H

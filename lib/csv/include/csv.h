@@ -29,6 +29,8 @@
 
 using namespace std;
 
+namespace insight {
+
 // trim from start (in place)
 static inline void ltrim(std::string &s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
@@ -71,7 +73,7 @@ double convert_to_type(string var) {
     return stod(var.c_str());
 }
 
-table * import_from_csv (string filename, table * t=new table, string delim=",")
+data::Table * import_from_csv (string filename, data::Table * t=new data::Table, string delim=",")
 {
     ifstream f;
     f.open(filename);
@@ -86,7 +88,7 @@ table * import_from_csv (string filename, table * t=new table, string delim=",")
     size_t pos = 0;
 
     for (vector<string>::iterator h = headers.begin(); h != headers.end(); ++h)
-        t->add_channel(*(h));
+        t->add(*(h));
 
     size_t i;
     vector<string>::iterator h;
@@ -112,4 +114,6 @@ table * import_from_csv (string filename, table * t=new table, string delim=",")
     return t;
 }
 
+
+}  // namespace insight
 #endif // INSIGHT_CSV_H_

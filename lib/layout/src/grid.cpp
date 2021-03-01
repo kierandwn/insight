@@ -33,12 +33,15 @@
 using namespace std;
 using json = nlohmann::json;
 
-map<string, InsightBaseGraphic *>::iterator gridLayout::first() { return m_map.begin(); }
-map<string, InsightBaseGraphic *>::iterator gridLayout::last()  { return m_map.end(); }
+namespace insight {
+namespace layout {
 
-map<string, InsightBaseGraphic *>& gridLayout::map() { return m_map; }
+map<string, InsightBaseGraphic *>::iterator Grid::first() { return m_map.begin(); }
+map<string, InsightBaseGraphic *>::iterator Grid::last()  { return m_map.end(); }
 
-map<string, InsightBaseGraphic *> insightLayout::importFromConfig(json jsonConfig, QGridLayout * grid, table * data)
+map<string, InsightBaseGraphic *>& Grid::map() { return m_map; }
+
+map<string, InsightBaseGraphic *> GridFromConfig::importFromConfig(json jsonConfig, QGridLayout * grid, table * data)
 {
   int i = 0;
   string id, typ;
@@ -84,7 +87,7 @@ map<string, InsightBaseGraphic *> insightLayout::importFromConfig(json jsonConfi
   return mp;
 }
 
-void insightLayout::importFromConfig( string filename, QGridLayout * grid, table * data )
+void GridFromConfig::importFromConfig( string filename, QGridLayout * grid, table * data )
 {
   ifstream ifs { filename };
   if ( !ifs.is_open() ) { cerr << "Could not open file for reading!\n"; throw; }
@@ -95,3 +98,7 @@ void insightLayout::importFromConfig( string filename, QGridLayout * grid, table
   ::map<string, InsightBaseGraphic *> mp = importFromConfig( config, grid, data );
   m_map.insert( mp.begin(), mp.end() );
 }
+
+
+}  // namespace layout
+}  // namespace insight

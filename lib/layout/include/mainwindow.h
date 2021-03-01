@@ -39,15 +39,19 @@
 
 using namespace std;
 
-class InsightMainWindow : public QMainWindow
+namespace insight {
+namespace layout {
+
+
+class ApplicationMainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    InsightMainWindow(std::string source_main_directory, QWidget *parent = nullptr);
-    ~InsightMainWindow();
+    ApplicationMainWindow(std::string source_main_directory, QWidget *parent = nullptr);
+    ~ApplicationMainWindow();
 
-    insightLayout layout;
+    layout::GridFromConfig m_layout;
     table data;
 
     void update();
@@ -60,5 +64,6 @@ private:
     string src_root_dir_;
 };
 
-
+} // namespace layout
+} // namespace insight
 #endif // INSIGHTMAINWINDOW_H

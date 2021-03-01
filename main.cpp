@@ -14,7 +14,7 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with attitude.  If not, see <https://www.gnu.org/licenses/>.
+// along with insight. If not, see <https://www.gnu.org/licenses/>.
 //
 
 #include "lib/layout/include/mainwindow.h"
@@ -23,6 +23,7 @@
 
 
 using namespace std;
+using namespace insight;
 
 int main(int argc, char *argv[])
 {
@@ -30,7 +31,7 @@ int main(int argc, char *argv[])
     string dir_path = file_path.substr(0, file_path.rfind("\\"));
 
     QApplication a(argc, argv);
-    InsightMainWindow w(dir_path);
+    layout::ApplicationMainWindow w(dir_path);
     w.show();
 
     return a.exec();

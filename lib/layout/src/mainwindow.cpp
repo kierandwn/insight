@@ -36,7 +36,11 @@
 
 using namespace std;
 
-InsightMainWindow::InsightMainWindow(string source_root_dir, QWidget * parent)
+namespace insight {
+namespace layout {
+
+
+ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * parent)
     : QMainWindow(parent),
       ui(new Ui::InsightMainWindow),
       src_root_dir_(source_root_dir)
@@ -46,20 +50,20 @@ InsightMainWindow::InsightMainWindow(string source_root_dir, QWidget * parent)
     QString layout_filename = QFileDialog::getOpenFileName(this,
         tr("Load Data File"), src_root_dir_.append("/config", 8).c_str(), tr("Layout File (*.layout)"));
 
-    layout.importFromConfig(layout_filename.toStdString(), ui->PlotGrid, &data);
+    m_layout.importFromConfig(layout_filename.toStdString(), ui->PlotGrid, &data);
 }
 
-InsightMainWindow::~InsightMainWindow() { delete ui; }
+ApplicationMainWindow::~ApplicationMainWindow() { delete ui; }
 
-void InsightMainWindow::update() {
+void ApplicationMainWindow::update() {
     map<string, InsightBaseGraphic *>::iterator p;
-    for (p = layout.first(); p != layout.last(); ++p) {
+    for (p = m_layout.first(); p != m_layout.last(); ++p) {
         p->second->update();
     }
 }
 
 
-void InsightMainWindow::on_actionLoad_File_triggered()
+void ApplicationMainWindow::on_actionLoad_File_triggered()
 {
     data.clear();
 
@@ -69,3 +73,6 @@ void InsightMainWindow::on_actionLoad_File_triggered()
     import_from_csv(filename.toStdString(), &data);
     update();
 }
+
+}  // namespace layout
+}  // namespace insight

@@ -30,14 +30,19 @@
 #include "waveformdisplay.h"
 #include "table.h"
 
-class gridLayout {
+
+namespace insight {
+namespace layout {
+
+
+class Grid {
 protected:
   int m_size[2];
   std::map<string, InsightBaseGraphic *> m_map;
 
 public:
-  gridLayout() : m_size{0, 0} {}
-  gridLayout(int rows, int cols) : m_size{rows, cols} {}
+ Grid() : m_size{0, 0} {}
+ Grid(int rows, int cols) : m_size{rows, cols} {}
 
   map<string, InsightBaseGraphic *>::iterator first();
   map<string, InsightBaseGraphic *>::iterator next();
@@ -46,16 +51,17 @@ public:
   std::map<string, InsightBaseGraphic *>& map();
 };
 
-class insightLayout : public gridLayout {
+class GridFromConfig : public Grid {
 private:
 //  gridLayout m_plotgrid;
 
 public:
-  insightLayout() {}
+  GridFromConfig() {}
 
   void importFromConfig( string filename, QGridLayout * grid, table * data );
   std::map<string, InsightBaseGraphic *> importFromConfig( nlohmann::json, QGridLayout *, table * );
 };
 
-
+}  // namespace layout
+}  // namespace insight
 #endif // INSIGHTLAYOUT_H

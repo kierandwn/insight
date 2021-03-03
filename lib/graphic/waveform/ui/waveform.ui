@@ -43,37 +43,13 @@
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
    </property>
   </widget>
-  <widget class="QTableWidget" name="channel_table">
-   <property name="geometry">
-    <rect>
-     <x>435</x>
-     <y>0</y>
-     <width>221</width>
-     <height>431</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>Courier</family>
-     <pointsize>11</pointsize>
-    </font>
-   </property>
-   <property name="autoFillBackground">
-    <bool>false</bool>
-   </property>
-   <property name="verticalScrollBarPolicy">
-    <enum>Qt::ScrollBarAsNeeded</enum>
-   </property>
-   <property name="horizontalScrollBarPolicy">
-    <enum>Qt::ScrollBarAsNeeded</enum>
-   </property>
-  </widget>
  </widget>
  <customwidgets>
   <customwidget>
    <class>QwtPlot</class>
    <extends>QFrame</extends>
    <header>qwt_plot.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

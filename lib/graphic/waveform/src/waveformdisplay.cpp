@@ -60,45 +60,14 @@ void WaveformDisplay::apply_config(nlohmann::json * json_config) {
   string label = "";
   int i = 0;
 
-  p_ui->channel_table->horizontalHeader()->setVisible(false);
-  p_ui->channel_table->verticalHeader()->setVisible(false);
-
-  p_ui->channel_table->insertColumn(0); // channel names
-  p_ui->channel_table->insertColumn(1); // value at cursor
-  p_ui->channel_table->insertColumn(2); // unit
-
   if (json_config->contains("data")) {
     for (auto& channel_name : json_config->operator[]("data")["channel"]) {
       add_channel_by_name(channel_name);
       label += m_channel_names[m_channel_names.size() - 1] + "; ";
 
-      QTableWidgetItem * channel_element = new QTableWidgetItem;
-      QTableWidgetItem * value_element = new QTableWidgetItem;
-      QTableWidgetItem * unit_element = new QTableWidgetItem;
-
-      p_ui->channel_table->insertRow(i);
-      p_ui->channel_table->setItem(i, 0, channel_element);
-
-      channel_element->setForeground(QBrush(QColor(
-        kDefaultInactiveColor[0], kDefaultInactiveColor[1], kDefaultInactiveColor[2])
-      ));
-      channel_element->setText(
-        QString(m_channel_names[m_channel_names.size() - 1].c_str())
-      );
-
-      value_element->setForeground(QBrush(QColor(
-        kDefaultInactiveColor[0], kDefaultInactiveColor[1], kDefaultInactiveColor[2])
-      ));
-
-      unit_element->setForeground(QBrush(QColor(
-        kDefaultInactiveColor[0], kDefaultInactiveColor[1], kDefaultInactiveColor[2])
-      ));
-      unit_element->setText("[-]");
-
       ++i;
     }
   }
-  p_ui->channel_table->insertColumn(1);
   p_ui->data_label->setText(QString(label.c_str()));
 }
 
@@ -137,11 +106,6 @@ void WaveformDisplay::update()
         curve->setRawSamples(xData, c->begin(), n);
         curve->attach(this);
 
-        // update data table
-        for (int j = 0; j < 3; ++j) {
-          QTableWidgetItem * element = p_ui->channel_table->itemAt(i, j);
-          element->setForeground(QBrush(QColor(color[0], color[1], color[2])));
-        }
         replot();
 
         max_channel_value = c->max();

@@ -18,6 +18,7 @@
 //
 #include "waveformdisplay.h"
 
+#include <string>
 #include <cmath>
 
 #include <qwt_plot_curve.h>
@@ -41,8 +42,12 @@ vector<vector<int>> kDefaultColorOrder{
   {162, 199, 47, 180}
 };
 
-WaveformGroup::WaveformGroup() {
+WaveformGroup::WaveformGroup(QwtPlot * parent)
+    : m_parent(parent),
+      m_label(parent)
+{
     m_zero_line.setPen(QColor(0, 0, 0, 100));
+    m_label.setText(QString("Hello World."));
 }
 
 void WaveformGroup::set_dimensions(double normalised_height, double normalised_yoffset) {
@@ -69,23 +74,39 @@ void WaveformGroup::set_data_from_channel(data::Channel * channel) {
     
     double ymax = channel->max();
     double ymin = channel->min();
+    double ymean = 0.5 * (ymin + ymax);
     
     for (size_t i = 0; i < n; ++i) {
         xdata[i] = i;
         ydata[i] = m_normalised_yoffset + \
-             m_normalised_height * ((channel->operator[](i) - ymin) / (ymax - ymin));
+             m_normalised_height * ((channel->operator[](i) - ymean) / (ymax - ymin));
     }
     m_curve.setSamples(xdata, ydata, n);
     
     double xdata_0line[2]{ xdata[0], xdata[n-1] };
     double ydata_0line[2]{
-        m_normalised_yoffset + m_normalised_height / 2.,
-        m_normalised_yoffset + m_normalised_height / 2.
+        m_normalised_yoffset + m_normalised_height * (ymean / (ymax - ymin)),
+        m_normalised_yoffset + m_normalised_height * (ymean / (ymax - ymin))
     };
     m_zero_line.setSamples(xdata_0line, ydata_0line, 2);
     
+    QwtScaleMap plot_to_widget_xcoords = m_parent->canvasMap(m_parent->xBottom);
+    QwtScaleMap plot_to_widget_ycoords = m_parent->canvasMap(m_parent->yLeft);
+    
+    int label_xcoord = m_parent->x() + 5;
+    int label_ycoord = m_parent->y() + m_normalised_yoffset * m_parent->height();
+    
+    m_label.setText(QString(m_channel_name.c_str()));
+    m_label.setGeometry(label_xcoord, label_ycoord, 100, 20);
+    
     delete[] xdata;
     delete[] ydata;
+}
+
+void WaveformGroup::set_label_color(int r, int g, int b) {
+    char label_stylesheet[59];
+    sprintf(label_stylesheet, "QLabel { color : rgb(%d, %d, %d); font : 10pt 'Courier'; }", r, g, b);
+    m_label.setStyleSheet(label_stylesheet);
 }
 
 WaveformDisplay::WaveformDisplay(data::Table * data) : Base(data) {
@@ -122,7 +143,7 @@ void WaveformDisplay::apply_config(nlohmann::json * json_config) {
 
   if (json_config->contains("data")) {
     for (auto& channel_name : json_config->operator[]("data")["channel"]) {
-      WaveformGroup * waveform_group = new WaveformGroup;
+      WaveformGroup * waveform_group = new WaveformGroup(this);
       
       waveform_group->add_channel(channel_name);
       m_waveform_groups.push_back(waveform_group);
@@ -148,11 +169,12 @@ void WaveformDisplay::update()
 //    cout << "offset: " << m_waveform_groups[i]->m_normalised_yoffset << endl;
 
     if (m_data->exists(id)) {
-        data::Channel * channel = m_data->get(id);
-        m_waveform_groups[i]->set_data_from_channel(channel);
-        
         vector<int> color = kDefaultColorOrder[0];
         QPen pen(QColor(color[0], color[1], color[2], color[3]));
+        
+        data::Channel * channel = m_data->get(id);
+        m_waveform_groups[i]->set_data_from_channel(channel);
+        m_waveform_groups[i]->set_label_color(color[0], color[1], color[2]);
         
         // draw curve on graphic
         QwtPlotCurve * curve = m_waveform_groups[i]->get_curve_ref();

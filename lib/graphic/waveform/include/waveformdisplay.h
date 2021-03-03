@@ -39,18 +39,25 @@ namespace graphic {
 
 class WaveformGroup {
  private:
+  QwtPlot * m_parent;
+    
   QwtPlotCurve m_curve; // TODO: multiple curves later, overlays?
   QwtPlotCurve m_zero_line;
   
-  string m_channel_name;
+  QLabel m_label;
+    
+  string m_channel_name = "";
 
  public:
   double m_normalised_height;
   double m_normalised_yoffset;
     
-  WaveformGroup();
+  WaveformGroup(QwtPlot * parent);
+    
   void add_channel(string);
   void set_dimensions(double, double);
+    
+  void set_label_color(int, int, int);
     
   string get_channel_name() { return m_channel_name; }
   QwtPlotCurve * get_curve_ref() { return &m_curve; }

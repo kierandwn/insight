@@ -36,17 +36,17 @@ using json = nlohmann::json;
 namespace insight {
 namespace layout {
 
-map<string, InsightBaseGraphic *>::iterator Grid::first() { return m_map.begin(); }
-map<string, InsightBaseGraphic *>::iterator Grid::last()  { return m_map.end(); }
+map<string, graphic::Base *>::iterator Grid::first() { return m_map.begin(); }
+map<string, graphic::Base *>::iterator Grid::last()  { return m_map.end(); }
 
-map<string, InsightBaseGraphic *>& Grid::map() { return m_map; }
+map<string, graphic::Base *>& Grid::map() { return m_map; }
 
-map<string, InsightBaseGraphic *> GridFromConfig::import_from_config(json jsonConfig, QGridLayout * grid, data::Table * data)
+map<string, graphic::Base *> GridFromConfig::import_from_config(json jsonConfig, QGridLayout * grid, data::Table * data)
 {
   int i = 0;
   string id, typ;
 
-  ::map<string, InsightBaseGraphic *> mp;
+  ::map<string, graphic::Base *> mp;
 
   grid->setSpacing(0);
   grid->setContentsMargins(0, 0, 0, 0);
@@ -66,7 +66,7 @@ map<string, InsightBaseGraphic *> GridFromConfig::import_from_config(json jsonCo
 
     if ( typ == "Waveform" )
     {
-      WaveformDisplay * plot = new WaveformDisplay(data);
+      graphic::WaveformDisplay * plot = new graphic::WaveformDisplay(data);
       plot->apply_config(&child_config);
 
       grid->addWidget(plot, i % rows, i / rows);
@@ -80,7 +80,7 @@ map<string, InsightBaseGraphic *> GridFromConfig::import_from_config(json jsonCo
       grid->addLayout(childGrid, i % rows, i / rows);
       i++;
 
-      ::map<string, InsightBaseGraphic *> sub_mp = import_from_config( child_config, childGrid, data );
+      ::map<string, graphic::Base *> sub_mp = import_from_config( child_config, childGrid, data );
       mp.insert( sub_mp.begin(), sub_mp.end() );
     }
   }
@@ -95,7 +95,7 @@ void GridFromConfig::import_from_config( string filename, QGridLayout * grid, da
   json config;
   ifs >> config;
 
-  ::map<string, InsightBaseGraphic *> mp = import_from_config( config, grid, data );
+  ::map<string, graphic::Base *> mp = import_from_config( config, grid, data );
   m_map.insert( mp.begin(), mp.end() );
 }
 

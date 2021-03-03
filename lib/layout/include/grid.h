@@ -38,17 +38,17 @@ namespace layout {
 class Grid {
 protected:
   int m_size[2];
-  std::map<string, InsightBaseGraphic *> m_map;
+  std::map<string, graphic::Base *> m_map;
 
 public:
  Grid() : m_size{0, 0} {}
  Grid(int rows, int cols) : m_size{rows, cols} {}
 
-  map<string, InsightBaseGraphic *>::iterator first();
-  map<string, InsightBaseGraphic *>::iterator next();
-  map<string, InsightBaseGraphic *>::iterator last();
+  map<string, graphic::Base *>::iterator first();
+  map<string, graphic::Base *>::iterator next();
+  map<string, graphic::Base *>::iterator last();
 
-  std::map<string, InsightBaseGraphic *>& map();
+  std::map<string, graphic::Base *>& map();
 };
 
 class GridFromConfig : public Grid {
@@ -59,7 +59,7 @@ public:
   GridFromConfig() {}
 
   void import_from_config( string filename, QGridLayout * grid, data::Table * data );
-  std::map<string, InsightBaseGraphic *> import_from_config( nlohmann::json, QGridLayout *, data::Table * );
+  std::map<string, graphic::Base *> import_from_config( nlohmann::json, QGridLayout *, data::Table * );
 };
 
 }  // namespace layout

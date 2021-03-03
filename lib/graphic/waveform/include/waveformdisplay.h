@@ -29,31 +29,21 @@
 using namespace std;
 
 namespace insight {
+namespace graphic {
 
-class WaveformDisplay : public QwtPlot, virtual public InsightBaseGraphic
+
+class WaveformDisplay : public QwtPlot, virtual public Base
 {
   Q_OBJECT
 
 private:
-  vector<string> channel_names_;
-  string test_;
+  vector<string> m_channel_names;
 
-  Ui::WaveformDisplay * ui = new Ui::WaveformDisplay;
-
-  vector<int> default_inactive_color {150, 150, 150, 180};
-  vector<vector<int>> color_order{
-    {0,	114, 189, 180},
-    {217, 83, 250, 180},
-    {237, 177, 32, 180},
-    {126, 47, 142, 180},
-    {119, 172, 48, 180},
-    {77, 190, 238, 180},
-    {162, 199, 47, 180}
-  };
+  Ui::WaveformDisplay * p_ui = new Ui::WaveformDisplay;
 
 public:
   WaveformDisplay(data::Table * data);
-  QWidget * PlotArea;
+  QWidget * p_plot_widget;
 
 //    QString includeFile() const override { return QStringLiteral("waveformdisplay.h"); }
 //    QString name() const override { return QStringLiteral("InsightWaveformDisplay"); }
@@ -82,10 +72,10 @@ public:
 //               "</ui>\n";
 //    }
 
-    void add_channel_name(string channel_name) { channel_names_.push_back(channel_name); }
+    void add_channel_by_name(string channel_name) { m_channel_names.push_back(channel_name); }
 
-    string get_channel_name(int i) { return channel_names_[i]; }
-    int get_number_of_channels() { return channel_names_.size(); }
+    string get_channel_name(int i) { return m_channel_names[i]; }
+    int get_number_of_channels() { return m_channel_names.size(); }
 
   void apply_config(nlohmann::json *) override;
   void reset () override;
@@ -93,5 +83,6 @@ public:
 
 };
 
+}  // namespace graphic
 }  // namespace insight
 #endif // WAVEFORMDISPLAY_H

@@ -14,10 +14,12 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with attitude.  If not, see <https://www.gnu.org/licenses/>.
+// along with insight.  If not, see <https://www.gnu.org/licenses/>.
 //
 #ifndef INSIGHT_GRAPHIC_BASE_H
 #define INSIGHT_GRAPHIC_BASE_H
+
+#include <vector>
 
 #include <QWidget>
 #include <QtUiPlugin/QDesignerCustomWidgetInterface>
@@ -28,19 +30,19 @@
 using namespace std;
 
 namespace insight {
+namespace graphic {
 
-class InsightBaseGraphic //, public virtual QDesignerCustomWidgetInterface
-{
-protected:
-    data::Table * data_;
 
-    bool initialized_ = false;
+class Base { //, public virtual QDesignerCustomWidgetInterface {
+ protected:
+  data::Table * m_data;
 
-public:
-    InsightBaseGraphic() {}
-    InsightBaseGraphic(data::Table * data)
-        : data_(data)
-    {}
+  bool initialized_ = false;
+
+ public:
+  Base() {}
+  Base(data::Table * data)
+      : m_data(data) {}
 
 //    bool isContainer() const override { return false; }
 //    bool isInitialized() const override { return initialized_; }
@@ -59,12 +61,13 @@ public:
 //    QString toolTip() const override { return QString(); }
 //    QString whatsThis() const override { return QString(); }
 
-    virtual void apply_config(nlohmann::json *) = 0;
-    virtual void reset () = 0;
-    virtual void update() = 0;
+  virtual void apply_config(nlohmann::json *) = 0;
+  virtual void reset () = 0;
+  virtual void update() = 0;
 
-    void update_data_ref(data::Table * data) { data_ = data; }
+  void update_data_ref(data::Table * data) { m_data = data; }
 };
 
+}  // namespace graphic
 }  // namespace insight
 #endif // INSIGHT_GRAPHIC_BASE_H

@@ -26,10 +26,24 @@
 #include "insight_graphic_base.h"
 
 namespace insight {
+namespace graphic {
 
-WaveformDisplay::WaveformDisplay(data::Table * data)
-    : InsightBaseGraphic(data) {
-  ui->setupUi(this);
+
+// TODO: move to base graphics descriptions (source file?)
+vector<int> kDefaultInactiveColor {150, 150, 150, 180};
+vector<vector<int>> kDefaultColorOrder{
+  {0,    114, 189, 180},
+  {217, 83, 250, 180},
+  {237, 177, 32, 180},
+  {126, 47, 142, 180},
+  {119, 172, 48, 180},
+  {77, 190, 238, 180},
+  {162, 199, 47, 180}
+};
+
+
+WaveformDisplay::WaveformDisplay(data::Table * data) : Base(data) {
+  p_ui->setupUi(this);
 
   setAutoFillBackground( true );
   QPalette p = palette();
@@ -46,46 +60,46 @@ void WaveformDisplay::apply_config(nlohmann::json * json_config) {
   string label = "";
   int i = 0;
 
-  ui->channel_table->horizontalHeader()->setVisible(false);
-  ui->channel_table->verticalHeader()->setVisible(false);
+  p_ui->channel_table->horizontalHeader()->setVisible(false);
+  p_ui->channel_table->verticalHeader()->setVisible(false);
 
-  ui->channel_table->insertColumn(0); // channel names
-  ui->channel_table->insertColumn(1); // value at cursor
-  ui->channel_table->insertColumn(2); // unit
+  p_ui->channel_table->insertColumn(0); // channel names
+  p_ui->channel_table->insertColumn(1); // value at cursor
+  p_ui->channel_table->insertColumn(2); // unit
 
   if (json_config->contains("data")) {
     for (auto& channel_name : json_config->operator[]("data")["channel"]) {
-      add_channel_name(channel_name);
-      label += channel_names_[channel_names_.size() - 1] + "; ";
+      add_channel_by_name(channel_name);
+      label += m_channel_names[m_channel_names.size() - 1] + "; ";
 
       QTableWidgetItem * channel_element = new QTableWidgetItem;
       QTableWidgetItem * value_element = new QTableWidgetItem;
       QTableWidgetItem * unit_element = new QTableWidgetItem;
 
-      ui->channel_table->insertRow(i);
-      ui->channel_table->setItem(i, 0, channel_element);
+      p_ui->channel_table->insertRow(i);
+      p_ui->channel_table->setItem(i, 0, channel_element);
 
       channel_element->setForeground(QBrush(QColor(
-        default_inactive_color[0], default_inactive_color[1], default_inactive_color[2])
+        kDefaultInactiveColor[0], kDefaultInactiveColor[1], kDefaultInactiveColor[2])
       ));
       channel_element->setText(
-        QString(channel_names_[channel_names_.size() - 1].c_str())
+        QString(m_channel_names[m_channel_names.size() - 1].c_str())
       );
 
       value_element->setForeground(QBrush(QColor(
-        default_inactive_color[0], default_inactive_color[1], default_inactive_color[2])
+        kDefaultInactiveColor[0], kDefaultInactiveColor[1], kDefaultInactiveColor[2])
       ));
 
       unit_element->setForeground(QBrush(QColor(
-        default_inactive_color[0], default_inactive_color[1], default_inactive_color[2])
+        kDefaultInactiveColor[0], kDefaultInactiveColor[1], kDefaultInactiveColor[2])
       ));
       unit_element->setText("[-]");
 
       ++i;
     }
   }
-  ui->channel_table->insertColumn(1);
-  ui->data_label->setText(QString(label.c_str()));
+  p_ui->channel_table->insertColumn(1);
+  p_ui->data_label->setText(QString(label.c_str()));
 }
 
 void WaveformDisplay::update()
@@ -105,13 +119,13 @@ void WaveformDisplay::update()
     // create curve object
     string id = get_channel_name(i);
 
-    if (data_->exists(id)) {
+    if (m_data->exists(id)) {
         QwtPlotCurve * curve = new QwtPlotCurve;
-        data::Channel * c = data_->get(id);
+        data::Channel * c = m_data->get(id);
         size_t n = c->length();
 
         QPen pen = default_pen;
-        vector<int> color = color_order[i];
+        vector<int> color = kDefaultColorOrder[i];
         pen.setColor(QColor(color[0], color[1], color[2], color[3]));
         curve->setPen(pen);
 
@@ -125,7 +139,7 @@ void WaveformDisplay::update()
 
         // update data table
         for (int j = 0; j < 3; ++j) {
-          QTableWidgetItem * element = ui->channel_table->itemAt(i, j);
+          QTableWidgetItem * element = p_ui->channel_table->itemAt(i, j);
           element->setForeground(QBrush(QColor(color[0], color[1], color[2])));
         }
         replot();
@@ -154,5 +168,5 @@ void WaveformDisplay::reset()
     replot();
 }
 
-
+}  // namespace graphic
 }  // namespace insight

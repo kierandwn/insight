@@ -4,6 +4,7 @@ WAVEFORM_UI_PATH = "$$PWD/ui"
 
 SOURCES += \
     $$WAVEFORM_SRC_PATH/waveformdisplay.cpp
+    ../src/base.cpp
 
 INCLUDEPATH += \
     $$WAVEFORM_INCLUDE_PATH

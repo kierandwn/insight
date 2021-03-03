@@ -20,6 +20,8 @@
 #define WAVEFORMDISPLAY_H
 
 #include <string>
+
+#include <QLabel>
 #include <qwt_plot_curve.h>
 
 #include "ui_waveform.h"
@@ -40,8 +42,6 @@ class WaveformGroup {
   QwtPlotCurve m_curve; // TODO: multiple curves later, overlays?
   QwtPlotCurve m_zero_line;
   
-  
-    
   string m_channel_name;
 
  public:

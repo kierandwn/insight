@@ -41,7 +41,10 @@ vector<vector<int>> kDefaultColorOrder{
   {162, 199, 47, 180}
 };
 
-WaveformGroup::WaveformGroup() {}
+WaveformGroup::WaveformGroup() {
+    m_zero_line.setPen(QColor(0, 0, 0, 100));
+}
+
 void WaveformGroup::set_dimensions(double normalised_height, double normalised_yoffset) {
     m_normalised_height  = normalised_height;
     m_normalised_yoffset = normalised_yoffset;
@@ -54,7 +57,7 @@ void WaveformGroup::add_channel(string channel_id) {
 void WaveformGroup::attach(QwtPlot * plot_area)
 {
     m_curve.attach(plot_area);
-//    m_zero_line.attach(plot_area);
+    m_zero_line.attach(plot_area);
 }
 
 void WaveformGroup::set_data_from_channel(data::Channel * channel) {
@@ -72,8 +75,15 @@ void WaveformGroup::set_data_from_channel(data::Channel * channel) {
         ydata[i] = m_normalised_yoffset + \
              m_normalised_height * ((channel->operator[](i) - ymin) / (ymax - ymin));
     }
-    
     m_curve.setSamples(xdata, ydata, n);
+    
+    double xdata_0line[2]{ xdata[0], xdata[n-1] };
+    double ydata_0line[2]{
+        m_normalised_yoffset + m_normalised_height / 2.,
+        m_normalised_yoffset + m_normalised_height / 2.
+    };
+    m_zero_line.setSamples(xdata_0line, ydata_0line, 2);
+    
     delete[] xdata;
     delete[] ydata;
 }
@@ -128,8 +138,8 @@ void WaveformDisplay::update()
 {
   int channels_to_plot = get_number_of_waveform_groups();
 
-  QPen default_pen(QColor(0, 0, 0, 255));
-  default_pen.setWidth(2);
+//  QPen default_pen(QColor(0, 0, 0, 255));
+//  default_pen.setWidth(2);
 
   for (int i = 0; i < channels_to_plot; ++i) {
     // create curve object
@@ -138,22 +148,17 @@ void WaveformDisplay::update()
 //    cout << "offset: " << m_waveform_groups[i]->m_normalised_yoffset << endl;
 
     if (m_data->exists(id)) {
-        QwtPlotCurve * curve = m_waveform_groups[i]->get_curve_ref();
-        cout << "rcurve: " << curve << endl;
-        
         data::Channel * channel = m_data->get(id);
-//        size_t n = channel->length();
-
-        QPen pen = default_pen;
+        m_waveform_groups[i]->set_data_from_channel(channel);
+        
         vector<int> color = kDefaultColorOrder[0];
-        pen.setColor(QColor(color[0], color[1], color[2], color[3]));
+        QPen pen(QColor(color[0], color[1], color[2], color[3]));
+        
+        // draw curve on graphic
+        QwtPlotCurve * curve = m_waveform_groups[i]->get_curve_ref();
         curve->setPen(pen);
         
-        // attach curve to graphic
-        m_waveform_groups[i]->set_data_from_channel(channel);
-        curve->attach(this);
-
-//        replot();
+        m_waveform_groups[i]->attach(this);
     }
   }
   replot();

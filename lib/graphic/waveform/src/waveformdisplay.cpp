@@ -41,6 +41,42 @@ vector<vector<int>> kDefaultColorOrder{
   {162, 199, 47, 180}
 };
 
+WaveformGroup::WaveformGroup() {}
+void WaveformGroup::set_dimensions(double normalised_height, double normalised_yoffset) {
+    m_normalised_height  = normalised_height;
+    m_normalised_yoffset = normalised_yoffset;
+}
+
+void WaveformGroup::add_channel(string channel_id) {
+    m_channel_name = channel_id;
+}
+
+void WaveformGroup::attach(QwtPlot * plot_area)
+{
+    m_curve.attach(plot_area);
+//    m_zero_line.attach(plot_area);
+}
+
+void WaveformGroup::set_data_from_channel(data::Channel * channel) {
+    size_t n = channel->length();
+    
+    // obtain an x channel from data?
+    double * xdata = new double[n];
+    double * ydata = new double[n];
+    
+    double ymax = channel->max();
+    double ymin = channel->min();
+    
+    for (size_t i = 0; i < n; ++i) {
+        xdata[i] = i;
+        ydata[i] = m_normalised_yoffset + \
+             m_normalised_height * ((channel->operator[](i) - ymin) / (ymax - ymin));
+    }
+    
+    m_curve.setSamples(xdata, ydata, n);
+    delete[] xdata;
+    delete[] ydata;
+}
 
 WaveformDisplay::WaveformDisplay(data::Table * data) : Base(data) {
   p_ui->setupUi(this);
@@ -55,74 +91,71 @@ WaveformDisplay::WaveformDisplay(data::Table * data) : Base(data) {
   enableAxis(yLeft, false);
 }
 
+void WaveformDisplay::define_uniform_spacing()
+{
+    reset();
+    double n_groups = get_number_of_waveform_groups();
+    
+    double nheight  = 1. / (1.1 * n_groups + 0.1);
+    double npadding = 0.1; // space betwen plots descibed as factor of plot height above
+    double noffset;
+    
+    for (int i = 0; i < n_groups; ++i) {
+        noffset = ((i * (1.0 + npadding)) + (0.5 + npadding)) * nheight;
+        m_waveform_groups[i]->set_dimensions(nheight, noffset);
+    }
+}
+
 // Apply configuation parameters held in json_config
 void WaveformDisplay::apply_config(nlohmann::json * json_config) {
-  string label = "";
   int i = 0;
 
   if (json_config->contains("data")) {
     for (auto& channel_name : json_config->operator[]("data")["channel"]) {
-      add_channel_by_name(channel_name);
-      label += m_channel_names[m_channel_names.size() - 1] + "; ";
-
+      WaveformGroup * waveform_group = new WaveformGroup;
+      
+      waveform_group->add_channel(channel_name);
+      m_waveform_groups.push_back(waveform_group);
+      
       ++i;
     }
   }
-  p_ui->data_label->setText(QString(label.c_str()));
+  m_nwaveform_groups = i;
+  define_uniform_spacing();
 }
 
 void WaveformDisplay::update()
 {
-  int channels_to_plot = get_number_of_channels();
+  int channels_to_plot = get_number_of_waveform_groups();
 
   QPen default_pen(QColor(0, 0, 0, 255));
   default_pen.setWidth(2);
 
-  // plot cursor
-  double min_value;
-  double max_value;
-  double max_channel_value;
-  double min_channel_value;
-
   for (int i = 0; i < channels_to_plot; ++i) {
     // create curve object
-    string id = get_channel_name(i);
+    string id = m_waveform_groups[i]->get_channel_name();
+//    cout << "height: " << m_waveform_groups[i]->m_normalised_height << endl;
+//    cout << "offset: " << m_waveform_groups[i]->m_normalised_yoffset << endl;
 
     if (m_data->exists(id)) {
-        QwtPlotCurve * curve = new QwtPlotCurve;
-        data::Channel * c = m_data->get(id);
-        size_t n = c->length();
+        QwtPlotCurve * curve = m_waveform_groups[i]->get_curve_ref();
+        cout << "rcurve: " << curve << endl;
+        
+        data::Channel * channel = m_data->get(id);
+//        size_t n = channel->length();
 
         QPen pen = default_pen;
-        vector<int> color = kDefaultColorOrder[i];
+        vector<int> color = kDefaultColorOrder[0];
         pen.setColor(QColor(color[0], color[1], color[2], color[3]));
         curve->setPen(pen);
-
-        // obtain an x channel from data?
-        double * xData = new double[n];
-        for (size_t i = 0; i < n; ++i) { xData[i] = i; }
-
+        
         // attach curve to graphic
-        curve->setRawSamples(xData, c->begin(), n);
+        m_waveform_groups[i]->set_data_from_channel(channel);
         curve->attach(this);
 
-        replot();
-
-        max_channel_value = c->max();
-        if (i == 0) { max_value = max_channel_value; }
-        else { if ( max_channel_value > max_value ) { max_value = max_channel_value; } }
-
-        min_channel_value = c->min();
-        if (i == 0) { min_value = min_channel_value; }
-        else { if ( min_channel_value > min_value ) { min_value = min_channel_value; } }
+//        replot();
     }
   }
-
-  QwtPlotCurve * cursor = new QwtPlotCurve;
-  double x_cursor_data[2]{0, 0};
-  double y_cursor_data[2]{min_value, max_value};
-
-  cursor->setSamples(x_cursor_data, y_cursor_data, 2);
   replot();
 }
 

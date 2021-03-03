@@ -19,6 +19,9 @@
 #ifndef WAVEFORMDISPLAY_H
 #define WAVEFORMDISPLAY_H
 
+#include <string>
+#include <qwt_plot_curve.h>
+
 #include "ui_waveform.h"
 #include "insight_graphic_base.h"
 
@@ -32,6 +35,30 @@ namespace insight {
 namespace graphic {
 
 
+class WaveformGroup {
+ private:
+  QwtPlotCurve m_curve; // TODO: multiple curves later, overlays?
+  QwtPlotCurve m_zero_line;
+  
+  
+    
+  string m_channel_name;
+
+ public:
+  double m_normalised_height;
+  double m_normalised_yoffset;
+    
+  WaveformGroup();
+  void add_channel(string);
+  void set_dimensions(double, double);
+    
+  string get_channel_name() { return m_channel_name; }
+  QwtPlotCurve * get_curve_ref() { return &m_curve; }
+    
+  void attach(QwtPlot *);
+  void set_data_from_channel(data::Channel *);
+};
+
 class WaveformDisplay : public QwtPlot, virtual public Base
 {
   Q_OBJECT
@@ -40,6 +67,10 @@ private:
   vector<string> m_channel_names;
 
   Ui::WaveformDisplay * p_ui = new Ui::WaveformDisplay;
+  void define_uniform_spacing();
+    
+  vector<WaveformGroup *> m_waveform_groups;
+  int m_nwaveform_groups;
 
 public:
   WaveformDisplay(data::Table * data);
@@ -72,12 +103,16 @@ public:
 //               "</ui>\n";
 //    }
 
-    void add_channel_by_name(string channel_name) { m_channel_names.push_back(channel_name); }
+  void add_channel_by_name(string channel_name)
+  {
+    m_channel_names.push_back(channel_name);
+  }
 
-    string get_channel_name(int i) { return m_channel_names[i]; }
-    int get_number_of_channels() { return m_channel_names.size(); }
+  string get_channel_name(int i) { return m_channel_names[i]; }
+  int get_number_of_waveform_groups() { return m_nwaveform_groups; }
 
   void apply_config(nlohmann::json *) override;
+  
   void reset () override;
   void update () override;
 

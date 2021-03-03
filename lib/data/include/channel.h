@@ -58,7 +58,7 @@ public:
       return *it;
     }
 
-    double * operator[] (int i) { return &m_items[i]; }
+    double& operator[] (int i) { return m_items[i]; }
     // operator double * () const { return m_items; }
 };
 

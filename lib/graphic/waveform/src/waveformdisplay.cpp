@@ -21,6 +21,7 @@
 #include <string>
 #include <cmath>
 
+#include <QMouseEvent>
 #include <qwt_plot_curve.h>
 #include <qwt_plot_item.h>
 
@@ -68,7 +69,6 @@ void WaveformGroup::set_data_from_channel(data::Channel * channel) {
     size_t n = channel->length();
     
     // obtain an x channel from data?
-    double * xdata = new double[n];
     double * ydata = new double[n];
     
     double ymax = channel->max();
@@ -76,10 +76,11 @@ void WaveformGroup::set_data_from_channel(data::Channel * channel) {
     double ymean = 0.5 * (ymin + ymax);
     
     for (size_t i = 0; i < n; ++i) {
-        xdata[i] = i;
         ydata[i] = m_normalised_yoffset + \
              m_normalised_height * ((channel->operator[](i) - ymean) / (ymax - ymin));
     }
+    double * xdata = channel->get_time_data_ptr();
+    
     m_curve.setSamples(xdata, ydata, n);
     
     double xdata_0line[2]{ xdata[0], xdata[n-1] };
@@ -93,10 +94,17 @@ void WaveformGroup::set_data_from_channel(data::Channel * channel) {
     int label_ycoord = (1. - m_normalised_yoffset) * p_parent->height();
     
     m_label.setText(QString(m_channel_name.c_str()));
-    m_label.setGeometry(label_xcoord, label_ycoord, 100, 30);
+    m_label.setGeometry(label_xcoord, label_ycoord, 300, 30);
     
-    delete[] xdata;
     delete[] ydata;
+}
+
+void WaveformGroup::set_label_value(double value) {
+    char * label_text = new char[m_channel_name.size()+13];
+    sprintf(label_text, "%s: %.2f [-];", m_channel_name.c_str(), value);
+    
+    m_label.setText(QString(label_text));
+    delete[] label_text;
 }
 
 void WaveformGroup::set_label_color(int r, int g, int b) {
@@ -113,6 +121,10 @@ WaveformDisplay::WaveformDisplay(data::Table * data) : Base(data) {
 
   p.setColor(QPalette::Window, QColor(255, 255, 255, 255));
   setPalette(p);
+    
+  QPen dark_grey(QColor(0, 0, 0, 250));
+  dark_grey.setWidth(2);
+  m_cursor.setPen(dark_grey);
 
   enableAxis(xBottom, false);
   enableAxis(yLeft, false);
@@ -140,7 +152,6 @@ void WaveformDisplay::apply_config(nlohmann::json * json_config) {
   if (json_config->contains("data")) {
     for (auto& channel_name : json_config->operator[]("data")["channel"]) {
       WaveformGroup * waveform_group = new WaveformGroup(this);
-      cout << "ref to wf display: " << this << endl;
       
       waveform_group->add_channel(channel_name);
       m_waveform_groups.push_back(waveform_group);
@@ -162,8 +173,6 @@ void WaveformDisplay::update()
   for (int i = 0; i < channels_to_plot; ++i) {
     // create curve object
     string id = m_waveform_groups[i]->get_channel_name();
-//    cout << "height: " << m_waveform_groups[i]->m_normalised_height << endl;
-//    cout << "offset: " << m_waveform_groups[i]->m_normalised_yoffset << endl;
 
     if (m_data->exists(id)) {
         vector<int> color = kDefaultColorOrder[0];
@@ -180,7 +189,36 @@ void WaveformDisplay::update()
         m_waveform_groups[i]->attach(this);
     }
   }
+  update_cursor_position(0.);
+  m_cursor.attach(this);
   replot();
+}
+
+void WaveformDisplay::update_cursor_position(double x) {
+    double xcursor[2]{ x, x };
+    double ycursor[2]{ 0., 1. };
+    
+    update_label_values_at(x);
+    
+    m_cursor.setSamples(xcursor, ycursor, 2);
+    replot();
+}
+
+void WaveformDisplay::update_label_values_at(double x) {
+    for (int i = 0; i < m_nwaveform_groups; ++i) {
+        string channel_name = m_waveform_groups[i]->get_channel_name();
+        data::Channel * channel = m_data->get(channel_name);
+        
+        double value = channel->value_at(x);
+        m_waveform_groups[i]->set_label_value(value);
+    }
+}
+
+void WaveformDisplay::mousePressEvent(QMouseEvent * event)
+{
+    QwtScaleMap map = canvasMap(xBottom);
+    double x_coord = map.invTransform(event->x());
+    update_cursor_position(x_coord);
 }
 
 void WaveformDisplay::reset()

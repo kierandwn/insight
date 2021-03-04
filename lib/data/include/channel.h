@@ -33,14 +33,13 @@ namespace data {
 class Channel {
 private:
     vector<double> m_items;
-
-//    double m_get(int);
-//    void m_set(int, double);
-
     size_t len = 0;
+    
+    Channel * p_time_channel;
 
 public:
-    Channel() {}
+    Channel() : p_time_channel(this) {}
+    Channel(Channel * t) : p_time_channel(t) {}
     ~Channel() {}
 
     void push(double val) { m_items.push_back(val); len += 1; }
@@ -57,9 +56,29 @@ public:
       vector<double>::iterator it = std::min_element(m_items.begin(), m_items.end());
       return *it;
     }
+    
+    double value_at(double xval) {
+      double decreasing_diff = abs(p_time_channel->operator[](0) - xval);
+      double diff;
+    
+      size_t i;
+      for (i = 1; i < len; ++i) {
+        diff = abs(p_time_channel->operator[](i) - xval);
+        if (diff > decreasing_diff) { break; } else { decreasing_diff = diff; }
+      }
+      return m_items[i];
+    }
+    
+    void update_time_channel_ptr(Channel * t) {
+        cout << "new time ref: " << &t << endl;
+        p_time_channel = t;
+        cout << "updated time ref: " << &p_time_channel << endl;
+    }
+    
+    double * get_time_data_ptr() { return &p_time_channel->operator[](0); }
+    Channel * get_time_ref() { return p_time_channel; }
 
     double& operator[] (int i) { return m_items[i]; }
-    // operator double * () const { return m_items; }
 };
 
 

@@ -58,6 +58,7 @@ class WaveformGroup {
   void set_dimensions(double, double);
     
   void set_label_color(int, int, int);
+  void set_label_value(double);
     
   string get_channel_name() { return m_channel_name; }
   QwtPlotCurve * get_curve_ref() { return &m_curve; }
@@ -78,10 +79,14 @@ private:
     
   vector<WaveformGroup *> m_waveform_groups;
   int m_nwaveform_groups;
+    
+  QwtPlotCurve m_cursor;
 
 public:
   WaveformDisplay(data::Table * data);
   QWidget * p_plot_widget;
+    
+  void mousePressEvent(QMouseEvent * event) override;
 
 //    QString includeFile() const override { return QStringLiteral("waveformdisplay.h"); }
 //    QString name() const override { return QStringLiteral("InsightWaveformDisplay"); }
@@ -119,6 +124,9 @@ public:
   int get_number_of_waveform_groups() { return m_nwaveform_groups; }
 
   void apply_config(nlohmann::json *) override;
+  void update_cursor_position(double);
+    
+  void update_label_values_at(double);
   
   void reset () override;
   void update () override;

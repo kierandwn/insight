@@ -111,6 +111,17 @@ data::Table * import_from_csv (string filename, data::Table * t=new data::Table,
             else { row = ""; }
         }
     }
+    
+    data::Channel * time_channel = t->get("time");
+    cout << "time ref original: " << time_channel << endl;
+    
+    for (size_t i = 0; i < headers.size(); ++i) {
+        string channel_name = headers[i];
+        t->get(channel_name)->update_time_channel_ptr(time_channel);
+        
+        cout << "channel ref: " << t->get(channel_name) << endl;
+        cout << "time ref: " << t->get(channel_name)->get_time_ref() << endl;
+    }
     return t;
 }
 

@@ -39,7 +39,7 @@ namespace graphic {
 
 class WaveformGroup {
  private:
-  QwtPlot * m_parent;
+  QwtPlot * p_parent;
     
   QwtPlotCurve m_curve; // TODO: multiple curves later, overlays?
   QwtPlotCurve m_zero_line;

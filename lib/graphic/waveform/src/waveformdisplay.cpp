@@ -43,11 +43,10 @@ vector<vector<int>> kDefaultColorOrder{
 };
 
 WaveformGroup::WaveformGroup(QwtPlot * parent)
-    : m_parent(parent),
+    : p_parent(parent),
       m_label(parent)
 {
     m_zero_line.setPen(QColor(0, 0, 0, 100));
-    m_label.setText(QString("Hello World."));
 }
 
 void WaveformGroup::set_dimensions(double normalised_height, double normalised_yoffset) {
@@ -85,19 +84,16 @@ void WaveformGroup::set_data_from_channel(data::Channel * channel) {
     
     double xdata_0line[2]{ xdata[0], xdata[n-1] };
     double ydata_0line[2]{
-        m_normalised_yoffset + m_normalised_height * (ymean / (ymax - ymin)),
-        m_normalised_yoffset + m_normalised_height * (ymean / (ymax - ymin))
+        m_normalised_yoffset,
+        m_normalised_yoffset
     };
     m_zero_line.setSamples(xdata_0line, ydata_0line, 2);
     
-    QwtScaleMap plot_to_widget_xcoords = m_parent->canvasMap(m_parent->xBottom);
-    QwtScaleMap plot_to_widget_ycoords = m_parent->canvasMap(m_parent->yLeft);
-    
-    int label_xcoord = m_parent->x() + 5;
-    int label_ycoord = m_parent->y() + m_normalised_yoffset * m_parent->height();
+    int label_xcoord = 5;
+    int label_ycoord = (1. - m_normalised_yoffset) * p_parent->height();
     
     m_label.setText(QString(m_channel_name.c_str()));
-    m_label.setGeometry(label_xcoord, label_ycoord, 100, 20);
+    m_label.setGeometry(label_xcoord, label_ycoord, 100, 30);
     
     delete[] xdata;
     delete[] ydata;
@@ -144,6 +140,7 @@ void WaveformDisplay::apply_config(nlohmann::json * json_config) {
   if (json_config->contains("data")) {
     for (auto& channel_name : json_config->operator[]("data")["channel"]) {
       WaveformGroup * waveform_group = new WaveformGroup(this);
+      cout << "ref to wf display: " << this << endl;
       
       waveform_group->add_channel(channel_name);
       m_waveform_groups.push_back(waveform_group);

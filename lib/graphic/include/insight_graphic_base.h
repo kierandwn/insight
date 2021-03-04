@@ -64,6 +64,7 @@ class Base { //, public virtual QDesignerCustomWidgetInterface {
   virtual void apply_config(nlohmann::json *) = 0;
   virtual void reset () = 0;
   virtual void update() = 0;
+  virtual void init()   = 0;
 
   void update_data_ref(data::Table * data) { m_data = data; }
 };

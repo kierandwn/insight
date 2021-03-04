@@ -62,6 +62,13 @@ void ApplicationMainWindow::update() {
     }
 }
 
+void ApplicationMainWindow::init() {
+    map<string, graphic::Base *>::iterator p;
+    for (p = m_layout.first(); p != m_layout.last(); ++p) {
+        p->second->init();
+    }
+}
+
 
 void ApplicationMainWindow::on_actionLoad_File_triggered()
 {

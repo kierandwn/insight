@@ -69,11 +69,7 @@ public:
       return m_items[i];
     }
     
-    void update_time_channel_ptr(Channel * t) {
-        cout << "new time ref: " << &t << endl;
-        p_time_channel = t;
-        cout << "updated time ref: " << &p_time_channel << endl;
-    }
+    void update_time_channel_ptr(Channel * t) { p_time_channel = t; }
     
     double * get_time_data_ptr() { return &p_time_channel->operator[](0); }
     Channel * get_time_ref() { return p_time_channel; }

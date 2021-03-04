@@ -33,6 +33,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     layout::ApplicationMainWindow w(dir_path);
     w.show();
+    w.init();
 
     return a.exec();
 }

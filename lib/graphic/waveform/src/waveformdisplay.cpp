@@ -100,8 +100,8 @@ void WaveformGroup::set_data_from_channel(data::Channel * channel) {
 }
 
 void WaveformGroup::set_label_value(double value) {
-    char * label_text = new char[m_channel_name.size()+13];
-    sprintf(label_text, "%s: %.2f [-];", m_channel_name.c_str(), value);
+    char * label_text = new char[m_channel_name.size()+12];
+    sprintf(label_text, "%s: %.2f[-];", m_channel_name.c_str(), value);
     
     m_label.setText(QString(label_text));
     delete[] label_text;
@@ -113,7 +113,10 @@ void WaveformGroup::set_label_color(int r, int g, int b) {
     m_label.setStyleSheet(label_stylesheet);
 }
 
-WaveformDisplay::WaveformDisplay(data::Table * data) : Base(data) {
+WaveformDisplay::WaveformDisplay(data::Table * data)
+    : Base(data),
+      m_xlabel(this)
+{
   p_ui->setupUi(this);
 
   setAutoFillBackground( true );
@@ -128,6 +131,32 @@ WaveformDisplay::WaveformDisplay(data::Table * data) : Base(data) {
 
   enableAxis(xBottom, false);
   enableAxis(yLeft, false);
+}
+
+void WaveformDisplay::init_xlabel() {
+    int label_width = 300;
+    int label_height = 15;
+    
+    m_xlabel.setStyleSheet(
+        "QLabel { color : rgb(50, 50, 50); font : 10pt 'Courier'; }"
+    );
+    m_xlabel.setAlignment(Qt::AlignRight);
+    set_xlabel_value(0.);
+    
+    m_xlabel.setGeometry(
+        width() - 1.02 * label_width,
+        height() - 1.02 * label_height,
+        label_width,
+        label_height
+    );
+}
+                   
+void WaveformDisplay::set_xlabel_value(double value) {
+  char * label_text = new char[17];
+  sprintf(label_text, "time: %.3f[s] ", value);
+  
+  m_xlabel.setText(QString(label_text));
+  delete[] label_text;
 }
 
 void WaveformDisplay::define_uniform_spacing()
@@ -161,6 +190,10 @@ void WaveformDisplay::apply_config(nlohmann::json * json_config) {
   }
   m_nwaveform_groups = i;
   define_uniform_spacing();
+}
+
+void WaveformDisplay::init() {
+    init_xlabel();
 }
 
 void WaveformDisplay::update()
@@ -212,6 +245,7 @@ void WaveformDisplay::update_label_values_at(double x) {
         double value = channel->value_at(x);
         m_waveform_groups[i]->set_label_value(value);
     }
+    set_xlabel_value(x);
 }
 
 void WaveformDisplay::mousePressEvent(QMouseEvent * event)

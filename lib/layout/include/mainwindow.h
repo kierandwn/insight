@@ -55,6 +55,7 @@ public:
     data::Table m_data;
 
     void update();
+    void init();
 
 private slots:
     void on_actionLoad_File_triggered();

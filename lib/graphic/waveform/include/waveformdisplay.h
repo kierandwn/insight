@@ -74,6 +74,8 @@ class WaveformDisplay : public QwtPlot, virtual public Base
 private:
   vector<string> m_channel_names;
 
+  QLabel m_xlabel;
+    
   Ui::WaveformDisplay * p_ui = new Ui::WaveformDisplay;
   void define_uniform_spacing();
     
@@ -125,12 +127,15 @@ public:
 
   void apply_config(nlohmann::json *) override;
   void update_cursor_position(double);
+  
+  void init_xlabel();
+  void set_xlabel_value(double);
     
   void update_label_values_at(double);
   
   void reset () override;
   void update () override;
-
+  void init () override;
 };
 
 }  // namespace graphic

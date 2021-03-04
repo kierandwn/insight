@@ -1,5 +1,11 @@
-SOURCES += \
-    lib/graphic/graphic.cpp
+GRAPHIC_INCLUDE_PATH = "$$PWD/include"
+GRAPHIC_SRC_PATH = "$$PWD/src"
+
+
+INCLUDEPATH += \
+    $$GRAPHIC_INCLUDE_PATH
 
 HEADERS += \
-    lib/graphic/include/graphic.h
+    $$GRAPHIC_INCLUDE_PATH/insight_graphic_base.h
+
+include(waveform/waveform.pri)

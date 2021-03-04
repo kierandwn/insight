@@ -1,6 +1,6 @@
 [submodule "rapidjson"]
 	path = rapidjson
 	url = https://github.com/Tencent/rapidjson.git
-[submodule "lib/rapidjson"]
-	path = lib/rapidjson
-	url = https://github.com/Tencent/rapidjson.git
+[submodule "lib/json"]
+	path = lib/json
+	url = https://github.com/nlohmann/json.git

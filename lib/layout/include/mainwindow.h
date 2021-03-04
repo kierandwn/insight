@@ -1,5 +1,27 @@
+// Copyright (c) 2020 Kieran Downie. All rights reserved.
+//
+// This file is part of insight.
+//
+// attitude is free software : you can redistribute it and /
+// or modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation,
+// either version 3 of the License,
+// or (at your option) any later version.
+//
+// attitude is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with attitude.  If not, see <https://www.gnu.org/licenses/>.
+//
 #ifndef INSIGHTMAINWINDOW_H
 #define INSIGHTMAINWINDOW_H
+
+#include "ui_mainwindow.h"
+
+#include <string.h>
 
 #include <QMainWindow>
 #include <QBoxLayout>
@@ -11,30 +33,37 @@
 #include <qwt_symbol.h>
 #include <qwt_legend.h>
 
-#include "mainwindow.h"
+#include "grid.h"
+#include "table.h"
 
-QT_BEGIN_NAMESPACE
-namespace Ui { class InsightMainWindow; }
-QT_END_NAMESPACE
 
-class InsightMainWindow : public QMainWindow
+using namespace std;
+
+namespace insight {
+namespace layout {
+
+
+class ApplicationMainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    InsightMainWindow(QWidget *parent = nullptr);
-    ~InsightMainWindow();
+    ApplicationMainWindow(std::string source_main_directory, QWidget *parent = nullptr);
+    ~ApplicationMainWindow();
 
-    double gain = 10.;
-    static const int count = 100;
+    layout::GridFromConfig m_layout;
+    data::Table m_data;
 
-    // data arrays for the plot
-    double xData[count];
+    void update();
 
-    double y1Data[count];
-    double y2Data[count];
+private slots:
+    void on_actionLoad_File_triggered();
 
 private:
     Ui::InsightMainWindow *ui;
+    string src_root_dir_;
 };
+
+} // namespace layout
+} // namespace insight
 #endif // INSIGHTMAINWINDOW_H

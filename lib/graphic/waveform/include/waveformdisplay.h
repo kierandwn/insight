@@ -26,10 +26,12 @@
 #include <qwt_plot_curve.h>
 
 #include "ui_waveform.h"
+
+//#include "mainwindow.h"
 #include "insight_graphic_base.h"
+#include "table.h"
 
 #include "lib/json/single_include/nlohmann/json.hpp"
-#include "table.h"
 
 
 using namespace std;
@@ -40,12 +42,14 @@ namespace graphic {
 
 class WaveformGroup {
  private:
+//  layout::ApplicationMainWindow * p_app;
   QwtPlot * p_parent;
     
-  QwtPlotCurve m_curve; // TODO: multiple curves later, overlays?
+  vector<QwtPlotCurve *> m_curves; // TODO: multiple curves later, overlays?
   QwtPlotCurve m_zero_line;
   
   QLabel m_label;
+  QLabel m_metrics;
     
   vector<string> m_channel_names;
 
@@ -55,16 +59,18 @@ class WaveformGroup {
     
   WaveformGroup(QwtPlot * parent);
     
+  void init_curves();
   void init_label(data::Table *);
     
   void add_channel(string);
   void set_dimensions(double, double);
     
-  void set_label_colors();
+//  void set_label_colors();
   void set_label_values_at(double, data::Table *);
+  void set_metric_values(double, double, double);
     
   string get_channel_name(int i) { return m_channel_names[i]; }
-  QwtPlotCurve * get_curve_ref() { return &m_curve; }
+  QwtPlotCurve * get_curve_ref(int i) { return m_curves[i]; }
     
   void attach(QwtPlot *);
   void set_data_from_table(data::Table *);
@@ -75,8 +81,6 @@ class WaveformDisplay : public QwtPlot, virtual public Base
   Q_OBJECT
 
 private:
-  vector<string> m_channel_names;
-
   QLabel m_xlabel;
     
   Ui::WaveformDisplay * p_ui = new Ui::WaveformDisplay;
@@ -120,18 +124,18 @@ public:
 //               "</ui>\n";
 //    }
 
-  void add_channel_by_name(string channel_name)
-  {
-    m_channel_names.push_back(channel_name);
-  }
+//  void add_channel_by_name(string channel_name)
+//  {
+//    m_channel_names.push_back(channel_name);
+//  }
 
-  string get_channel_name(int i) { return m_channel_names[i]; }
+//  string get_channel_name(int i) { return m_channel_names[i]; }
   int get_number_of_waveform_groups() { return m_nwaveform_groups; }
   
   data::Table * get_data_table_ref() { return m_data; }
     
   void apply_config(nlohmann::json *) override;
-  void update_cursor_position(double);
+  void update_cursor_position(double) override;
   
   void init_xlabel();
   void set_xlabel_value(double);

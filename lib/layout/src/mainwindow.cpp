@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with attitude.  If not, see <https://www.gnu.org/licenses/>.
 //
-#include "lib/layout/include/mainwindow.h"
+#include "mainwindow.h"
 
 #include <iostream>
 
@@ -69,6 +69,16 @@ void ApplicationMainWindow::init() {
     }
 }
 
+void ApplicationMainWindow::update_cursors_in_group(string group_name, double xval) {
+    if (group_name == "") return;
+    
+    map<string, graphic::Base *>::iterator p;
+    for (p = m_layout.first(); p != m_layout.last(); ++p) {
+        if (p->second->group() == group_name) {
+            p->second->update_cursor_position(xval);
+        }
+    }
+}
 
 void ApplicationMainWindow::on_actionLoad_File_triggered()
 {

@@ -45,7 +45,8 @@ vector<vector<int>> kDefaultColorOrder{
 
 WaveformGroup::WaveformGroup(QwtPlot * parent)
     : p_parent(parent),
-      m_label(parent)
+      m_label(parent),
+      m_metrics(parent)
 {
     m_zero_line.setPen(QColor(0, 0, 0, 100));
 }
@@ -57,28 +58,38 @@ void WaveformGroup::set_dimensions(double normalised_height, double normalised_y
 
 void WaveformGroup::add_channel(string channel_id) {
     m_channel_names.push_back(channel_id);
+    m_curves.push_back(new QwtPlotCurve);
 }
 
 void WaveformGroup::attach(QwtPlot * plot_area)
 {
-    m_curve.attach(plot_area);
+    for (size_t i = 0; i < m_curves.size(); ++i) {
+      m_curves[i]->attach(plot_area);
+    }
     m_zero_line.attach(plot_area);
 }
 
 void WaveformGroup::set_data_from_table(data::Table * table) {
     size_t n_waveforms = m_channel_names.size();
     
-//    for (size_t i = 0; i < n_waveforms; ++i) {
-        data::Channel * channel = table->get(m_channel_names[0]);
-        
+    double ymax, ymin, ymean;
+    double xmax, xmin;
+    
+    for (size_t i = 0; i < n_waveforms; ++i) {
+        data::Channel * channel = table->get(m_channel_names[i]);
         size_t n = channel->length();
         
-        // obtain an x channel from data?
         double * ydata = new double[n];
         
-        double ymax = channel->max();
-        double ymin = channel->min();
-        double ymean = 0.5 * (ymin + ymax);
+        if (i == 0) {
+            ymin = channel->min();
+            ymax = channel->max();
+            ymean = 0.5 * (ymin + ymax);
+        }
+        
+        data::Channel * xchannel = channel->get_time_ref();
+        if (xchannel->max() > xmax) { xmax = xchannel->max(); }
+        else if (xchannel->min() < xmin) { xmin = xchannel->min(); }
         
         for (size_t i = 0; i < n; ++i) {
             ydata[i] = m_normalised_yoffset + \
@@ -86,27 +97,46 @@ void WaveformGroup::set_data_from_table(data::Table * table) {
         }
         double * xdata = channel->get_time_data_ptr();
         
-        m_curve.setSamples(xdata, ydata, n);
-        
-        double xdata_0line[2]{ xdata[0], xdata[n-1] };
-        double ydata_0line[2]{
-            m_normalised_yoffset,
-            m_normalised_yoffset
-        };
-        m_zero_line.setSamples(xdata_0line, ydata_0line, 2);
-        
+        m_curves[i]->setSamples(xdata, ydata, n);
         delete[] ydata;
-//    }
+    }
+    
+    double xdata_0line[2]{ xmin, xmax };
+    double ydata_0line[2]{
+        m_normalised_yoffset,
+        m_normalised_yoffset
+    };
+    m_zero_line.setSamples(xdata_0line, ydata_0line, 2);
+    
     init_label(table);
+    set_metric_values(ymin, ymax, ymean);
+}
+
+void WaveformGroup::init_curves() {
+  // draw curve on graphic
+  vector<int> color;
+  for (size_t j = 0; j < m_curves.size(); ++j) {
+    color = kDefaultColorOrder[j];
+    QPen pen(QColor(color[0], color[1], color[2], color[3]));
+    m_curves[j]->setPen(pen);
+  }
+  attach(p_parent);
 }
 
 void WaveformGroup::init_label(data::Table * table) {
     int label_xcoord = 5;
     int label_ycoord = (1. - m_normalised_yoffset) * p_parent->height();
     
-    m_label.setStyleSheet("QLabel { font : 10pt 'Courier'; }");
+    int metrics_xcoord = p_parent->width() - (300 + 5);
+    int metrics_ycoord = ((1. - m_normalised_yoffset) * p_parent->height()) - 16;
     
+    m_label.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
     m_label.setGeometry(label_xcoord, label_ycoord, 300, 30);
+    
+    m_metrics.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
+    m_metrics.setGeometry(metrics_xcoord, metrics_ycoord, 300, 30);
+    m_metrics.setAlignment(Qt::AlignRight);
+
     set_label_values_at(0., table);
 }
 
@@ -130,11 +160,11 @@ void WaveformGroup::set_label_values_at(double xvalue, data::Table * table) {
         }
         
         sprintf(&label_text[string_cursor],
-            "<span style=\"color : rgb(%03d, %03d, %03d);\">%s: %*.2f[-];</span><br/>",
+            "%s: <span style=\"color : rgb(%03d, %03d, %03d);\">%*.2f[-];</span><br/>",
+                channel_name.c_str(),
                 kDefaultColorOrder[i][0],
                 kDefaultColorOrder[i][1],
                 kDefaultColorOrder[i][2],
-                channel_name.c_str(),
                 7, value
         );
         string_cursor += m_channel_names[i].length()+67;
@@ -142,6 +172,16 @@ void WaveformGroup::set_label_values_at(double xvalue, data::Table * table) {
     
     m_label.setText(QString(label_text));
     delete[] label_text;
+}
+
+void WaveformGroup::set_metric_values(double min, double max, double mean) {
+  char metric_text[38];
+  
+  sprintf(metric_text,
+      "%7.2f \xE2\x88\x88 [%7.2f, %7.2f[-]];",
+        mean, min, max
+  );
+  m_metrics.setText(QString::fromUtf8(metric_text));
 }
 
 WaveformDisplay::WaveformDisplay(data::Table * data)
@@ -175,7 +215,7 @@ void WaveformDisplay::init_xlabel() {
     set_xlabel_value(0.);
     
     m_xlabel.setGeometry(
-        width() - 1.02 * label_width,
+        width() - (label_width + 5),
         height() - 1.02 * label_height,
         label_width,
         label_height
@@ -184,7 +224,7 @@ void WaveformDisplay::init_xlabel() {
                    
 void WaveformDisplay::set_xlabel_value(double value) {
   char * label_text = new char[17];
-  sprintf(label_text, "time: %.3f[s] ", value);
+  sprintf(label_text, "time: %.3f[s]", value);
   
   m_xlabel.setText(QString(label_text));
   delete[] label_text;
@@ -226,27 +266,17 @@ void WaveformDisplay::apply_config(nlohmann::json * json_config) {
 
 void WaveformDisplay::init() {
     init_xlabel();
+    for (size_t i = 0; i < m_waveform_groups.size(); ++i) {
+        m_waveform_groups[i]->init_curves();
+    }
 }
 
 void WaveformDisplay::update()
 {
   int channels_to_plot = get_number_of_waveform_groups();
 
-//  QPen default_pen(QColor(0, 0, 0, 255));
-//  default_pen.setWidth(2);
-
   for (int i = 0; i < channels_to_plot; ++i) {
-    vector<int> color = kDefaultColorOrder[0];
-    QPen pen(QColor(color[0], color[1], color[2], color[3]));
-    
     m_waveform_groups[i]->set_data_from_table(m_data);
-//    m_waveform_groups[i]->set_label_colors();
-    
-    // draw curve on graphic
-    QwtPlotCurve * curve = m_waveform_groups[i]->get_curve_ref();
-    curve->setPen(pen);
-    
-    m_waveform_groups[i]->attach(this);
   }
   update_cursor_position(0.);
   m_cursor.attach(this);
@@ -275,6 +305,7 @@ void WaveformDisplay::mousePressEvent(QMouseEvent * event)
     QwtScaleMap map = canvasMap(xBottom);
     double x_coord = map.invTransform(event->x());
     update_cursor_position(x_coord);
+//    update_all_group_cursor_positions(x_coord);
 }
 
 void WaveformDisplay::reset()

@@ -44,13 +44,14 @@ map<string, graphic::Base *>& Grid::map() { return m_map; }
 map<string, graphic::Base *> GridFromConfig::import_from_config(json jsonConfig, QGridLayout * grid, data::Table * data)
 {
   int i = 0;
-  string id, typ;
+  string id, typ, first_id;
 
+  graphic::WaveformDisplay * plot;
+    
   ::map<string, graphic::Base *> mp;
 
   grid->setSpacing(0);
   grid->setContentsMargins(0, 0, 0, 0);
-
 
   int rows = jsonConfig["size"][0];
 //    int cols = jsonConfig["size"][1].GetInt();
@@ -63,11 +64,12 @@ map<string, graphic::Base *> GridFromConfig::import_from_config(json jsonConfig,
     json child_config = child.value();
 
     typ = child_config["type"];
-
+      
     if ( typ == "Waveform" )
     {
-      graphic::WaveformDisplay * plot = new graphic::WaveformDisplay(data);
+      plot = new graphic::WaveformDisplay(data);
       plot->apply_config(&child_config);
+      if (i == 0) first_id = id;
 
       grid->addWidget(plot, i % rows, i / rows);
       mp[id] = plot;

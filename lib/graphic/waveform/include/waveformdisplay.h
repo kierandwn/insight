@@ -19,6 +19,7 @@
 #ifndef WAVEFORMDISPLAY_H
 #define WAVEFORMDISPLAY_H
 
+#include <vector>
 #include <string>
 
 #include <QLabel>
@@ -46,7 +47,7 @@ class WaveformGroup {
   
   QLabel m_label;
     
-  string m_channel_name = "";
+  vector<string> m_channel_names;
 
  public:
   double m_normalised_height;
@@ -54,17 +55,19 @@ class WaveformGroup {
     
   WaveformGroup(QwtPlot * parent);
     
+  void init_label(data::Table *);
+    
   void add_channel(string);
   void set_dimensions(double, double);
     
-  void set_label_color(int, int, int);
-  void set_label_value(double);
+  void set_label_colors();
+  void set_label_values_at(double, data::Table *);
     
-  string get_channel_name() { return m_channel_name; }
+  string get_channel_name(int i) { return m_channel_names[i]; }
   QwtPlotCurve * get_curve_ref() { return &m_curve; }
     
   void attach(QwtPlot *);
-  void set_data_from_channel(data::Channel *);
+  void set_data_from_table(data::Table *);
 };
 
 class WaveformDisplay : public QwtPlot, virtual public Base
@@ -124,7 +127,9 @@ public:
 
   string get_channel_name(int i) { return m_channel_names[i]; }
   int get_number_of_waveform_groups() { return m_nwaveform_groups; }
-
+  
+  data::Table * get_data_table_ref() { return m_data; }
+    
   void apply_config(nlohmann::json *) override;
   void update_cursor_position(double);
   

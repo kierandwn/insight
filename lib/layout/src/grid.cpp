@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with attitude.  If not, see <https://www.gnu.org/licenses/>.
 //
-#include "lib/layout/include/grid.h"
+#include "grid.h"
 
 #include <iostream>
 #include <fstream>
@@ -26,29 +26,28 @@
 
 #include "lib/json/single_include/nlohmann/json.hpp"
 
-#include "table.h"
+#include "insight_graphic_base.h"
 #include "waveformdisplay.h"
-
-
-using namespace std;
-using json = nlohmann::json;
+#include "table.h"
 
 namespace insight {
 namespace layout {
+
+using json = nlohmann::json;
 
 map<string, graphic::Base *>::iterator Grid::first() { return m_map.begin(); }
 map<string, graphic::Base *>::iterator Grid::last()  { return m_map.end(); }
 
 map<string, graphic::Base *>& Grid::map() { return m_map; }
 
-map<string, graphic::Base *> GridFromConfig::import_from_config(json jsonConfig, QGridLayout * grid, data::Table * data)
+map<string, graphic::Base *> Layout::import_from_config(json jsonConfig, QGridLayout * grid, data::Table * data)
 {
   int i = 0;
   string id, typ, first_id;
 
   graphic::WaveformDisplay * plot;
     
-  ::map<string, graphic::Base *> mp;
+  std::map<string, graphic::Base *> mp;
 
   grid->setSpacing(0);
   grid->setContentsMargins(0, 0, 0, 0);
@@ -67,13 +66,12 @@ map<string, graphic::Base *> GridFromConfig::import_from_config(json jsonConfig,
       
     if ( typ == "Waveform" )
     {
-      plot = new graphic::WaveformDisplay(data);
+      plot = new graphic::WaveformDisplay(data, this);
       plot->apply_config(&child_config);
       if (i == 0) first_id = id;
 
       grid->addWidget(plot, i % rows, i / rows);
       mp[id] = plot;
-
       i++;
     }
     else if ( typ == "Grid" )
@@ -82,14 +80,14 @@ map<string, graphic::Base *> GridFromConfig::import_from_config(json jsonConfig,
       grid->addLayout(childGrid, i % rows, i / rows);
       i++;
 
-      ::map<string, graphic::Base *> sub_mp = import_from_config( child_config, childGrid, data );
+      std::map<string, graphic::Base *> sub_mp = import_from_config( child_config, childGrid, data );
       mp.insert( sub_mp.begin(), sub_mp.end() );
     }
   }
   return mp;
 }
 
-void GridFromConfig::import_from_config( string filename, QGridLayout * grid, data::Table * data )
+void Layout::import_from_config( std::string filename, QGridLayout * grid, data::Table * data )
 {
   ifstream ifs { filename };
   if ( !ifs.is_open() ) { cerr << "Could not open file for reading!\n"; throw; }
@@ -97,7 +95,7 @@ void GridFromConfig::import_from_config( string filename, QGridLayout * grid, da
   json config;
   ifs >> config;
 
-  ::map<string, graphic::Base *> mp = import_from_config( config, grid, data );
+  std::map<string, graphic::Base *> mp = import_from_config( config, grid, data );
   m_map.insert( mp.begin(), mp.end() );
 }
 

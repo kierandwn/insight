@@ -18,6 +18,7 @@
 //
 #ifndef WAVEFORMDISPLAY_H
 #define WAVEFORMDISPLAY_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -27,25 +28,25 @@
 
 #include "ui_waveform.h"
 
-//#include "mainwindow.h"
-#include "insight_graphic_base.h"
 #include "table.h"
+#include "grid.h"
+#include "mainwindow.h"
+#include "insight_graphic_base.h"
 
 #include "lib/json/single_include/nlohmann/json.hpp"
 
 
-using namespace std;
-
 namespace insight {
 namespace graphic {
+
+using namespace std;
 
 
 class WaveformGroup {
  private:
-//  layout::ApplicationMainWindow * p_app;
   QwtPlot * p_parent;
     
-  vector<QwtPlotCurve *> m_curves; // TODO: multiple curves later, overlays?
+  vector<QwtPlotCurve *> m_curves;
   QwtPlotCurve m_zero_line;
   
   QLabel m_label;
@@ -57,7 +58,7 @@ class WaveformGroup {
   double m_normalised_height;
   double m_normalised_yoffset;
     
-  WaveformGroup(QwtPlot * parent);
+  WaveformGroup(QwtPlot *);
     
   void init_curves();
   void init_label(data::Table *);
@@ -81,6 +82,7 @@ class WaveformDisplay : public QwtPlot, virtual public Base
   Q_OBJECT
 
 private:
+  layout::Layout * p_layout;
   QLabel m_xlabel;
     
   Ui::WaveformDisplay * p_ui = new Ui::WaveformDisplay;
@@ -92,7 +94,7 @@ private:
   QwtPlotCurve m_cursor;
 
 public:
-  WaveformDisplay(data::Table * data);
+  WaveformDisplay(data::Table *, layout::Layout *);
   QWidget * p_plot_widget;
     
   void mousePressEvent(QMouseEvent * event) override;
@@ -124,18 +126,16 @@ public:
 //               "</ui>\n";
 //    }
 
-//  void add_channel_by_name(string channel_name)
-//  {
-//    m_channel_names.push_back(channel_name);
-//  }
 
-//  string get_channel_name(int i) { return m_channel_names[i]; }
   int get_number_of_waveform_groups() { return m_nwaveform_groups; }
   
   data::Table * get_data_table_ref() { return m_data; }
     
   void apply_config(nlohmann::json *) override;
   void update_cursor_position(double) override;
+  
+  void update_group_cursor_positions(double);
+//  double process_mouse_event(QMouseEvent *) override;
   
   void init_xlabel();
   void set_xlabel_value(double);

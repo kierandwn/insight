@@ -18,15 +18,16 @@
 //
 #ifndef DATACHANNEL_H
 #define DATACHANNEL_H
+#pragma once
 
 #include <iostream>
 #include <vector>
 #include <algorithm>
 
-using namespace std;
-
 namespace insight {
 namespace data {
+
+using namespace std;
 
 
 // template <typename Tp>

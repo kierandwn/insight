@@ -18,22 +18,22 @@
 //
 #ifndef INSIGHTLAYOUT_H
 #define INSIGHTLAYOUT_H
+#pragma once
 
 #include <string>
 #include <map>
 
 #include <QGridLayout>
 
-#include "lib/json/single_include/nlohmann/json.hpp"
-
-#include "insight_graphic_base.h"
-#include "waveformdisplay.h"
 #include "table.h"
+#include "insight_graphic_base.h"
 
+#include "lib/json/single_include/nlohmann/json.hpp"
 
 namespace insight {
 namespace layout {
 
+using namespace std;
 
 class Grid {
 protected:
@@ -51,12 +51,12 @@ public:
   std::map<string, graphic::Base *>& map();
 };
 
-class GridFromConfig : public Grid {
+class Layout : public Grid {
 private:
 //  gridLayout m_plotgrid;
 
 public:
-  GridFromConfig() {}
+  Layout() {}
 
   void import_from_config( string filename, QGridLayout * grid, data::Table * data );
   std::map<string, graphic::Base *> import_from_config( nlohmann::json, QGridLayout *, data::Table * );

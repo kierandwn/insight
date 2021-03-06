@@ -18,23 +18,25 @@
 //
 #ifndef DATATABLE_H
 #define DATATABLE_H
-
-#include "channel.h"
+#pragma once
 
 #include <fstream>
 #include <string>
 #include <map>
 #include <vector>
 
-using namespace std;
-
+#include "channel.h"
 
 namespace insight {
 namespace data {
 
+using namespace std;
+
+
+
 class Table {
 private:
-    std::map<string, Channel *> m_channels;
+    map<string, Channel *> m_channels;
 
 public:
     Table() {}

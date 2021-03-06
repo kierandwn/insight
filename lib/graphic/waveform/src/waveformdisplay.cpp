@@ -26,6 +26,7 @@
 #include <qwt_plot_item.h>
 
 #include "insight_graphic_base.h"
+#include "grid.h"
 
 namespace insight {
 namespace graphic {
@@ -184,8 +185,9 @@ void WaveformGroup::set_metric_values(double min, double max, double mean) {
   m_metrics.setText(QString::fromUtf8(metric_text));
 }
 
-WaveformDisplay::WaveformDisplay(data::Table * data)
+WaveformDisplay::WaveformDisplay(data::Table * data, layout::Layout * layout)
     : Base(data),
+      p_layout(layout),
       m_xlabel(this)
 {
   p_ui->setupUi(this);
@@ -259,6 +261,12 @@ void WaveformDisplay::apply_config(nlohmann::json * json_config) {
       m_waveform_groups.push_back(waveform_group);
       ++i;
     }
+    
+    if (json_config->contains("group")) {
+      m_group_name = json_config->operator[]("group");
+    } else {
+      m_group_name = "";
+    }
   }
   m_nwaveform_groups = i;
   define_uniform_spacing();
@@ -303,9 +311,22 @@ void WaveformDisplay::update_label_values_at(double x) {
 void WaveformDisplay::mousePressEvent(QMouseEvent * event)
 {
     QwtScaleMap map = canvasMap(xBottom);
-    double x_coord = map.invTransform(event->x());
-    update_cursor_position(x_coord);
-//    update_all_group_cursor_positions(x_coord);
+    double xval = map.invTransform(event->x());
+    
+    update_group_cursor_positions(xval);
+}
+
+void WaveformDisplay::update_group_cursor_positions(double xval) { // TODO: create intermediate subclass of Base: LinkedGraphic
+    if ("" == m_group_name) return;
+    
+    map<string, graphic::Base *>::iterator graphic_itr = p_layout->first();
+    graphic::Base * graphic_ptr;
+    
+    while (graphic_itr != p_layout->last()) {
+      graphic_ptr = graphic_itr->second;
+      if (graphic_ptr->group() == m_group_name) graphic_ptr->update_cursor_position(xval);
+      ++graphic_itr;
+    }
 }
 
 void WaveformDisplay::reset()

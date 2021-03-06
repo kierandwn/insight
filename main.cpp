@@ -17,10 +17,10 @@
 // along with insight. If not, see <https://www.gnu.org/licenses/>.
 //
 
-#include "lib/layout/include/mainwindow.h"
 #include <string>
 #include <QApplication>
 
+#include "lib/layout/include/mainwindow.h"
 
 using namespace std;
 using namespace insight;
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     string dir_path = file_path.substr(0, file_path.rfind("\\"));
 
     QApplication a(argc, argv);
-    layout::ApplicationMainWindow w(dir_path);
+    ApplicationMainWindow w(dir_path);
     w.show();
     w.init();
 

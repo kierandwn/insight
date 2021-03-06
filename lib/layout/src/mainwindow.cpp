@@ -34,10 +34,7 @@
 #include "csv.h"
 
 
-using namespace std;
-
 namespace insight {
-namespace layout {
 
 
 ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * parent)
@@ -91,5 +88,5 @@ void ApplicationMainWindow::on_actionLoad_File_triggered()
     update();
 }
 
-}  // namespace layout
+
 }  // namespace insight

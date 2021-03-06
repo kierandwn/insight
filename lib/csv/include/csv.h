@@ -18,6 +18,7 @@
 //
 #ifndef INSIGHT_CSV_H_
 #define INSIGHT_CSV_H_
+#pragma once
 
 #include <stdlib.h>
 
@@ -27,9 +28,10 @@
 
 #include "table.h"
 
+namespace insight {
+
 using namespace std;
 
-namespace insight {
 
 // trim from start (in place)
 static inline void ltrim(std::string &s) {

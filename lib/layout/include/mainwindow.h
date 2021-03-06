@@ -18,6 +18,7 @@
 //
 #ifndef INSIGHTMAINWINDOW_H
 #define INSIGHTMAINWINDOW_H
+#pragma once
 
 #include "ui_mainwindow.h"
 
@@ -33,15 +34,12 @@
 #include <qwt_symbol.h>
 #include <qwt_legend.h>
 
-#include "grid.h"
 #include "table.h"
-
-
-using namespace std;
+#include "grid.h"
 
 namespace insight {
-namespace layout {
 
+using namespace std;
 
 class ApplicationMainWindow : public QMainWindow
 {
@@ -51,7 +49,7 @@ public:
     ApplicationMainWindow(std::string source_main_directory, QWidget *parent = nullptr);
     ~ApplicationMainWindow();
 
-    layout::GridFromConfig m_layout;
+    layout::Layout m_layout;
     data::Table m_data;
 
     void update();
@@ -67,6 +65,6 @@ private:
     string src_root_dir_;
 };
 
-} // namespace layout
+
 } // namespace insight
 #endif // INSIGHTMAINWINDOW_H

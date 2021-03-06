@@ -18,25 +18,26 @@
 //
 #ifndef INSIGHT_GRAPHIC_BASE_H
 #define INSIGHT_GRAPHIC_BASE_H
+#pragma once
 
 #include <vector>
 
-#include <QWidget>
-#include <QtUiPlugin/QDesignerCustomWidgetInterface>
+#include <QMouseEvent>
+//#include <QWidget>
+//#include <QtUiPlugin/QDesignerCustomWidgetInterface>
 
-//#include "mainwindow.h"
 #include "table.h"
-#include "lib/json/single_include/nlohmann/json.hpp"
 
-using namespace std;
+#include "lib/json/single_include/nlohmann/json.hpp"
 
 namespace insight {
 namespace graphic {
 
+using namespace std;
+
 
 class Base { //, public virtual QDesignerCustomWidgetInterface {
  protected:
-//  layout::ApplicationMainWindow * m_app;
   data::Table * m_data;
     
   string m_group_name = "a";
@@ -80,14 +81,6 @@ class Base { //, public virtual QDesignerCustomWidgetInterface {
   string group() { return m_group_name; }
     
   void update_data_ref(data::Table * data) { m_data = data; }
-    
-//  void update_all_group_cursor_positions(double xval) {
-//    Base * graphic_ptr = this;
-//    while (this != next()) {
-//      graphic_ptr->update_cursor_position(xval);
-//      graphic_ptr = next();
-//    }
-//  }
 };
 
 }  // namespace graphic

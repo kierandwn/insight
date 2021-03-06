@@ -55,7 +55,7 @@ ApplicationMainWindow::~ApplicationMainWindow() { delete ui; }
 void ApplicationMainWindow::update() {
     map<string, graphic::Base *>::iterator p;
     for (p = m_layout.first(); p != m_layout.last(); ++p) {
-        p->second->update();
+        p->second->update_after_data_load();
     }
 }
 

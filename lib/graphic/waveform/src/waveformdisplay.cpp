@@ -22,6 +22,8 @@
 #include <cmath>
 
 #include <QMouseEvent>
+#include <QWheelEvent>
+
 #include <qwt_plot_curve.h>
 #include <qwt_plot_item.h>
 
@@ -70,11 +72,11 @@ void WaveformGroup::attach(QwtPlot * plot_area)
     m_zero_line.attach(plot_area);
 }
 
-void WaveformGroup::set_data_from_table(data::Table * table) {
+void WaveformGroup::set_data_from_table(data::Table * table,
+                                        double x_lbound=-10e12, double x_hbound=10e12) {
     size_t n_waveforms = m_channel_names.size();
     
     double ymax, ymin, ymean;
-    double xmax, xmin;
     
     for (size_t i = 0; i < n_waveforms; ++i) {
         data::Channel * channel = table->get(m_channel_names[i]);
@@ -89,27 +91,52 @@ void WaveformGroup::set_data_from_table(data::Table * table) {
         }
         
         data::Channel * xchannel = channel->get_time_ref();
-        if (xchannel->max() > xmax) { xmax = xchannel->max(); }
-        else if (xchannel->min() < xmin) { xmin = xchannel->min(); }
+        x_lbound = max({x_lbound, xchannel->min()});
+        x_hbound = min({x_hbound, xchannel->max()});
+        
+        double * xdata = channel->get_time_data_ptr();
+        
+        bool below_lbound = true; bool below_hbound = true;
+        int i_lbound = n - 1; int i_hbound = n - 1;
         
         for (size_t i = 0; i < n; ++i) {
+            if (xdata[i] < x_lbound) {
+                continue;
+            } else if (xdata[i] > x_hbound) {
+                if (below_hbound) {
+                    i_hbound = i - 1;
+                    below_hbound = false;
+                }
+                continue;
+            } else {
+                if (below_lbound) {
+                    i_lbound = i;
+                    below_lbound = false;
+                }
+            }
+            
             ydata[i] = m_normalised_yoffset + \
                  m_normalised_height * ((channel->operator[](i) - ymean) / (ymax - ymin));
         }
-        double * xdata = channel->get_time_data_ptr();
+        int n_to_plot = i_hbound - i_lbound;
+        if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
         
-        m_curves[i]->setSamples(xdata, ydata, n);
+        cout << "i_lbound: " << i_lbound << endl;
+        
+        m_curves[i]->setSamples(&xdata[i_lbound], &ydata[i_lbound], n_to_plot);
         delete[] ydata;
     }
     
-    double xdata_0line[2]{ xmin, xmax };
+    double xdata_0line[2]{ x_lbound, x_hbound };
     double ydata_0line[2]{
         m_normalised_yoffset,
         m_normalised_yoffset
     };
     m_zero_line.setSamples(xdata_0line, ydata_0line, 2);
     
-    init_label(table);
+    m_xlim[0] = x_lbound; m_xlim[1] = x_hbound;
+    m_ylim[0] = ymin; m_ylim[1] = ymax;
+    
     set_metric_values(ymin, ymax, ymean);
 }
 
@@ -277,17 +304,32 @@ void WaveformDisplay::init() {
     for (size_t i = 0; i < m_waveform_groups.size(); ++i) {
         m_waveform_groups[i]->init_curves();
     }
+//    update_cursor_position(0.);
+    m_cursor.attach(this);
 }
 
-void WaveformDisplay::update()
+void WaveformDisplay::update_after_data_load()
 {
   int channels_to_plot = get_number_of_waveform_groups();
-
+    
   for (int i = 0; i < channels_to_plot; ++i) {
-    m_waveform_groups[i]->set_data_from_table(m_data);
+    m_waveform_groups[i]->set_data_from_table(m_data, 0.5, 1.0);
+    m_waveform_groups[i]->init_label(m_data);
   }
-  update_cursor_position(0.);
-  m_cursor.attach(this);
+  update_cursor_position(xlim()[0]);
+  replot();
+}
+
+void WaveformDisplay::update_after_xlim(double xmin, double xmax)
+{
+  cout << "xmin: " << xmin << "; xmax: " << xmax << endl;
+  int channels_to_plot = get_number_of_waveform_groups();
+    
+  for (int i = 0; i < channels_to_plot; ++i) {
+    m_waveform_groups[i]->set_data_from_table(m_data, xmin, xmax);
+  }
+
+  if (!is_cursor_in_xrange()) { m_cursor.detach(); }
   replot();
 }
 
@@ -295,10 +337,36 @@ void WaveformDisplay::update_cursor_position(double x) {
     double xcursor[2]{ x, x };
     double ycursor[2]{ 0., 1. };
     
+    double * xrange = xlim();
+    bool last_cursor_pos_in_xrange = is_cursor_in_xrange();
+    bool new_cursor_pos_in_xrange  = (x > xrange[0] && x < xrange[1]);
+    
+    if (new_cursor_pos_in_xrange) {
+        // if cursor comes back into visible xdomain, reattach
+        if (!last_cursor_pos_in_xrange) m_cursor.attach(this);
+    }
+    
     update_label_values_at(x);
     
     m_cursor.setSamples(xcursor, ycursor, 2);
+    m_xpos_cursor = x;
     replot();
+}
+
+bool WaveformDisplay::is_cursor_in_xrange() {
+    double * xrange = xlim();
+    return m_xpos_cursor > xrange[0] && m_xpos_cursor < xrange[1];
+}
+
+double * WaveformDisplay::xlim() {
+    double * widest_xbound = new double;
+    widest_xbound[0] = 10e12; widest_xbound[1] = -10e12;
+    
+    for (int i = 0; i < m_nwaveform_groups; ++i) {
+        widest_xbound[0] = min({m_waveform_groups[i]->xlim()[0], widest_xbound[0]});
+        widest_xbound[1] = max({m_waveform_groups[i]->xlim()[1], widest_xbound[1]});
+    }
+    return widest_xbound; // KNOWN potential memory leak, returned array should be deleted.
 }
 
 void WaveformDisplay::update_label_values_at(double x) {
@@ -310,10 +378,56 @@ void WaveformDisplay::update_label_values_at(double x) {
 
 void WaveformDisplay::mousePressEvent(QMouseEvent * event)
 {
+    cout << "press event" << endl;
     QwtScaleMap map = canvasMap(xBottom);
-    double xval = map.invTransform(event->x());
+    double m_mouse_xpos = map.invTransform(event->x());
     
-    update_group_cursor_positions(xval);
+    double * widest_xlim = xlim();
+    double xrange = widest_xlim[1] - widest_xlim[0];
+    
+    if ((m_mouse_xpos - m_xpos_cursor) <  (xrange * .05)) { m_drag_cursor = true; }
+    update_group_cursor_positions(m_mouse_xpos);
+}
+
+void WaveformDisplay::mouseMoveEvent(QMouseEvent * event) {
+    if (m_drag_cursor) {
+      cout << "cursor dragging.." << endl;
+      QWidget::mousePressEvent(event); // update cursor positon
+    } else {
+      cout << "panning.." << endl;
+      m_panning = true;
+        
+      double pan_speed_scalar = .001;
+      double delta_x = event->x() - m_mouse_xpos;
+    
+      double * widest_xlim = xlim();
+      double xrange = widest_xlim[1] - widest_xlim[0];
+    
+      widest_xlim[0] += delta_x * pan_speed_scalar * xrange;
+      widest_xlim[1] += delta_x * pan_speed_scalar;
+      update_after_xlim(widest_xlim[0], widest_xlim[1]);
+    
+      m_mouse_xpos = event->x();
+      delete[] widest_xlim;
+    }
+}
+
+//void WaveformDisplay::mouseDoubleClickEvent(QMouseEvent * event) {
+//    cout << "reached: double-click" << endl;
+//}
+
+void WaveformDisplay::wheelEvent(QWheelEvent * event) {
+    double scroll_speed_scalar = .001;
+    double vertical_scroll_delta = event->angleDelta().y();
+    
+    double * widest_xlim = xlim();
+    double xrange = widest_xlim[1] - widest_xlim[0];
+    
+    widest_xlim[0] -= scroll_speed_scalar * vertical_scroll_delta * xrange;
+    widest_xlim[1] += scroll_speed_scalar * vertical_scroll_delta * xrange;
+    
+    update_after_xlim(widest_xlim[0], widest_xlim[1]);
+    delete[] widest_xlim;
 }
 
 void WaveformDisplay::update_group_cursor_positions(double xval) { // TODO: create intermediate subclass of Base: LinkedGraphic

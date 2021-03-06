@@ -52,6 +52,8 @@ class WaveformGroup {
   QLabel m_label;
   QLabel m_metrics;
     
+  double m_xlim[2]; double m_ylim[2];
+    
   vector<string> m_channel_names;
 
  public:
@@ -69,12 +71,15 @@ class WaveformGroup {
 //  void set_label_colors();
   void set_label_values_at(double, data::Table *);
   void set_metric_values(double, double, double);
+  
+  double * xlim() { return m_xlim; }
+  double * ylim() { return m_ylim; }
     
   string get_channel_name(int i) { return m_channel_names[i]; }
   QwtPlotCurve * get_curve_ref(int i) { return m_curves[i]; }
     
   void attach(QwtPlot *);
-  void set_data_from_table(data::Table *);
+  void set_data_from_table(data::Table *, double, double);
 };
 
 class WaveformDisplay : public QwtPlot, virtual public Base
@@ -92,12 +97,28 @@ private:
   int m_nwaveform_groups;
     
   QwtPlotCurve m_cursor;
+  double m_xpos_cursor;
+  
+//  double m_xlim[2];
+  double m_mouse_xpos;
+  
+  bool m_drag_cursor = false;
+  bool m_panning = false;
+    
+  bool is_cursor_in_xrange();
 
 public:
   WaveformDisplay(data::Table *, layout::Layout *);
   QWidget * p_plot_widget;
     
   void mousePressEvent(QMouseEvent * event) override;
+  void mouseMoveEvent(QMouseEvent * event) override;
+  void mouseReleaseEvent(QMouseEvent * event) override {
+      m_drag_cursor = false;
+      m_panning = false;
+  }
+//  void mouseDoubleClickEvent(QMouseEvent * event) override;
+  void wheelEvent(QWheelEvent * event) override;
 
 //    QString includeFile() const override { return QStringLiteral("waveformdisplay.h"); }
 //    QString name() const override { return QStringLiteral("InsightWaveformDisplay"); }
@@ -142,9 +163,13 @@ public:
     
   void update_label_values_at(double);
   
-  void reset () override;
-  void update () override;
+  void update_after_data_load () override;
+  void update_after_xlim(double, double);
+    
   void init () override;
+  void reset () override;
+    
+  double * xlim();
 };
 
 }  // namespace graphic

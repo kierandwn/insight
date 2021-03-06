@@ -75,7 +75,7 @@ class Base { //, public virtual QDesignerCustomWidgetInterface {
   virtual void update_cursor_position(double xval) = 0;
   
   virtual void reset () = 0;
-  virtual void update() = 0;
+  virtual void update_after_data_load () = 0;
   virtual void init()   = 0;
     
   string group() { return m_group_name; }

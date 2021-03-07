@@ -311,14 +311,14 @@ void WaveformDisplay::update_after_data_load()
   int channels_to_plot = get_number_of_waveform_groups();
     
   for (int i = 0; i < channels_to_plot; ++i) {
-    m_waveform_groups[i]->set_data_from_table(m_data, 0.5, 1.0);
+    m_waveform_groups[i]->set_data_from_table(m_data);
     m_waveform_groups[i]->init_label(m_data);
   }
   update_cursor_position(xlim()[0]);
   replot();
 }
 
-void WaveformDisplay::update_after_xlim(double xmin, double xmax)
+void WaveformDisplay::update_view_limits(double xmin, double xmax)
 {
   int channels_to_plot = get_number_of_waveform_groups();
     
@@ -402,7 +402,7 @@ void WaveformDisplay::mouseMoveEvent(QMouseEvent * event) {
     
       widest_xlim[0] += delta_x * pan_speed_scalar * xrange;
       widest_xlim[1] += delta_x * pan_speed_scalar * xrange;
-      update_after_xlim(widest_xlim[0], widest_xlim[1]);
+      update_group_view_limits(widest_xlim[0], widest_xlim[1]);
     
       m_mouse_xpos = event->x();
       delete[] widest_xlim;
@@ -422,9 +422,22 @@ void WaveformDisplay::wheelEvent(QWheelEvent * event) {
     
     widest_xlim[0] -= scroll_speed_scalar * vertical_scroll_delta * xrange;
     widest_xlim[1] += scroll_speed_scalar * vertical_scroll_delta * xrange;
+    update_group_view_limits(widest_xlim[0], widest_xlim[1]);
     
-    update_after_xlim(widest_xlim[0], widest_xlim[1]);
     delete[] widest_xlim;
+}
+
+void WaveformDisplay::update_group_view_limits(double xmin, double xmax) {
+    if ("" == m_group_name) return;
+    
+    map<string, graphic::Base *>::iterator graphic_itr = p_layout->first();
+    graphic::Base * graphic_ptr;
+    
+    while (graphic_itr != p_layout->last()) {
+      graphic_ptr = graphic_itr->second;
+      if (graphic_ptr->group() == m_group_name) graphic_ptr->update_view_limits(xmin, xmax);
+      ++graphic_itr;
+    }
 }
 
 void WaveformDisplay::update_group_cursor_positions(double xval) { // TODO: create intermediate subclass of Base: LinkedGraphic

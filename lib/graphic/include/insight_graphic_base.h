@@ -70,16 +70,16 @@ class Base { //, public virtual QDesignerCustomWidgetInterface {
 
 //    QString toolTip() const override { return QString(); }
 //    QString whatsThis() const override { return QString(); }
-
-  virtual void apply_config(nlohmann::json *) = 0;
-  virtual void update_cursor_position(double xval) = 0;
   
-  virtual void reset () = 0;
   virtual void update_after_data_load () = 0;
+  virtual void update_cursor_position(double xval) = 0;
+  virtual void update_view_limits(double, double) {};
+  
   virtual void init()   = 0;
-    
+  virtual void apply_config(nlohmann::json *) = 0;
+  virtual void reset () = 0;
+  
   string group() { return m_group_name; }
-    
   void update_data_ref(data::Table * data) { m_data = data; }
 };
 

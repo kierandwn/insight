@@ -155,6 +155,7 @@ public:
   void update_cursor_position(double) override;
   
   void update_group_cursor_positions(double);
+  void update_group_view_limits(double, double);
 //  double process_mouse_event(QMouseEvent *) override;
   
   void init_xlabel();
@@ -163,7 +164,7 @@ public:
   void update_label_values_at(double);
   
   void update_after_data_load () override;
-  void update_after_xlim(double, double);
+  void update_view_limits(double, double) override;
     
   void init () override;
   void reset () override;

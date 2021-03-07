@@ -85,7 +85,6 @@ class WaveformGroup {
 class WaveformDisplay : public QwtPlot, virtual public Base
 {
   Q_OBJECT
-
 private:
   layout::Layout * p_layout;
   QLabel m_xlabel;
@@ -105,7 +104,7 @@ private:
   bool m_drag_cursor = false;
   bool m_panning = false;
     
-  bool is_cursor_in_xrange();
+  void cursor_in_xrange();
 
 public:
   WaveformDisplay(data::Table *, layout::Layout *);

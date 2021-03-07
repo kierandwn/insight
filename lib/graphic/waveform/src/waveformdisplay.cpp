@@ -121,8 +121,6 @@ void WaveformGroup::set_data_from_table(data::Table * table,
         int n_to_plot = i_hbound - i_lbound;
         if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
         
-        cout << "i_lbound: " << i_lbound << endl;
-        
         m_curves[i]->setSamples(&xdata[i_lbound], &ydata[i_lbound], n_to_plot);
         delete[] ydata;
     }
@@ -322,14 +320,14 @@ void WaveformDisplay::update_after_data_load()
 
 void WaveformDisplay::update_after_xlim(double xmin, double xmax)
 {
-  cout << "xmin: " << xmin << "; xmax: " << xmax << endl;
   int channels_to_plot = get_number_of_waveform_groups();
     
   for (int i = 0; i < channels_to_plot; ++i) {
     m_waveform_groups[i]->set_data_from_table(m_data, xmin, xmax);
   }
-
-  if (!is_cursor_in_xrange()) { m_cursor.detach(); }
+  cursor_in_xrange();
+    
+  setAxisScale(xBottom, xmin, xmax);
   replot();
 }
 
@@ -337,15 +335,14 @@ void WaveformDisplay::update_cursor_position(double x) {
     double xcursor[2]{ x, x };
     double ycursor[2]{ 0., 1. };
     
-    double * xrange = xlim();
-    bool last_cursor_pos_in_xrange = is_cursor_in_xrange();
-    bool new_cursor_pos_in_xrange  = (x > xrange[0] && x < xrange[1]);
-    
-    if (new_cursor_pos_in_xrange) {
-        // if cursor comes back into visible xdomain, reattach
-        if (!last_cursor_pos_in_xrange) m_cursor.attach(this);
-    }
-    
+//    double * xrange = xlim();
+    cursor_in_xrange();
+//    bool new_cursor_pos_in_xrange  = (x > xrange[0] && x < xrange[1]);
+//
+//    if (new_cursor_pos_in_xrange) {
+//        // if cursor comes back into visible xdomain, reattach
+//        if (!last_cursor_pos_in_xrange) m_cursor.attach(this);
+//    }
     update_label_values_at(x);
     
     m_cursor.setSamples(xcursor, ycursor, 2);
@@ -353,9 +350,10 @@ void WaveformDisplay::update_cursor_position(double x) {
     replot();
 }
 
-bool WaveformDisplay::is_cursor_in_xrange() {
+void WaveformDisplay::cursor_in_xrange() {
     double * xrange = xlim();
-    return m_xpos_cursor > xrange[0] && m_xpos_cursor < xrange[1];
+    if (m_xpos_cursor > xrange[0] && m_xpos_cursor < xrange[1]) { m_cursor.attach(this); }
+    else { m_cursor.detach(); }
 }
 
 double * WaveformDisplay::xlim() {
@@ -366,7 +364,7 @@ double * WaveformDisplay::xlim() {
         widest_xbound[0] = min({m_waveform_groups[i]->xlim()[0], widest_xbound[0]});
         widest_xbound[1] = max({m_waveform_groups[i]->xlim()[1], widest_xbound[1]});
     }
-    return widest_xbound; // KNOWN potential memory leak, returned array should be deleted.
+    return widest_xbound; // KNOWN potential memory leak, returned array needs to be deleted by calling fcn.
 }
 
 void WaveformDisplay::update_label_values_at(double x) {
@@ -392,9 +390,8 @@ void WaveformDisplay::mousePressEvent(QMouseEvent * event)
 void WaveformDisplay::mouseMoveEvent(QMouseEvent * event) {
     if (m_drag_cursor) {
       cout << "cursor dragging.." << endl;
-      QWidget::mousePressEvent(event); // update cursor positon
+      mousePressEvent(event); // update cursor positon
     } else {
-      cout << "panning.." << endl;
       m_panning = true;
         
       double pan_speed_scalar = .001;
@@ -404,7 +401,7 @@ void WaveformDisplay::mouseMoveEvent(QMouseEvent * event) {
       double xrange = widest_xlim[1] - widest_xlim[0];
     
       widest_xlim[0] += delta_x * pan_speed_scalar * xrange;
-      widest_xlim[1] += delta_x * pan_speed_scalar;
+      widest_xlim[1] += delta_x * pan_speed_scalar * xrange;
       update_after_xlim(widest_xlim[0], widest_xlim[1]);
     
       m_mouse_xpos = event->x();

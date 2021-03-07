@@ -20,6 +20,7 @@
 
 #include <iostream>
 
+#include <QStyle>
 #include <QFileDialog>
 
 #include <qapplication.h>
@@ -60,10 +61,13 @@ void ApplicationMainWindow::update() {
 }
 
 void ApplicationMainWindow::init() {
+    
     map<string, graphic::Base *>::iterator p;
     for (p = m_layout.first(); p != m_layout.last(); ++p) {
         p->second->init();
     }
+//    statusBar()->setFont(QFont("Courier", 10));
+//    statusBar()->showMessage("initialised.");
 }
 
 void ApplicationMainWindow::update_cursors_in_group(string group_name, double xval) {

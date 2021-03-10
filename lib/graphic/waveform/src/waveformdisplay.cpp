@@ -383,8 +383,8 @@ void WaveformDisplay::mousePressEvent(QMouseEvent * event)
     double * widest_xlim = xlim();
     double xrange = widest_xlim[1] - widest_xlim[0];
     
-    if ((m_mouse_xpos - m_xpos_cursor) <  (xrange * .05)) { m_drag_cursor = true; }
-    update_group_cursor_positions(m_mouse_xpos);
+    if (abs(m_mouse_xpos - m_xpos_cursor) <  (xrange * .05)) { m_drag_cursor = true; }
+    else { update_group_cursor_positions(m_mouse_xpos); }
 }
 
 void WaveformDisplay::mouseMoveEvent(QMouseEvent * event) {

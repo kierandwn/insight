@@ -211,8 +211,7 @@ void WaveformGroup::set_metric_values(double min, double max, double mean) {
 }
 
 WaveformDisplay::WaveformDisplay(data::Table * data, layout::Layout * layout)
-    : Base(data),
-      p_layout(layout),
+    : Linked(data, layout),
       m_xlabel(this)
 {
   p_ui->setupUi(this);
@@ -383,7 +382,7 @@ void WaveformDisplay::mousePressEvent(QMouseEvent * event)
     double * widest_xlim = xlim();
     double xrange = widest_xlim[1] - widest_xlim[0];
     
-    if (abs(m_mouse_xpos - m_xpos_cursor) <  (xrange * .05)) { m_drag_cursor = true; }
+    if (abs(m_mouse_xpos - m_xpos_cursor) < (xrange * .05)) { m_drag_cursor = true; }
     else { update_group_cursor_positions(m_mouse_xpos); }
 }
 
@@ -427,31 +426,31 @@ void WaveformDisplay::wheelEvent(QWheelEvent * event) {
     delete[] widest_xlim;
 }
 
-void WaveformDisplay::update_group_view_limits(double xmin, double xmax) {
-    if ("" == m_group_name) return;
-    
-    map<string, graphic::Base *>::iterator graphic_itr = p_layout->first();
-    graphic::Base * graphic_ptr;
-    
-    while (graphic_itr != p_layout->last()) {
-      graphic_ptr = graphic_itr->second;
-      if (graphic_ptr->group() == m_group_name) graphic_ptr->update_view_limits(xmin, xmax);
-      ++graphic_itr;
-    }
-}
-
-void WaveformDisplay::update_group_cursor_positions(double xval) { // TODO: create intermediate subclass of Base: LinkedGraphic
-    if ("" == m_group_name) return;
-    
-    map<string, graphic::Base *>::iterator graphic_itr = p_layout->first();
-    graphic::Base * graphic_ptr;
-    
-    while (graphic_itr != p_layout->last()) {
-      graphic_ptr = graphic_itr->second;
-      if (graphic_ptr->group() == m_group_name) graphic_ptr->update_cursor_position(xval);
-      ++graphic_itr;
-    }
-}
+//void WaveformDisplay::update_group_view_limits(double xmin, double xmax) {
+//    if ("" == m_group_name) return;
+//
+//    map<string, graphic::Base *>::iterator graphic_itr = p_layout->first();
+//    graphic::Base * graphic_ptr;
+//
+//    while (graphic_itr != p_layout->last()) {
+//      graphic_ptr = graphic_itr->second;
+//      if (graphic_ptr->group() == m_group_name) graphic_ptr->update_view_limits(xmin, xmax);
+//      ++graphic_itr;
+//    }
+//}
+//
+//void WaveformDisplay::update_group_cursor_positions(double xval) { // TODO: create intermediate subclass of Base: LinkedGraphic
+//    if ("" == m_group_name) return;
+//
+//    map<string, graphic::Base *>::iterator graphic_itr = p_layout->first();
+//    graphic::Base * graphic_ptr;
+//
+//    while (graphic_itr != p_layout->last()) {
+//      graphic_ptr = graphic_itr->second;
+//      if (graphic_ptr->group() == m_group_name) graphic_ptr->update_cursor_position(xval);
+//      ++graphic_itr;
+//    }
+//}
 
 void WaveformDisplay::reset()
 {

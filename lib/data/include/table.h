@@ -48,6 +48,7 @@ public:
     {
         if (m_channels.find(channel_name) == m_channels.end()) {
             m_channels[channel_name] = new Channel;
+            printf("%s; \n", channel_name.c_str());
         }
     }
 

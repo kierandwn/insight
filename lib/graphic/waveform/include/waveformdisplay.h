@@ -28,10 +28,12 @@
 
 #include "ui_waveform.h"
 
+#include "insight_graphic_base.h"
+#include "linked_graphic.h"
+
 #include "table.h"
 #include "grid.h"
 #include "mainwindow.h"
-#include "insight_graphic_base.h"
 
 #include "lib/json/single_include/nlohmann/json.hpp"
 
@@ -82,11 +84,11 @@ class WaveformGroup {
   void set_data_from_table(data::Table *, double, double);
 };
 
-class WaveformDisplay : public QwtPlot, virtual public Base
+class WaveformDisplay : public QwtPlot, public Linked
 {
   Q_OBJECT
 private:
-  layout::Layout * p_layout;
+//  layout::Layout * p_layout;
   QLabel m_xlabel;
     
   Ui::WaveformDisplay * p_ui = new Ui::WaveformDisplay;
@@ -148,14 +150,12 @@ public:
 
 
   int get_number_of_waveform_groups() { return m_nwaveform_groups; }
-  
-  data::Table * get_data_table_ref() { return m_data; }
     
   void apply_config(nlohmann::json *) override;
   void update_cursor_position(double) override;
   
-  void update_group_cursor_positions(double);
-  void update_group_view_limits(double, double);
+//  void update_group_cursor_positions(double);
+//  void update_group_view_limits(double, double);
 //  double process_mouse_event(QMouseEvent *) override;
   
   void init_xlabel();

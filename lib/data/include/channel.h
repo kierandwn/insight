@@ -72,6 +72,8 @@ public:
     
     void update_time_channel_ptr(Channel * t) { p_time_channel = t; }
     
+    double * get_data_ptr() { return &operator[](0); }
+    
     double * get_time_data_ptr() { return &p_time_channel->operator[](0); }
     Channel * get_time_ref() { return p_time_channel; }
 

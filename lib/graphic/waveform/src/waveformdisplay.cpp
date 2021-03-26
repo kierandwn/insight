@@ -27,24 +27,13 @@
 #include <qwt_plot_curve.h>
 #include <qwt_plot_item.h>
 
+#include "defaults.h"
 #include "insight_graphic_base.h"
 #include "grid.h"
 
 namespace insight {
 namespace graphic {
 
-
-// TODO: move to base graphics descriptions (source file?)
-vector<int> kDefaultInactiveColor {150, 150, 150, 180};
-vector<vector<int>> kDefaultColorOrder{
-  {0,    114, 189, 180},
-  {217, 83, 250, 180},
-  {237, 177, 32, 180},
-  {126, 47, 142, 180},
-  {119, 172, 48, 180},
-  {77, 190, 238, 180},
-  {162, 199, 47, 180}
-};
 
 WaveformGroup::WaveformGroup(QwtPlot * parent)
     : p_parent(parent),
@@ -211,7 +200,7 @@ void WaveformGroup::set_metric_values(double min, double max, double mean) {
 }
 
 WaveformDisplay::WaveformDisplay(data::Table * data, layout::Layout * layout)
-    : Linked(data, layout),
+    : LinkedPlot(data, layout),
       m_xlabel(this)
 {
   p_ui->setupUi(this);

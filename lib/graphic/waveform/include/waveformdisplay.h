@@ -24,6 +24,8 @@
 #include <string>
 
 #include <QLabel>
+#include <QWidget>
+
 #include <qwt_plot_curve.h>
 
 #include "ui_waveform.h"
@@ -84,11 +86,10 @@ class WaveformGroup {
   void set_data_from_table(data::Table *, double, double);
 };
 
-class WaveformDisplay : public QwtPlot, public Linked
+class WaveformDisplay : public LinkedPlot
 {
   Q_OBJECT
 private:
-//  layout::Layout * p_layout;
   QLabel m_xlabel;
     
   Ui::WaveformDisplay * p_ui = new Ui::WaveformDisplay;
@@ -110,7 +111,6 @@ private:
 
 public:
   WaveformDisplay(data::Table *, layout::Layout *);
-  QWidget * p_plot_widget;
     
   void mousePressEvent(QMouseEvent * event) override;
   void mouseMoveEvent(QMouseEvent * event) override;

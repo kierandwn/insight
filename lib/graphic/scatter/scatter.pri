@@ -1,25 +1,25 @@
-WAVEFORM_SRC_PATH = "$$PWD/src"
-WAVEFORM_INCLUDE_PATH = "$$PWD/include"
-WAVEFORM_UI_PATH = "$$PWD/ui"
+SCATTER_SRC_PATH = "$$PWD/src"
+SCATTER_INCLUDE_PATH = "$$PWD/include"
+SCATTER_UI_PATH = "$$PWD/ui"
 
-GRAPHIC_INCLUDE_PATH = "$$PWD/../include"
+GRAPHIC_INCLUDE_PATH = "../include"
 GRAPHIC_SRC_PATH = "$$PWD/../src"
 
 SOURCES += \
-    $$WAVEFORM_SRC_PATH/waveformdisplay.cpp
+    $$SCATTER_SRC_PATH/scatter.cpp
     $$GRAPHIC_SRC_PATH/defaults.cpp
 
 INCLUDEPATH += \
-    $$WAVEFORM_INCLUDE_PATH
+    $$SCATTER_INCLUDE_PATH
     $$GRAPHIC_INCLUDE_PATH
 
 HEADERS += \
-    $$WAVEFORM_INCLUDE_PATH/waveformdisplay.h
+    $$SCATTER_INCLUDE_PATH/scatter.h
     $$GRAPHIC_INCLUDE_PATH/insight_graphic_base.h
     $$GRAPHIC_INCLUDE_PATH/linked_graphic.h
 
 FORMS += \
-    $${WAVEFORM_UI_PATH}/waveform.ui
+    $${SCATTER_UI_PATH}/scatter.ui
     
 QT += designer widgets uiplugin
 CONFIG += plugin

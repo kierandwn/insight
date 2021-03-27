@@ -21,9 +21,12 @@
 #pragma once
 
 #include <vector>
+#include <tuple>
 #include <string>
 
 #include <QLabel>
+#include <QStaticText>
+#include <QStylePainter>
 #include <qwt_plot_curve.h>
 
 #include "ui_scatter.h"
@@ -44,16 +47,57 @@ namespace graphic {
 using namespace std;
 
 
-class ScatterGroup : public QwtPlotCurve {
+class VLabel : public QLabel
+{
+  Q_OBJECT
+  
+ public:
+  VLabel(QWidget *parent) : QLabel(parent) {}
+  VLabel(const QString& text, QWidget * parent) : QLabel(text, parent) {}
+  
+ protected:
+  void paintEvent(QPaintEvent *)
+  {
+    QStylePainter painter(this);
+    painter.setPen(Qt::black);
+    painter.setBrush(Qt::Dense1Pattern);
+
+//    painter.translate(sizeHint().width(), sizeHint().height());
+    painter.translate(sizeHint().width(), 0);
+    painter.rotate(90);
+    
+//    painter.drawStaticText(0, 0, height(), width(), alignment(), text());
+    painter.drawStaticText(0, 0, QStaticText(text()));
+  }
+  
+  QSize minimumSizeHint() const
+  {
+    QSize s = QLabel::minimumSizeHint();
+    return QSize(s.height(), s.width());
+  }
+
+  QSize sizeHint() const
+  {
+    QSize s = QLabel::sizeHint();
+    return QSize(s.height(), s.width());
+  }
+};
+
+class ScatterGroup {
  private:
   QwtPlot * p_parent;
 
-  vector<QwtPlotCurve *> m_scatters;
-    
+  // vector of tuples: [(scatter, shadow_scatter)_0, ..., _n]
+  vector<tuple<QwtPlotCurve *, QwtPlotCurve *>> m_scatters;
+  
+  QwtPlotCurve * get_scatter(int i) { return get<0>(m_scatters[i]); }
+  QwtPlotCurve * get_shadow_scatter(int i) { return get<1>(m_scatters[i]); }
+  
   QLabel m_label;
   QLabel m_metrics;
   
   QwtSymbol m_symbol;
+  QwtSymbol m_shadow_symbol;
 
   double m_xlim[2]; double m_ylim[2];
 
@@ -62,6 +106,7 @@ class ScatterGroup : public QwtPlotCurve {
 
  public:
   ScatterGroup(QwtPlot *);
+  ~ScatterGroup();
 
   void init_scatters();
   void init_labels(data::Table *);
@@ -86,8 +131,9 @@ class DisplayCrosshair {
   QwtPlotCurve m_horzbar;
   QwtPlotCurve m_vertbar;
 
-  double m_xpos;
-  double m_ypos;
+//  double m_xpos;
+//  double m_ypos;
+    
  public:
   DisplayCrosshair() {
     QPen dark_grey(QColor(0, 0, 0, 250));
@@ -118,10 +164,13 @@ class ScatterDisplay : public LinkedPlot
   data::Table * m_data;
     
   QLabel m_xlabel;
-  QLabel m_ylabel;
+  VLabel m_ylabel;
     
-  QwtPlotCurve m_xzero_line;
-  QwtPlotCurve m_yzero_line;
+  VLabel m_mean_xlabel;
+  QLabel m_mean_ylabel;
+    
+  QwtPlotCurve m_mean_xline;
+  QwtPlotCurve m_mean_yline;
     
   Ui::ScatterDisplay * p_ui = new Ui::ScatterDisplay;
 //  void define_uniform_spacing();
@@ -138,7 +187,7 @@ class ScatterDisplay : public LinkedPlot
 //  bool m_panning = false;
     
 //  void cursor_in_xrange();
-    void update_zero_line_limits();
+    void update_mean_lines();
     
 public:
   ScatterDisplay(data::Table *, layout::Layout *);

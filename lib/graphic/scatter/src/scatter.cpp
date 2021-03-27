@@ -18,6 +18,7 @@
 //
 #include "scatter.h"
 
+#include <tuple>
 #include <string>
 #include <cmath>
 
@@ -42,14 +43,22 @@ ScatterGroup::ScatterGroup(QwtPlot * parent)
       m_metrics(parent)
 {}
 
+ScatterGroup::~ScatterGroup() {
+  for (size_t i = 0; i < m_scatters.size(); ++i) {
+    delete get_scatter(i);
+    delete get_shadow_scatter(i);
+  }
+}
+
 void ScatterGroup::add_xypair(string xchannel_id, string ychannel_id) {
-    m_xchannel_name = xchannel_id;
-    m_ychannel_name = ychannel_id;
+  m_xchannel_name = xchannel_id;
+  m_ychannel_name = ychannel_id;
     
+  m_scatters.push_back(std::make_tuple(new QwtPlotCurve, new QwtPlotCurve));
 }
 
 void ScatterGroup::set_data_from_table(data::Table * table,
-                                       double x_lbound=-10e12, double x_hbound=10e12)
+                                       double t_lbound=-10e12, double t_hbound=10e12)
 {
 //    size_t n_scatters = m_nscatter_pairs;
     double xmax, xmin, xmean;
@@ -70,33 +79,35 @@ void ScatterGroup::set_data_from_table(data::Table * table,
             ymean = 0.5 * (ymin + ymax);
         }
         
-//        x_lbound = max({x_lbound, xchannel->min()});
-//        x_hbound = min({x_hbound, xchannel->max()});
+        data::Channel * tchannel = xchannel->get_time_ref();
+      
+        t_lbound = max({t_lbound, tchannel->min()});
+        t_hbound = min({t_hbound, tchannel->max()});
         
-//        bool below_lbound = true; bool below_hbound = true;
-//        int i_lbound = n - 1; int i_hbound = n - 1;
-//
-//        for (size_t i = 0; i < n; ++i) {
-//            if (xdata[i] < x_lbound) {
-//                continue;
-//            } else if (xdata[i] > x_hbound) {
-//                if (below_hbound) {
-//                    i_hbound = i - 1;
-//                    below_hbound = false;
-//                }
-//                continue;
-//            } else {
-//                if (below_lbound) {
-//                    i_lbound = i;
-//                    below_lbound = false;
-//                }
-//            }
-//        }
-//        int n_to_plot = i_hbound - i_lbound;
-//        if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
+        bool below_lbound = true; bool below_hbound = true;
+        int i_lbound = n - 1; int i_hbound = n - 1;
+
+        for (size_t i = 0; i < n; ++i) {
+            if (tchannel->operator[](i) < t_lbound) {
+                continue;
+            } else if (tchannel->operator[](i) > t_hbound) {
+                if (below_hbound) {
+                    i_hbound = i - 1;
+                    below_hbound = false;
+                }
+                continue;
+            } else {
+                if (below_lbound) {
+                    i_lbound = i;
+                    below_lbound = false;
+                }
+            }
+        }
+        int n_to_plot = i_hbound - i_lbound;
+        if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
         
-//        m_curves[i]->setSamples(&xdata[i_lbound], &(channel->operator[](i_lbound)), n_to_plot);
-        setSamples(xchannel->get_data_ptr(), ychannel->get_data_ptr(), n);
+        get_scatter(i)->setSamples(&xchannel->get_data_ptr()[i_lbound], &ychannel->get_data_ptr()[i_lbound], n_to_plot);
+        get_shadow_scatter(i)->setSamples(xchannel->get_data_ptr(), ychannel->get_data_ptr(), n);
     }
     
     m_xlim[0] = xmin; m_xlim[1] = xmax;
@@ -113,12 +124,20 @@ void ScatterGroup::init_scatters() {
       
     m_symbol.setStyle(QwtSymbol::Cross);
     m_symbol.setSize(QSize(6, 6));
-    m_symbol.setColor(QColor(color[0], color[1], color[2]));
+    m_symbol.setColor(QColor(color[0], color[1], color[2], 255));
+    
+    m_shadow_symbol.setStyle(QwtSymbol::Cross);
+    m_shadow_symbol.setSize(QSize(6, 6));
+    m_shadow_symbol.setColor(QColor(color[0], color[1], color[2], 50));
       
-    setStyle(NoCurve);
-    setSymbol(&m_symbol);
+    get_scatter(j)->setStyle(QwtPlotCurve::NoCurve);
+    get_scatter(j)->setSymbol(&m_symbol);
+    get_scatter(j)->attach(p_parent);
+    
+    get_shadow_scatter(j)->setStyle(QwtPlotCurve::NoCurve);
+    get_shadow_scatter(j)->setSymbol(&m_shadow_symbol);
+    get_shadow_scatter(j)->attach(p_parent);
   }
-  attach(p_parent);
 }
 
 //void ScatterGroup::init_label(data::Table * table) {
@@ -186,7 +205,9 @@ ScatterDisplay::ScatterDisplay(data::Table * data, layout::Layout * layout)
     : LinkedPlot(data, layout),
       m_data(data),
       m_xlabel(this),
-      m_ylabel(this)
+      m_ylabel(this),
+      m_mean_xlabel(this),
+      m_mean_ylabel(this)
 {
   p_ui->setupUi(this);
 
@@ -201,7 +222,7 @@ ScatterDisplay::ScatterDisplay(data::Table * data, layout::Layout * layout)
 }
 
 void ScatterDisplay::init_labels() {
-    int label_width = 300;
+    int label_width = 500;
     int label_height = 15;
 
     m_xlabel.setStyleSheet(
@@ -216,17 +237,21 @@ void ScatterDisplay::init_labels() {
     
     m_xlabel.setGeometry(
         width() - (label_width + 5),
-        height() - 1.02 * label_height,
+        height() - (label_height + 5),
         label_width,
         label_height
     );
     m_ylabel.setGeometry(
         5,
         5,
-        label_width,
-        label_height
+        label_height,
+        label_width
     );
     set_label_values_at(0.);
+    
+    m_mean_xlabel.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
+    m_mean_ylabel.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
+    m_mean_xlabel.setAlignment(Qt::AlignRight);
 }
 
 void ScatterDisplay::set_label_values_at(double tvalue)
@@ -244,13 +269,14 @@ void ScatterDisplay::set_label_values_at(double tvalue)
     ychannel_names_total_length += ychannel_name.length();
   }
     
-  char * xlabel_text = new char[xchannel_names_total_length+(m_nscatter_pairs*67)+1];
-  char * ylabel_text = new char[xchannel_names_total_length+(m_nscatter_pairs*67)+1];
+  char * xlabel_text = new char[xchannel_names_total_length+(m_nscatter_pairs*62)+1];
+  char * ylabel_text = new char[ychannel_names_total_length+(m_nscatter_pairs*62)+1];
   int xstring_cursor = 0;
   int ystring_cursor = 0;
     
   for (int i = 0; i < m_nscatter_pairs; ++i) {
-      string xchannel_name = m_scatter_pairs[i]->get_xchannel_name();
+      xchannel_name = m_scatter_pairs[i]->get_xchannel_name();
+      ychannel_name = m_scatter_pairs[i]->get_ychannel_name();
       vector<int> color = kDefaultColorOrder[i];
       
       double xvalue, yvalue;
@@ -263,31 +289,26 @@ void ScatterDisplay::set_label_values_at(double tvalue)
       }
       
       sprintf(&xlabel_text[xstring_cursor],
-          "%s: <span style=\"color : rgb(%03d, %03d, %03d);\">%*.2f[-];</span><br/>",
+          "%s: <span style=\"color : rgb(%03d, %03d, %03d);\">%*.2f[-];</span>",
               xchannel_name.c_str(),
               color[0],
               color[1],
               color[2],
               7, xvalue
       );
-      sprintf(&ylabel_text[xstring_cursor],
-          "%s: <span style=\"color : rgb(%03d, %03d, %03d);\">%*.2f[-];</span><br/>",
+      sprintf(&ylabel_text[ystring_cursor],
+          "%s: <span style=\"color : rgb(%03d, %03d, %03d);\">%*.2f[-];</span>",
               ychannel_name.c_str(),
               color[0],
               color[1],
               color[2],
               7, yvalue
       );
-      xstring_cursor += xchannel_name.length()+67;
-      ystring_cursor += ychannel_name.length()+67;
+      printf("ylabel text: %s", ylabel_text);
+    
+      xstring_cursor += xchannel_name.length()+62;
+      ystring_cursor += ychannel_name.length()+62;
   }
-
-  // Rotate y-label by transformed pixmap
-//  QPixmap pm = m_ylabel.pixmap(Qt::ReturnByValue);
-//  pm.fill(Qt::red);
-//  QTransform tf;
-//  tf.rotate(-90);
-//  m_ylabel.setPixmap(pm.transformed(tf));
     
   m_xlabel.setText(QString(xlabel_text));
   m_ylabel.setText(QString(ylabel_text));
@@ -326,55 +347,100 @@ void ScatterDisplay::init() {
         m_scatter_pairs[i]->init_scatters();
     }
     
-    m_xzero_line.setPen(QColor(0, 0, 0, 100));
-    m_xzero_line.attach(this);
+    m_mean_xline.setPen(QColor(0, 0, 0, 100));
+    m_mean_xline.attach(this);
     
-    m_yzero_line.setPen(QColor(0, 0, 0, 100));
-    m_yzero_line.attach(this);
+    m_mean_yline.setPen(QColor(0, 0, 0, 100));
+    m_mean_yline.attach(this);
     
     update_cursor_position(0.);
     m_crosshair.attach(this);
 }
 
-void ScatterDisplay::update_zero_line_limits() {
+void ScatterDisplay::update_mean_lines() {
+    replot();
+    
+    // Get axes limits from axes objects (Qwt)
+    double x_lbound = axisScaleDiv(xBottom).lowerBound();
+    double x_hbound = axisScaleDiv(xBottom).upperBound();
+    double y_lbound = axisScaleDiv(yLeft).lowerBound();
+    double y_hbound = axisScaleDiv(yLeft).upperBound();
+    
+    double xaxes_bounds[2]{ x_lbound, x_hbound };
+    double yaxes_bounds[2]{ y_lbound, y_hbound };
+  
     double xlimits[2];
     double ylimits[2];
-    
+  
     xlim(xlimits);
     ylim(ylimits);
     
-    double xdata_xline[2]{0., 0.};
-    double ydata_yline[2]{0., 0.};
+    double xmean = (xlimits[0] + xlimits[1]) / 2.;
+    double ymean = (ylimits[0] + ylimits[1]) / 2.;
+    double xrange = (abs(xlimits[0]) + abs(xlimits[1]));
+    double yrange = (abs(ylimits[0]) + abs(ylimits[1]));
     
-    m_xzero_line.setSamples(xdata_xline, ylimits, 2);
-    m_yzero_line.setSamples(xlimits, ydata_yline, 2);
+    double xdata_xline[2]{xmean, xmean};
+    double ydata_yline[2]{ymean, ymean};
+    
+    m_mean_xline.setSamples(xdata_xline, yaxes_bounds, 2);
+    m_mean_yline.setSamples(xaxes_bounds, ydata_yline, 2);
+    
+    // metrics labels
+    int label_width = 200;
+    int label_height = 15;
+    
+    char metrics_label_text[38];
+    sprintf(metrics_label_text,
+        "%7.2f \xE2\x88\x88 [%7.2f, %7.2f[-]];",
+          xmean, xlimits[0], xlimits[1]
+    );
+    
+    m_mean_xlabel.setText(QString::fromUtf8(metrics_label_text));
+    m_mean_xlabel.setGeometry(
+        ((xmean - xlimits[0]) / xrange) * width() + label_height,
+        5,
+        label_height,
+        label_width
+    );
+  
+    sprintf(metrics_label_text,
+        "%7.2f \xE2\x88\x88 [%7.2f, %7.2f[-]];",
+          ymean, ylimits[0], ylimits[1]
+    );
+    
+    m_mean_ylabel.setText(QString::fromUtf8(metrics_label_text));
+    m_mean_ylabel.setGeometry(
+        width() - (label_width + 5),
+        ((ylimits[1] - ymean) / yrange) * height() - label_height,
+        label_width,
+        label_height
+    );
 }
 
 void ScatterDisplay::update_after_data_load()
 {
-//  int channels_to_plot = get_number_of_waveform_groups();
-    
   for (int i = 0; i < m_nscatter_pairs; ++i) {
     m_scatter_pairs[i]->set_data_from_table(m_data);
 //    m_scatter_pairs[i]->init_label(m_data);
   }
-  update_zero_line_limits();
-//  update_cursor_position(xlim()[0]);
+  update_mean_lines();
+  
+  double xlimits[2];
+  xlim(xlimits);
+    
+  update_cursor_position(xlimits[0]);
   replot();
 }
 
-void ScatterDisplay::update_view_limits(double xmin, double xmax) {}
-//{
-//  int channels_to_plot = get_number_of_waveform_groups();
-//
-//  for (int i = 0; i < channels_to_plot; ++i) {
-//    m_waveform_groups[i]->set_data_from_table(m_data, xmin, xmax);
-//  }
+void ScatterDisplay::update_view_limits(double xmin, double xmax)
+{
+  for (int i = 0; i < m_nscatter_pairs; ++i) {
+    m_scatter_pairs[i]->set_data_from_table(m_data, xmin, xmax);
+  }
 //  cursor_in_xrange();
-//  update_zero_line_limits();
-//  setAxisScale(xBottom, xmin, xmax);
-//  replot();
-//}
+  replot();
+}
 
 void ScatterDisplay::update_cursor_position(double tvalue) {
     string xchannel_name = m_scatter_pairs[0]->get_xchannel_name();
@@ -384,11 +450,14 @@ void ScatterDisplay::update_cursor_position(double tvalue) {
         double xvalue = m_data->get(xchannel_name)->value_at(tvalue);
         double yvalue = m_data->get(ychannel_name)->value_at(tvalue);
         
-        double xlimits[2];
-        double ylimits[2];
+        // Get axes limits from axes objects (Qwt)
+        double x_lbound = axisScaleDiv(xBottom).lowerBound();
+        double x_hbound = axisScaleDiv(xBottom).upperBound();
+        double y_lbound = axisScaleDiv(yLeft).lowerBound();
+        double y_hbound = axisScaleDiv(yLeft).upperBound();
         
-        xlim(xlimits);
-        ylim(ylimits);
+        double xlimits[2]{ x_lbound, x_hbound };
+        double ylimits[2]{ y_lbound, y_hbound };
         
     //    cursor_in_xrange();
         m_crosshair.set_xy(xvalue, yvalue, xlimits, ylimits);

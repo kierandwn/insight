@@ -30,7 +30,7 @@
 #include "waveformdisplay.h"
 #include "scatter.h"
 
-#include "table.h"
+//#include "table.h"
 
 namespace insight {
 namespace layout {

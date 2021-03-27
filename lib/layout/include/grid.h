@@ -25,8 +25,8 @@
 
 #include <QGridLayout>
 
-#include "table.h"
 #include "insight_graphic_base.h"
+//#include "table.h"
 
 #include "lib/json/single_include/nlohmann/json.hpp"
 

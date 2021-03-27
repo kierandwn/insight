@@ -20,14 +20,14 @@
 #define INSIGHT_GRAPHIC_BASE_H
 #pragma once
 
-#include <vector>
+#include <qwt_plot.h>
 
-#include <QMouseEvent>
 //#include <QWidget>
 //#include <QtUiPlugin/QDesignerCustomWidgetInterface>
 
-#include "table.h"
+#include <vector>
 
+#include "table.h"
 #include "lib/json/single_include/nlohmann/json.hpp"
 
 namespace insight {
@@ -35,29 +35,11 @@ namespace graphic {
 
 using namespace std;
 
-enum StateId {
-  init, ready
-};
 
-class State {
- private:
-  StateId m_id; // = StateId::init;
-
- public:
-  State() : m_id(StateId::init) {}
-  
-  bool transition_to(StateId sid) {
-    m_id = sid;
-    return true;
-  }
-  bool operator==(StateId sid) { return m_id == sid; }
-};
-
-class Base { //, public virtual QDesignerCustomWidgetInterface {
+class Base : public QwtPlot { //, public virtual QDesignerCustomWidgetInterface {
  protected:
   data::Table * m_data;
    
-  graphic::State m_state;
   string m_group_name = "";
 
  public:

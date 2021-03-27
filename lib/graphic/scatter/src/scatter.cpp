@@ -18,7 +18,6 @@
 //
 #include "scatter.h"
 
-#include <tuple>
 #include <string>
 #include <cmath>
 
@@ -285,7 +284,6 @@ void ScatterDisplay::set_label_values_at(double tvalue)
               color[2],
               7, yvalue
       );
-      printf("ylabel text: %s", ylabel_text);
     
       xstring_cursor += xchannel_name.length()+62;
       ystring_cursor += ychannel_name.length()+62;

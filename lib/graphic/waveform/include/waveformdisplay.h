@@ -20,6 +20,9 @@
 #define WAVEFORMDISPLAY_H
 #pragma once
 
+#include "ui_waveform.h"
+#include "linked_graphic.h"
+
 #include <vector>
 #include <string>
 
@@ -28,63 +31,45 @@
 
 #include <qwt_plot_curve.h>
 
-#include "ui_waveform.h"
-
-#include "insight_graphic_base.h"
-#include "linked_graphic.h"
-
+#include "waveformgroup.h"
 #include "table.h"
 #include "grid.h"
 #include "mainwindow.h"
 
 #include "lib/json/single_include/nlohmann/json.hpp"
 
-
 namespace insight {
 namespace graphic {
 
 using namespace std;
 
-
-class WaveformGroup {
- private:
-  QwtPlot * p_parent;
-    
-  vector<QwtPlotCurve *> m_curves;
-  QwtPlotCurve m_zero_line;
-  
-  QLabel m_label;
-  QLabel m_metrics;
-    
-  double m_xlim[2]; double m_ylim[2];
-    
-  vector<string> m_channel_names;
-
- public:
-  double m_normalised_height;
-  double m_normalised_yoffset;
-    
-  WaveformGroup(QwtPlot *);
-    
-  void init_curves();
-  void init_label(data::Table *);
-    
-  void add_channel(string);
-  void set_dimensions(double, double);
-    
-//  void set_label_colors();
-  void set_label_values_at(double, data::Table *);
-  void set_metric_values(double, double, double);
-  
-  double * xlim() { return m_xlim; }
-  double * ylim() { return m_ylim; }
-    
-  string get_channel_name(int i) { return m_channel_names[i]; }
-  QwtPlotCurve * get_curve_ref(int i) { return m_curves[i]; }
-    
-  void attach(QwtPlot *);
-  void set_data_from_table(data::Table *, double, double);
+enum MouseDragMode {
+  Init, Ready, Pan, CursorDrag
 };
+
+class MouseState {
+ private:
+  MouseDragMode m_id; // = StateId::init;
+  double m_pos_xy[2]{ 0., 0. };
+  
+ public:
+  MouseState() : m_id(MouseDragMode::Init) {}
+  
+  double * pos() { return m_pos_xy; }
+  double x() { return m_pos_xy[0]; }
+  double y() { return m_pos_xy[1]; }
+  
+  void x(double xval) { m_pos_xy[0] = xval; }
+  void y(double yval) { m_pos_xy[1] = yval; }
+  void update_pos(double xval, double yval) {
+    m_pos_xy[0] = xval;
+    m_pos_xy[1] = yval;
+  }
+  
+  bool operator==(MouseDragMode sid) { return m_id == sid; }
+  MouseState& operator= (MouseDragMode sid) { m_id = sid; return *(this); }
+};
+
 
 class WaveformDisplay : public LinkedPlot
 {
@@ -102,23 +87,17 @@ private:
   double m_xpos_cursor;
   
 //  double m_xlim[2];
-  double m_mouse_xpos;
-  
-  bool m_drag_cursor = false;
-  bool m_panning = false;
+  MouseState m_mouse_state;
     
   void cursor_in_xrange();
 
 public:
   WaveformDisplay(data::Table *, layout::Layout *);
     
-  void mousePressEvent(QMouseEvent * event) override;
-  void mouseMoveEvent(QMouseEvent * event) override;
-  void mouseReleaseEvent(QMouseEvent * event) override {
-      m_drag_cursor = false;
-      m_panning = false;
-  }
-//  void mouseDoubleClickEvent(QMouseEvent * event) override;
+  void mousePressEvent(QMouseEvent *) override;
+  void mouseMoveEvent(QMouseEvent *) override;
+  void mouseReleaseEvent(QMouseEvent *) override;
+  void mouseDoubleClickEvent(QMouseEvent * event) override;
   void wheelEvent(QWheelEvent * event) override;
 
 //    QString includeFile() const override { return QStringLiteral("waveformdisplay.h"); }

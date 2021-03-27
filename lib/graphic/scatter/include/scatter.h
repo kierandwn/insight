@@ -21,7 +21,6 @@
 #pragma once
 
 #include <vector>
-#include <tuple>
 #include <string>
 
 #include <QLabel>
@@ -66,7 +65,6 @@ class VLabel : public QLabel
     painter.translate(sizeHint().width(), 0);
     painter.rotate(90);
     
-//    painter.drawStaticText(0, 0, height(), width(), alignment(), text());
     painter.drawStaticText(0, 0, QStaticText(text()));
   }
   
@@ -189,7 +187,6 @@ public:
 //  }
 //  void mouseDoubleClickEvent(QMouseEvent * event) override;
 //  void wheelEvent(QWheelEvent * event) override;
-
 
   int get_number_of_scatter_pairs() { return m_nscatter_pairs; }
     

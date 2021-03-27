@@ -21,7 +21,6 @@
 #pragma once
 
 #include "insight_graphic_base.h"
-#include <qwt_plot_curve.h>
 
 #include "grid.h"
 #include "table.h"
@@ -30,7 +29,7 @@ namespace insight {
 namespace graphic {
 
 
-class LinkedPlot : public Base, public QwtPlot {
+class LinkedPlot : public Base {
 //  Q_OBJECT
  protected:
     layout::Layout * p_layout;

@@ -9,5 +9,5 @@ HEADERS += \
     $$GRAPHIC_INCLUDE_PATH/insight_graphic_base.h \
     $$GRAPHIC_INCLUDE_PATH/linked_graphic.h
 
-include(waveform/waveform.pri)
+include(waveform/waveform.pro)
 include(scatter/scatter.pri)

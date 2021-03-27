@@ -87,14 +87,8 @@ class ScatterGroup {
  private:
   QwtPlot * p_parent;
 
-  // vector of tuples: [(scatter, shadow_scatter)_0, ..., _n]
-  vector<tuple<QwtPlotCurve *, QwtPlotCurve *>> m_scatters;
-  
-  QwtPlotCurve * get_scatter(int i) { return get<0>(m_scatters[i]); }
-  QwtPlotCurve * get_shadow_scatter(int i) { return get<1>(m_scatters[i]); }
-  
-  QLabel m_label;
-  QLabel m_metrics;
+  QwtPlotCurve m_scatter;
+  QwtPlotCurve m_shadow;
   
   QwtSymbol m_symbol;
   QwtSymbol m_shadow_symbol;
@@ -103,20 +97,19 @@ class ScatterGroup {
 
   string m_xchannel_name;
   string m_ychannel_name;
+  
+  int m_color_index;
 
  public:
-  ScatterGroup(QwtPlot *);
+  ScatterGroup(QwtPlot *, string, string, int);
   ~ScatterGroup();
 
   void init_scatters();
   void init_labels(data::Table *);
 
-  void add_xypair(string, string);
-
   string get_xchannel_name() { return m_xchannel_name; }
   string get_ychannel_name() { return m_ychannel_name; }
     
-//  void set_label_colors();
   void set_label_values_at(double, data::Table *);
   void set_metric_values(double, double, double);
 
@@ -130,9 +123,6 @@ class DisplayCrosshair {
  private:
   QwtPlotCurve m_horzbar;
   QwtPlotCurve m_vertbar;
-
-//  double m_xpos;
-//  double m_ypos;
     
  public:
   DisplayCrosshair() {
@@ -173,7 +163,6 @@ class ScatterDisplay : public LinkedPlot
   QwtPlotCurve m_mean_yline;
     
   Ui::ScatterDisplay * p_ui = new Ui::ScatterDisplay;
-//  void define_uniform_spacing();
     
   vector<ScatterGroup *> m_scatter_pairs;
   int m_nscatter_pairs;
@@ -209,8 +198,6 @@ public:
   
   void init_labels();
   void set_label_values_at(double);
-    
-//  void update_label_values_at(double);
   
   void update_after_data_load () override;
   void update_view_limits(double, double) override;

@@ -37,78 +37,62 @@ namespace insight {
 namespace graphic {
 
 
-ScatterGroup::ScatterGroup(QwtPlot * parent)
+ScatterGroup::ScatterGroup(QwtPlot * parent, string xchannel_id, string ychannel_id, int color_index=0)
     : p_parent(parent),
-      m_label(parent),
-      m_metrics(parent)
+      m_xchannel_name(xchannel_id),
+      m_ychannel_name(ychannel_id),
+      m_color_index(color_index)
 {}
-
-ScatterGroup::~ScatterGroup() {
-  for (size_t i = 0; i < m_scatters.size(); ++i) {
-    delete get_scatter(i);
-    delete get_shadow_scatter(i);
-  }
-}
-
-void ScatterGroup::add_xypair(string xchannel_id, string ychannel_id) {
-  m_xchannel_name = xchannel_id;
-  m_ychannel_name = ychannel_id;
-    
-  m_scatters.push_back(std::make_tuple(new QwtPlotCurve, new QwtPlotCurve));
-}
+ScatterGroup::~ScatterGroup() {}
 
 void ScatterGroup::set_data_from_table(data::Table * table,
                                        double t_lbound=-10e12, double t_hbound=10e12)
 {
-//    size_t n_scatters = m_nscatter_pairs;
     double xmax, xmin, xmean;
     double ymax, ymin, ymean;
     
-    for (size_t i = 0; i < 1; ++i) {
-        data::Channel * xchannel = table->get(m_xchannel_name);
-        data::Channel * ychannel = table->get(m_ychannel_name);
-        size_t n = xchannel->length();
-        
-        if (i == 0) {
-            xmin = xchannel->min();
-            xmax = xchannel->max();
-            xmean = 0.5 * (xmin + xmax);
-
-            ymin = ychannel->min();
-            ymax = ychannel->max();
-            ymean = 0.5 * (ymin + ymax);
-        }
-        
-        data::Channel * tchannel = xchannel->get_time_ref();
+    
+      data::Channel * xchannel = table->get(m_xchannel_name);
+      data::Channel * ychannel = table->get(m_ychannel_name);
+      size_t n = xchannel->length();
       
-        t_lbound = max({t_lbound, tchannel->min()});
-        t_hbound = min({t_hbound, tchannel->max()});
-        
-        bool below_lbound = true; bool below_hbound = true;
-        int i_lbound = n - 1; int i_hbound = n - 1;
+      xmin = xchannel->min();
+      xmax = xchannel->max();
+      xmean = 0.5 * (xmin + xmax);
 
-        for (size_t i = 0; i < n; ++i) {
-            if (tchannel->operator[](i) < t_lbound) {
-                continue;
-            } else if (tchannel->operator[](i) > t_hbound) {
-                if (below_hbound) {
-                    i_hbound = i - 1;
-                    below_hbound = false;
-                }
-                continue;
-            } else {
-                if (below_lbound) {
-                    i_lbound = i;
-                    below_lbound = false;
-                }
-            }
-        }
-        int n_to_plot = i_hbound - i_lbound;
-        if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
-        
-        get_scatter(i)->setSamples(&xchannel->get_data_ptr()[i_lbound], &ychannel->get_data_ptr()[i_lbound], n_to_plot);
-        get_shadow_scatter(i)->setSamples(xchannel->get_data_ptr(), ychannel->get_data_ptr(), n);
-    }
+      ymin = ychannel->min();
+      ymax = ychannel->max();
+      ymean = 0.5 * (ymin + ymax);
+      
+      data::Channel * tchannel = xchannel->get_time_ref();
+    
+      t_lbound = max({t_lbound, tchannel->min()});
+      t_hbound = min({t_hbound, tchannel->max()});
+      
+      bool below_lbound = true; bool below_hbound = true;
+      int i_lbound = n - 1; int i_hbound = n - 1;
+
+      for (size_t i = 0; i < n; ++i) {
+          if (tchannel->operator[](i) < t_lbound) {
+              continue;
+          } else if (tchannel->operator[](i) > t_hbound) {
+              if (below_hbound) {
+                  i_hbound = i - 1;
+                  below_hbound = false;
+              }
+              continue;
+          } else {
+              if (below_lbound) {
+                  i_lbound = i;
+                  below_lbound = false;
+              }
+          }
+      }
+      int n_to_plot = i_hbound - i_lbound;
+      if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
+      
+      m_scatter.setSamples(&xchannel->get_data_ptr()[i_lbound], &ychannel->get_data_ptr()[i_lbound], n_to_plot);
+      m_shadow.setSamples(xchannel->get_data_ptr(), ychannel->get_data_ptr(), n);
     
     m_xlim[0] = xmin; m_xlim[1] = xmax;
     m_ylim[0] = ymin; m_ylim[1] = ymax;
@@ -118,26 +102,23 @@ void ScatterGroup::set_data_from_table(data::Table * table,
 
 void ScatterGroup::init_scatters() {
   // draw curve on graphic
-  vector<int> color;
-  for (size_t j = 0; j < 1; ++j) {
-    color = kDefaultColorOrder[j];
+  vector<int> color = kDefaultColorOrder[m_color_index];
       
-    m_symbol.setStyle(QwtSymbol::Cross);
-    m_symbol.setSize(QSize(6, 6));
-    m_symbol.setColor(QColor(color[0], color[1], color[2], 255));
+  m_symbol.setStyle(QwtSymbol::Cross);
+  m_symbol.setSize(QSize(6, 6));
+  m_symbol.setColor(QColor(color[0], color[1], color[2], 255));
+  
+  m_shadow_symbol.setStyle(QwtSymbol::Cross);
+  m_shadow_symbol.setSize(QSize(6, 6));
+  m_shadow_symbol.setColor(QColor(color[0], color[1], color[2], 50));
     
-    m_shadow_symbol.setStyle(QwtSymbol::Cross);
-    m_shadow_symbol.setSize(QSize(6, 6));
-    m_shadow_symbol.setColor(QColor(color[0], color[1], color[2], 50));
-      
-    get_scatter(j)->setStyle(QwtPlotCurve::NoCurve);
-    get_scatter(j)->setSymbol(&m_symbol);
-    get_scatter(j)->attach(p_parent);
-    
-    get_shadow_scatter(j)->setStyle(QwtPlotCurve::NoCurve);
-    get_shadow_scatter(j)->setSymbol(&m_shadow_symbol);
-    get_shadow_scatter(j)->attach(p_parent);
-  }
+  m_scatter.setStyle(QwtPlotCurve::NoCurve);
+  m_scatter.setSymbol(&m_symbol);
+  m_scatter.attach(p_parent);
+  
+  m_shadow.setStyle(QwtPlotCurve::NoCurve);
+  m_shadow.setSymbol(&m_shadow_symbol);
+  m_shadow.attach(p_parent);
 }
 
 //void ScatterGroup::init_label(data::Table * table) {
@@ -323,11 +304,7 @@ void ScatterDisplay::apply_config(nlohmann::json * json_config) {
 
   if (json_config->contains("data")) {
     for (auto& channel_pair : json_config->operator[]("data")["xychannels"]) {
-      ScatterGroup * scatter_pair = new ScatterGroup(this);
-      
-      std::cout << channel_pair << std::endl;
-      scatter_pair->add_xypair(channel_pair[0], channel_pair[1]);
-      
+      ScatterGroup * scatter_pair = new ScatterGroup(this, channel_pair[0], channel_pair[1], i);
       m_scatter_pairs.push_back(scatter_pair);
       ++i;
     }
@@ -427,7 +404,13 @@ void ScatterDisplay::update_after_data_load()
   update_mean_lines();
   
   double xlimits[2];
+  double ylimits[2];
+  
   xlim(xlimits);
+  ylim(ylimits);
+  
+  setAxisScale(xBottom, xlimits[0], xlimits[1]);
+  setAxisScale(yLeft, ylimits[0], ylimits[1]);
     
   update_cursor_position(xlimits[0]);
   replot();

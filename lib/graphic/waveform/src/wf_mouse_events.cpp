@@ -29,17 +29,18 @@ using namespace std;
 
 void WaveformDisplay::mousePressEvent(QMouseEvent * event)
 {
-    cout << "press event" << endl;
-    QwtScaleMap map = canvasMap(xBottom);
-    double m_mouse_xpos = map.invTransform(event->x());
+  cout << "press event" << endl;
+  QwtScaleMap map = canvasMap(xBottom);
+  double m_mouse_xpos = map.invTransform(event->x());
     
-    double * widest_xlim = xlim();
-    double xrange = widest_xlim[1] - widest_xlim[0];
+  double * widest_xlim = xlim();
+  double xrange = widest_xlim[1] - widest_xlim[0];
     
   if (abs(m_mouse_xpos - m_xpos_cursor) < (xrange * .05))
-    m_mouse_state = CursorDrag;
+  m_mouse_state = CursorDrag;
     
   update_group_cursor_positions(m_mouse_xpos);
+  delete[] widest_xlim;
 }
 
 void WaveformDisplay::mouseMoveEvent(QMouseEvent * event) {
@@ -73,17 +74,17 @@ void WaveformDisplay::mouseReleaseEvent(QMouseEvent *) {
 }
 
 void WaveformDisplay::wheelEvent(QWheelEvent * event) {
-    double scroll_speed_scalar = .001;
-    double vertical_scroll_delta = event->angleDelta().y();
-    
-    double * widest_xlim = xlim();
-    double xrange = widest_xlim[1] - widest_xlim[0];
-    
-    widest_xlim[0] -= scroll_speed_scalar * vertical_scroll_delta * xrange;
-    widest_xlim[1] += scroll_speed_scalar * vertical_scroll_delta * xrange;
-    update_group_view_limits(widest_xlim[0], widest_xlim[1]);
-    
-    delete[] widest_xlim;
+  double scroll_speed_scalar = .001;
+  double vertical_scroll_delta = event->angleDelta().y();
+  
+  double * widest_xlim = xlim();
+  double xrange = widest_xlim[1] - widest_xlim[0];
+  
+  widest_xlim[0] -= scroll_speed_scalar * vertical_scroll_delta * xrange;
+  widest_xlim[1] += scroll_speed_scalar * vertical_scroll_delta * xrange;
+  update_group_view_limits(widest_xlim[0], widest_xlim[1]);
+  
+  delete[] widest_xlim;
 }
 
 }  // namespace graphic

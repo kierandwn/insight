@@ -32,6 +32,7 @@
 #include <qwt_plot_curve.h>
 
 #include "waveformgroup.h"
+#include "mouse_state.h"
 #include "table.h"
 #include "grid.h"
 #include "mainwindow.h"
@@ -42,33 +43,6 @@ namespace insight {
 namespace graphic {
 
 using namespace std;
-
-enum MouseDragMode {
-  Init, Ready, Pan, CursorDrag
-};
-
-class MouseState {
- private:
-  MouseDragMode m_id; // = StateId::init;
-  double m_pos_xy[2]{ 0., 0. };
-  
- public:
-  MouseState() : m_id(MouseDragMode::Init) {}
-  
-  double * pos() { return m_pos_xy; }
-  double x() { return m_pos_xy[0]; }
-  double y() { return m_pos_xy[1]; }
-  
-  void x(double xval) { m_pos_xy[0] = xval; }
-  void y(double yval) { m_pos_xy[1] = yval; }
-  void update_pos(double xval, double yval) {
-    m_pos_xy[0] = xval;
-    m_pos_xy[1] = yval;
-  }
-  
-  bool operator==(MouseDragMode sid) { return m_id == sid; }
-  MouseState& operator= (MouseDragMode sid) { m_id = sid; return *(this); }
-};
 
 
 class WaveformDisplay : public LinkedPlot

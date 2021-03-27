@@ -39,7 +39,7 @@ class LinkedPlot : public Base {
     LinkedPlot(data::Table * data, layout::Layout * layout) : Base(data),
         p_layout(layout) {}
 
-    void update_group_cursor_positions(double xval) {
+    void update_group_cursor_positions(double tval) {
         if ("" == m_group_name) return;
 
         map<string, graphic::Base *>::iterator graphic_itr = p_layout->first();
@@ -47,7 +47,7 @@ class LinkedPlot : public Base {
 
         while (graphic_itr != p_layout->last()) {
           graphic_ptr = graphic_itr->second;
-          if (graphic_ptr->group() == m_group_name) graphic_ptr->update_cursor_position(xval);
+          if (graphic_ptr->group() == m_group_name) graphic_ptr->update_cursor_position(tval);
           ++graphic_itr;
         }
     }

@@ -23,22 +23,19 @@
 #include <vector>
 #include <string>
 
-#include <QLabel>
-#include <QStaticText>
-#include <QStylePainter>
-#include <qwt_plot_curve.h>
-
 #include "ui_scatter.h"
-
-#include "insight_graphic_base.h"
 #include "linked_graphic.h"
 
+#include <QLabel>
+
+#include "scattergroup.h"
+#include "mouse_state.h"
+#include "vlabel.h"
 #include "table.h"
 #include "grid.h"
 #include "mainwindow.h"
 
 #include "lib/json/single_include/nlohmann/json.hpp"
-
 
 namespace insight {
 namespace graphic {
@@ -46,81 +43,12 @@ namespace graphic {
 using namespace std;
 
 
-class VLabel : public QLabel
-{
-  Q_OBJECT
-  
- public:
-  VLabel(QWidget *parent) : QLabel(parent) {}
-  VLabel(const QString& text, QWidget * parent) : QLabel(text, parent) {}
-  
- protected:
-  void paintEvent(QPaintEvent *)
-  {
-    QStylePainter painter(this);
-    painter.setPen(Qt::black);
-    painter.setBrush(Qt::Dense1Pattern);
-
-//    painter.translate(sizeHint().width(), sizeHint().height());
-    painter.translate(sizeHint().width(), 0);
-    painter.rotate(90);
-    
-    painter.drawStaticText(0, 0, QStaticText(text()));
-  }
-  
-  QSize minimumSizeHint() const
-  {
-    QSize s = QLabel::minimumSizeHint();
-    return QSize(s.height(), s.width());
-  }
-
-  QSize sizeHint() const
-  {
-    QSize s = QLabel::sizeHint();
-    return QSize(s.height(), s.width());
-  }
-};
-
-class ScatterGroup {
- private:
-  QwtPlot * p_parent;
-
-  QwtPlotCurve m_scatter;
-  QwtPlotCurve m_shadow;
-  
-  QwtSymbol m_symbol;
-  QwtSymbol m_shadow_symbol;
-
-  double m_xlim[2]; double m_ylim[2];
-
-  string m_xchannel_name;
-  string m_ychannel_name;
-  
-  int m_color_index;
-
- public:
-  ScatterGroup(QwtPlot *, string, string, int);
-  ~ScatterGroup();
-
-  void init_scatters();
-  void init_labels(data::Table *);
-
-  string get_xchannel_name() { return m_xchannel_name; }
-  string get_ychannel_name() { return m_ychannel_name; }
-    
-  void set_label_values_at(double, data::Table *);
-  void set_metric_values(double, double, double);
-
-  double * xlim() { return m_xlim; }
-  double * ylim() { return m_ylim; }
-
-  void set_data_from_table(data::Table *, double, double);
-};
-
 class DisplayCrosshair {
  private:
   QwtPlotCurve m_horzbar;
   QwtPlotCurve m_vertbar;
+  
+  double m_xy[2];
     
  public:
   DisplayCrosshair() {
@@ -142,7 +70,13 @@ class DisplayCrosshair {
       
     m_horzbar.setSamples(xlim, horzbar_ydata, 2);
     m_vertbar.setSamples(vertbar_xdata, ylim, 2);
+    
+    m_xy[0] = x;
+    m_xy[1] = y;
   }
+  
+  double x() { return m_xy[0]; }
+  double y() { return m_xy[1]; }
 };
 
 class ScatterDisplay : public LinkedPlot
@@ -167,31 +101,22 @@ class ScatterDisplay : public LinkedPlot
     
   DisplayCrosshair m_crosshair;
   
+  MouseState m_mouse_state;
+  
 //  double m_xlim[2];
 //  double m_mouse_xpos;
-  
-//  bool m_drag_cursor = false;
-//  bool m_panning = false;
     
 //  void cursor_in_xrange();
     void update_mean_lines();
     
 public:
   ScatterDisplay(data::Table *, layout::Layout *);
-    
-//  void mousePressEvent(QMouseEvent * event) override;
-//  void mouseMoveEvent(QMouseEvent * event) override;
-//  void mouseReleaseEvent(QMouseEvent * event) override {
-//      m_drag_cursor = false;
-//      m_panning = false;
-//  }
-//  void mouseDoubleClickEvent(QMouseEvent * event) override;
-//  void wheelEvent(QWheelEvent * event) override;
 
   int get_number_of_scatter_pairs() { return m_nscatter_pairs; }
     
   void apply_config(nlohmann::json *) override;
   void update_cursor_position(double) override;
+  void update_cursor_position(double xvalue, double yvalue);
   
   void init_labels();
   void set_label_values_at(double);
@@ -204,6 +129,12 @@ public:
     
   void xlim(double *);
   void ylim(double *);
+  
+  void mousePressEvent(QMouseEvent *) override;
+  void mouseMoveEvent(QMouseEvent *) override;
+  void mouseReleaseEvent(QMouseEvent *) override;
+  //  void mouseDoubleClickEvent(QMouseEvent * event) override;
+    void wheelEvent(QWheelEvent * event) override;
 };
 
 }  // namespace graphic

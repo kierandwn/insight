@@ -28,7 +28,7 @@
 
 #include "insight_graphic_base.h"
 #include "waveformdisplay.h"
-#include "scatter.h"
+#include "scatterdisplay.h"
 
 //#include "table.h"
 

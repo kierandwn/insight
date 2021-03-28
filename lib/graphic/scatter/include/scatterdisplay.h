@@ -64,12 +64,6 @@ class ScatterDisplay : public LinkedPlot
   int m_cursor_track_curve = 0;
   
   MouseState m_mouse_state;
-  
-//  double m_xlim[2];
-//  double m_mouse_xpos;
-    
-//  void cursor_in_xrange();
-    void update_mean_lines();
     
 public:
   ScatterDisplay(data::Table *, layout::Layout *);
@@ -83,6 +77,7 @@ public:
   
   void update_after_data_load () override;
   void update_view_limits(double, double) override;
+  void update_mean_lines();
     
   void init () override;
   void reset () override;

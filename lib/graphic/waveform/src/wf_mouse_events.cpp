@@ -29,7 +29,6 @@ using namespace std;
 
 void WaveformDisplay::mousePressEvent(QMouseEvent * event)
 {
-  cout << "press event" << endl;
   QwtScaleMap map = canvasMap(xBottom);
   double m_mouse_xpos = map.invTransform(event->x());
     
@@ -49,19 +48,18 @@ void WaveformDisplay::mouseMoveEvent(QMouseEvent * event) {
       
     } else if (m_mouse_state == Ready || m_mouse_state == Pan) {
       m_mouse_state = Pan;
-        
-      double pan_speed_scalar = .001;
-      double delta_x = event->x() - m_mouse_state.x();
-    
-      double * widest_xlim = xlim();
-      double xrange = widest_xlim[1] - widest_xlim[0];
-    
-      widest_xlim[0] += delta_x * pan_speed_scalar * xrange;
-      widest_xlim[1] += delta_x * pan_speed_scalar * xrange;
-      update_group_view_limits(widest_xlim[0], widest_xlim[1]);
-    
+      
+      QwtScaleMap x_map = canvasMap(xBottom);
+      double delta_x = x_map.invTransform(event->x()) - x_map.invTransform(m_mouse_state.x());
+      
+      double x_lbound = axisScaleDiv(xBottom).lowerBound();
+      double x_hbound = axisScaleDiv(xBottom).upperBound();
+      
+      x_lbound -= delta_x;
+      x_hbound -= delta_x;
+      
+      update_group_view_limits(x_lbound, x_hbound);
       m_mouse_state.x(event->x());
-      delete[] widest_xlim;
     }
 }
 

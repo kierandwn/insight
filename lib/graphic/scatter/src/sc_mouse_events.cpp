@@ -35,47 +35,6 @@ double l2_norm(double dx, double dy) {
   return pow(pow(abs(dx), 2) + pow(abs(dy), 2), 0.5);
 }
 
-double find_nearest_neighbour(double xval, double yval, data::Channel& xchan, data::Channel& ychan) {
-  int n = xchan.length();
-  
-  double min_l2_dist = 10e12;
-  double l2_dist;
-  double tmin = 0;
-  
-  data::Channel& tchan = *(xchan.get_time_ref());
-  
-  for (int i = 0; i < n; ++i) {
-    l2_dist = l2_norm(xval - xchan[i], yval - ychan[i]);
-    
-    if (l2_dist < min_l2_dist) {
-      min_l2_dist = l2_dist;
-      tmin = tchan[i];
-    }
-  }
-  printf("hello world.\n");
-  return tmin;
-}
-
-int find_nearest_neighbour(double xval, double yval, data::Channel& xchan, data::Channel& ychan, int) {
-  int n = xchan.length();
-  
-  double min_l2_dist = 10e12;
-  double l2_dist;
-  int tmin = 0;
-  
-  data::Channel& tchan = *(xchan.get_time_ref());
-  
-  for (int i = 0; i < n; ++i) {
-    l2_dist = l2_norm(xval - xchan[i], yval - ychan[i]);
-    
-    if (l2_dist < min_l2_dist) {
-      min_l2_dist = l2_dist;
-      tmin = i;
-    }
-  }
-  return tmin;
-}
-
 void ScatterDisplay::mousePressEvent(QMouseEvent * event)
 {
   QwtScaleMap x_map = canvasMap(xBottom);
@@ -135,18 +94,22 @@ void ScatterDisplay::mouseMoveEvent(QMouseEvent * event) {
     double x_hbound = axisScaleDiv(xBottom).upperBound();
     double y_lbound = axisScaleDiv(yLeft).lowerBound();
     double y_hbound = axisScaleDiv(yLeft).upperBound();
-    
-    x_lbound -= delta_x;
-    x_hbound -= delta_x;
-    y_lbound -= delta_y;
-    y_hbound -= delta_y;
-    
+
+    x_lbound -= delta_x * .85; // gets very jumpy at * 1.? not sure why?
+    x_hbound -= delta_x * .85;
+    y_lbound -= delta_y * .85;
+    y_hbound -= delta_y * .85;
+      
     setAxisScale(xBottom, x_lbound, x_hbound);
     setAxisScale(yLeft, y_lbound, y_hbound);
     
+    for (ScatterGroup * scatter_pair : m_scatter_pairs) {
+      scatter_pair->update_crosshair();
+    }
+    replot();
+      
     m_mouse_state.x(x_map.invTransform(event->x()));
     m_mouse_state.y(y_map.invTransform(event->y()));
-    replot();
   }
 }
 
@@ -186,20 +149,7 @@ void ScatterDisplay::wheelEvent(QWheelEvent * event)
 }
 
 void ScatterDisplay::update_cursor_position(double tvalue) {
-  
-//    double xvalue = m_data->get(xchannel_name)->value_at(tvalue);
-//    double yvalue = m_data->get(ychannel_name)->value_at(tvalue);
-  
-  // Get axes limits from axes objects (Qwt)
-//    double x_lbound = axisScaleDiv(xBottom).lowerBound();
-//    double x_hbound = axisScaleDiv(xBottom).upperBound();
-//    double y_lbound = axisScaleDiv(yLeft).lowerBound();
-//    double y_hbound = axisScaleDiv(yLeft).upperBound();
-  
-//    double xlimits[2]{ x_lbound, x_hbound };
-//    double ylimits[2]{ y_lbound, y_hbound };
-  
-//    cursor_in_xrange();
+
   for (int i = 0; i < m_nscatter_pairs; ++i) {
     string xchannel_name = m_scatter_pairs[0]->get_xchannel_name();
     string ychannel_name = m_scatter_pairs[0]->get_ychannel_name();

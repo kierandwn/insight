@@ -133,8 +133,6 @@ void ScatterDisplay::update_mean_lines() {
     
     double xmean = (xlimits[0] + xlimits[1]) / 2.;
     double ymean = (ylimits[0] + ylimits[1]) / 2.;
-//    double xrange = (abs(xlimits[0]) + abs(xlimits[1]));
-//    double yrange = (abs(ylimits[0]) + abs(ylimits[1]));
     
     double xdata_xline[2]{xmean, xmean};
     double ydata_yline[2]{ymean, ymean};
@@ -142,36 +140,18 @@ void ScatterDisplay::update_mean_lines() {
     m_mean_xline.setSamples(xdata_xline, yaxes_bounds, 2);
     m_mean_yline.setSamples(xaxes_bounds, ydata_yline, 2);
     
-    // metrics labels
-//    int label_width = 200;
-//    int label_height = 15;
-    
     char metrics_label_text[38];
     sprintf(metrics_label_text,
         "%7.2f \xE2\x88\x88 [%7.2f, %7.2f[-]];",
           xmean, xlimits[0], xlimits[1]
     );
-    
     m_mean_xlabel.setText(QString::fromUtf8(metrics_label_text));
-//    m_mean_xlabel.setGeometry(
-//        ((xmean - xlimits[0]) / xrange) * width() + label_height,
-//        5,
-//        label_height,
-//        label_width
-//    );
-  
+
     sprintf(&metrics_label_text[0],
         "%7.2f \xE2\x88\x88 [%7.2f, %7.2f[-]];",
           ymean, ylimits[0], ylimits[1]
     );
-    
     m_mean_ylabel.setText(QString::fromUtf8(metrics_label_text));
-//    m_mean_ylabel.setGeometry(
-//        width() - (label_width + 5),
-//        ((ylimits[1] - ymean) / yrange) * height() - label_height,
-//        label_width,
-//        label_height
-//    );
 }
 
 void ScatterDisplay::update_after_data_load()

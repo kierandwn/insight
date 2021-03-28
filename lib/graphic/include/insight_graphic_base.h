@@ -25,7 +25,6 @@
 //#include <QWidget>
 //#include <QtUiPlugin/QDesignerCustomWidgetInterface>
 
-
 #include <vector>
 
 #include "table.h"

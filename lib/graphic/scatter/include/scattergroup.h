@@ -110,7 +110,9 @@ class ScatterGroup {
   
   DisplayCrosshair m_crosshair;
 
-  double m_xlim[2]; double m_ylim[2];
+  double m_xlim[2]{ -10e-12, 10e12 };
+  double m_ylim[2]{ -10e-12, 10e12 };
+  double m_tlim[2]{ -10e-12, 10e12 };
 
   string m_xchannel_name;
   string m_ychannel_name;
@@ -132,8 +134,11 @@ class ScatterGroup {
 
   double * xlim();
   double * ylim();
+  double * tlim();
 
-  void set_data_from_table(data::Table *, double=-10e12, double=10e12);
+  void set_data_from_table(data::Table *, double=-10e12, double=10e12,
+                                          double=-10e12, double=10e12,
+                                          double=-10e12, double=10e12 );
   
   DisplayCrosshair * crosshair() { return &m_crosshair; }
   void update_crosshair(double);

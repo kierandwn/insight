@@ -40,6 +40,7 @@ ScatterGroup::~ScatterGroup() {}
 
 double * ScatterGroup::xlim() { return m_xlim; }
 double * ScatterGroup::ylim() { return m_ylim; }
+double * ScatterGroup::tlim() { return m_tlim; }
 
 void ScatterGroup::update_crosshair(double tvalue) {
   // Obtain plot limits from axes objects
@@ -71,7 +72,9 @@ void ScatterGroup::update_crosshair() {
 }
 
 void ScatterGroup::set_data_from_table(data::Table * table,
-                                       double t_lbound, double t_hbound)
+                                       double t_lbound, double t_hbound,
+                                       double x_lbound, double x_hbound,
+                                       double y_lbound, double y_hbound )
 {
     double xmax, xmin, xmean;
     double ymax, ymin, ymean;
@@ -95,31 +98,62 @@ void ScatterGroup::set_data_from_table(data::Table * table,
     
     bool below_lbound = true; bool below_hbound = true;
     int i_lbound = n - 1; int i_hbound = n - 1;
-
+  
+  double * xdata = new double[n];
+  double * ydata = new double[n];
+  int i_data = 0;
+  
+  double xi, yi, ti;
+  bool x_in_bounds;
+  bool y_in_bounds;
+//  bool t_in_bounds;
+  
     for (size_t i = 0; i < n; ++i) {
+      xi = m_xchannel->operator[](i);
+      yi = m_ychannel->operator[](i);
+      ti = tchannel->operator[](i);
+      
+      x_in_bounds = xi >= x_lbound and xi <= x_hbound;
+      y_in_bounds = yi >= y_lbound and yi <= y_hbound;
+//      t_in_bounds = ti >= t_lbound and ti <= t_hbound;
+      
+      if (x_in_bounds && y_in_bounds) {
+        xdata[i_data] = xi;
+        ydata[i_data] = yi;
+        ++i_data;
+      
         if (tchannel->operator[](i) < t_lbound) {
             continue;
         } else if (tchannel->operator[](i) > t_hbound) {
             if (below_hbound) {
-                i_hbound = i - 1;
-                below_hbound = false;
+              i_hbound = i_data - 1;
+              below_hbound = false;
+              break;
             }
             continue;
         } else {
             if (below_lbound) {
-                i_lbound = i;
-                below_lbound = false;
+              i_lbound = i_data;
+              below_lbound = false;
             }
         }
+      }
     }
     int n_to_plot = i_hbound - i_lbound;
     if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
     
-    m_scatter.setSamples(&m_xchannel->get_data_ptr()[i_lbound], &m_ychannel->get_data_ptr()[i_lbound], n_to_plot);
-    m_shadow.setSamples(m_xchannel->get_data_ptr(), m_ychannel->get_data_ptr(), n);
+  m_scatter.setSamples(&xdata[i_lbound], &ydata[i_lbound], n_to_plot);
+  m_shadow.setSamples(xdata, ydata, i_data);
+  
+//    m_scatter.setSamples(&m_xchannel->get_data_ptr()[i_lbound], &m_ychannel->get_data_ptr()[i_lbound], n_to_plot);
+//    m_shadow.setSamples(m_xchannel->get_data_ptr(), m_ychannel->get_data_ptr(), n);
     
     m_xlim[0] = xmin; m_xlim[1] = xmax;
     m_ylim[0] = ymin; m_ylim[1] = ymax;
+  m_tlim[0] = t_lbound; m_tlim[1] = t_hbound;
+  
+  delete[] xdata;
+  delete[] ydata;
 }
 
 void ScatterGroup::init_scatters() {

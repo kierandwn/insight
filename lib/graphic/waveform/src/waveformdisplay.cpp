@@ -45,7 +45,7 @@ WaveformDisplay::WaveformDisplay(data::Table * data, layout::Layout * layout)
   setPalette(p);
     
   QPen dark_grey(QColor(0, 0, 0, 250));
-  dark_grey.setWidth(2);
+  dark_grey.setWidth(1.5);
   m_cursor.setPen(dark_grey);
 
   enableAxis(xBottom, false);

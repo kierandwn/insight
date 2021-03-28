@@ -45,8 +45,8 @@ void WaveformDisplay::mousePressEvent(QMouseEvent * event)
 
 void WaveformDisplay::mouseMoveEvent(QMouseEvent * event) {
     if (m_mouse_state == CursorDrag) {
-      cout << "cursor dragging.." << endl;
       mousePressEvent(event); // update cursor positon
+      
     } else if (m_mouse_state == Ready || m_mouse_state == Pan) {
       m_mouse_state = Pan;
         

@@ -24,12 +24,76 @@
 #include <qwt_plot_curve.h>
 #include <qwt_symbol.h>
 
+#include "vlabel.h"
 #include "table.h"
 
 namespace insight {
 namespace graphic {
 
 using namespace std;
+
+
+class DisplayCrosshair {
+ private:
+  QwtPlot * p_parent;
+  
+  QwtPlotCurve m_horzbar;
+  QwtPlotCurve m_vertbar;
+  
+  QLabel m_xlabel;
+  VLabel m_ylabel;
+  
+  string m_xchannel_name;
+  string m_ychannel_name;
+  
+  double m_xy[2];
+    
+ public:
+  DisplayCrosshair(QwtPlot * parent, string xchannel_name, string ychannel_name)
+      : p_parent(parent),
+        m_xlabel(parent),
+        m_ylabel(parent),
+        m_xchannel_name(xchannel_name),
+        m_ychannel_name(ychannel_name)
+  {
+    m_horzbar.attach(parent);
+    m_vertbar.attach(parent);
+    
+    
+    
+    m_xlabel.setAlignment(Qt::AlignLeft);
+    m_ylabel.setAlignment(Qt::AlignLeft);
+  }
+    
+//  void attach(QwtPlot * plot_area) {
+//    m_horzbar.attach(plot_area);
+//    m_vertbar.attach(plot_area);
+//  }
+  
+  void set_color(int r=0, int g=0, int b=0) {
+    int darken = -30;
+    
+//    QPen color(QColor(r+darken, g+darken, b+darken, 250));
+    QPen color(QColor(r, g, b, 250));
+    color.setWidth(1.5);
+      
+    m_horzbar.setPen(color);
+    m_vertbar.setPen(color);
+    
+    char stylesheet[62];
+    sprintf(stylesheet,
+            "QLabel { color : rgb(%03d, %03d, %03d); font : 10pt 'Courier'; }", r, g, b);
+    
+    m_xlabel.setStyleSheet(stylesheet);
+    m_ylabel.setStyleSheet(stylesheet);
+  }
+    
+  void set_xy(double, double, double *, double *);
+  void set_label_values(double, double);
+  
+  double x() { return m_xy[0]; }
+  double y() { return m_xy[1]; }
+};
 
 class ScatterGroup {
  private:
@@ -40,6 +104,11 @@ class ScatterGroup {
   
   QwtSymbol m_symbol;
   QwtSymbol m_shadow_symbol;
+  
+  data::Channel * m_xchannel;
+  data::Channel * m_ychannel;
+  
+  DisplayCrosshair m_crosshair;
 
   double m_xlim[2]; double m_ylim[2];
 
@@ -65,6 +134,10 @@ class ScatterGroup {
   double * ylim();
 
   void set_data_from_table(data::Table *, double=-10e12, double=10e12);
+  
+  DisplayCrosshair * crosshair() { return &m_crosshair; }
+  void update_crosshair(double);
+  void update_crosshair();
   
   QwtPlotCurve * get_scatter_full() { return &m_shadow; }
 };

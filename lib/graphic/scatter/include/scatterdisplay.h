@@ -43,53 +43,15 @@ namespace graphic {
 using namespace std;
 
 
-class DisplayCrosshair {
- private:
-  QwtPlotCurve m_horzbar;
-  QwtPlotCurve m_vertbar;
-  
-  double m_xy[2];
-    
- public:
-  DisplayCrosshair() {
-    QPen dark_grey(QColor(0, 0, 0, 250));
-    dark_grey.setWidth(2);
-      
-    m_horzbar.setPen(dark_grey);
-    m_vertbar.setPen(dark_grey);
-  }
-    
-  void attach(QwtPlot * plot_area) {
-    m_horzbar.attach(plot_area);
-    m_vertbar.attach(plot_area);
-  }
-    
-  void set_xy(double x, double y, double * xlim, double * ylim) {
-    double horzbar_ydata[2]{y, y};
-    double vertbar_xdata[2]{x, x};
-      
-    m_horzbar.setSamples(xlim, horzbar_ydata, 2);
-    m_vertbar.setSamples(vertbar_xdata, ylim, 2);
-    
-    m_xy[0] = x;
-    m_xy[1] = y;
-  }
-  
-  double x() { return m_xy[0]; }
-  double y() { return m_xy[1]; }
-};
 
 class ScatterDisplay : public LinkedPlot
 {
   Q_OBJECT
  private:
-  data::Table * m_data;
+//  data::Table * m_data;
     
-  QLabel m_xlabel;
-  VLabel m_ylabel;
-    
-  VLabel m_mean_xlabel;
-  QLabel m_mean_ylabel;
+  QLabel m_mean_xlabel;
+  VLabel m_mean_ylabel;
     
   QwtPlotCurve m_mean_xline;
   QwtPlotCurve m_mean_yline;
@@ -97,9 +59,9 @@ class ScatterDisplay : public LinkedPlot
   Ui::ScatterDisplay * p_ui = new Ui::ScatterDisplay;
     
   vector<ScatterGroup *> m_scatter_pairs;
+  
   int m_nscatter_pairs;
-    
-  DisplayCrosshair m_crosshair;
+  int m_cursor_track_curve = 0;
   
   MouseState m_mouse_state;
   
@@ -115,11 +77,9 @@ public:
   int get_number_of_scatter_pairs() { return m_nscatter_pairs; }
     
   void apply_config(nlohmann::json *) override;
-  void update_cursor_position(double) override;
-  void update_cursor_position(double xvalue, double yvalue);
+  void update_cursor_position(double=0.) override;
   
   void init_labels();
-  void set_label_values_at(double);
   
   void update_after_data_load () override;
   void update_view_limits(double, double) override;
@@ -134,7 +94,7 @@ public:
   void mouseMoveEvent(QMouseEvent *) override;
   void mouseReleaseEvent(QMouseEvent *) override;
   //  void mouseDoubleClickEvent(QMouseEvent * event) override;
-    void wheelEvent(QWheelEvent * event) override;
+  void wheelEvent(QWheelEvent * event) override;
 };
 
 }  // namespace graphic

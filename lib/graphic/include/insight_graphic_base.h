@@ -20,14 +20,14 @@
 #define INSIGHT_GRAPHIC_BASE_H
 #pragma once
 
-#include <vector>
+#include <qwt_plot.h>
 
-#include <QMouseEvent>
 //#include <QWidget>
 //#include <QtUiPlugin/QDesignerCustomWidgetInterface>
 
-#include "table.h"
+#include <vector>
 
+#include "table.h"
 #include "lib/json/single_include/nlohmann/json.hpp"
 
 namespace insight {
@@ -36,23 +36,15 @@ namespace graphic {
 using namespace std;
 
 
-class Base { //, public virtual QDesignerCustomWidgetInterface {
+class Base : public QwtPlot { //, public virtual QDesignerCustomWidgetInterface {
  protected:
   data::Table * m_data;
-    
-  string m_group_name = "a";
-
-  bool initialized_ = false;
+   
+  string m_group_name = "";
 
  public:
-  Base() {}
-//  Base(ApplicationMainWindow * app, data::Table * data)
-//      : m_data(data),
-//        m_app(app)
-//  {}
-    Base(data::Table * data)
-        : m_data(data)
-    {}
+//  Base() {}
+  Base(data::Table * data) : m_data(data) {}
 
 //    bool isContainer() const override { return false; }
 //    bool isInitialized() const override { return initialized_; }
@@ -72,12 +64,14 @@ class Base { //, public virtual QDesignerCustomWidgetInterface {
 //    QString whatsThis() const override { return QString(); }
   
   virtual void update_after_data_load () = 0;
-  virtual void update_cursor_position(double xval) = 0;
+  virtual void update_cursor_position(double tval) = 0;
   virtual void update_view_limits(double, double) {};
   
   virtual void init()   = 0;
   virtual void apply_config(nlohmann::json *) = 0;
   virtual void reset () = 0;
+    
+  data::Table * get_data_table_ref() { return m_data; }
   
   string group() { return m_group_name; }
   void update_data_ref(data::Table * data) { m_data = data; }

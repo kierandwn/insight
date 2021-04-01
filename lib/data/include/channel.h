@@ -44,7 +44,6 @@ public:
     ~Channel() {}
 
     void push(double val) { m_items.push_back(val); len += 1; }
-    // double * buffer() { return &m_items[count]; len += 1; }
 
     size_t length () { return len; }
     double * begin() { return &m_items[0]; }
@@ -58,19 +57,21 @@ public:
       return *it;
     }
     
-    double value_at(double xval) {
-      double decreasing_diff = abs(p_time_channel->operator[](0) - xval);
+    double value_at(double tval) {
+      double decreasing_diff = abs(p_time_channel->operator[](0) - tval);
       double diff;
     
       size_t i;
-      for (i = 1; i < len; ++i) {
-        diff = abs(p_time_channel->operator[](i) - xval);
+      for (i = 1; i < m_items.size(); ++i) {
+        diff = abs(p_time_channel->operator[](i) - tval);
         if (diff > decreasing_diff) { break; } else { decreasing_diff = diff; }
       }
-      return m_items[i];
+      return m_items[i-1];
     }
     
     void update_time_channel_ptr(Channel * t) { p_time_channel = t; }
+    
+    double * get_data_ptr() { return &operator[](0); }
     
     double * get_time_data_ptr() { return &p_time_channel->operator[](0); }
     Channel * get_time_ref() { return p_time_channel; }

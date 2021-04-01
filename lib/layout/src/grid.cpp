@@ -28,7 +28,9 @@
 
 #include "insight_graphic_base.h"
 #include "waveformdisplay.h"
-#include "table.h"
+#include "scatterdisplay.h"
+
+//#include "table.h"
 
 namespace insight {
 namespace layout {
@@ -45,7 +47,7 @@ map<string, graphic::Base *> Layout::import_from_config(json jsonConfig, QGridLa
   int i = 0;
   string id, typ, first_id;
 
-  graphic::WaveformDisplay * plot;
+//  graphic::WaveformDisplay * plot;
     
   std::map<string, graphic::Base *> mp;
 
@@ -63,12 +65,21 @@ map<string, graphic::Base *> Layout::import_from_config(json jsonConfig, QGridLa
     json child_config = child.value();
 
     typ = child_config["type"];
+    if (i == 0) first_id = id;
       
     if ( typ == "Waveform" )
     {
-      plot = new graphic::WaveformDisplay(data, this);
+      graphic::WaveformDisplay * plot = new graphic::WaveformDisplay(data, this);
       plot->apply_config(&child_config);
-      if (i == 0) first_id = id;
+
+      grid->addWidget(plot, i % rows, i / rows);
+      mp[id] = plot;
+      i++;
+    }
+    if ( typ == "Scatter" )
+    {
+      graphic::ScatterDisplay * plot = new graphic::ScatterDisplay(data, this);
+      plot->apply_config(&child_config);
 
       grid->addWidget(plot, i % rows, i / rows);
       mp[id] = plot;

@@ -41,28 +41,28 @@ namespace insight {
 
 using namespace std;
 
-class ApplicationMainWindow : public QMainWindow
-{
-    Q_OBJECT
+class ApplicationMainWindow : public QMainWindow {
+  Q_OBJECT
 
 public:
-    ApplicationMainWindow(std::string source_main_directory, QWidget *parent = nullptr);
-    ~ApplicationMainWindow();
+  ApplicationMainWindow(std::string source_main_directory, QWidget *parent = nullptr);
+  ~ApplicationMainWindow();
 
-    layout::Layout m_layout;
-    data::Table m_data;
+  layout::Layout m_layout;
+  data::Table m_data;
 
-    void update();
-    void init();
+  void update();
+  void init();
     
-    void update_cursors_in_group(string, double);
+  void update_cursors_in_group(string, double);
 
 private slots:
-    void on_actionLoad_File_triggered();
+  void on_actionLoad_File_triggered();
+  void resizeEvent(QResizeEvent * event) override;
 
 private:
-    Ui::InsightMainWindow *ui;
-    string src_root_dir_;
+  Ui::InsightMainWindow *ui;
+  string src_root_dir_;
 };
 
 

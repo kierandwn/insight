@@ -92,5 +92,11 @@ void ApplicationMainWindow::on_actionLoad_File_triggered()
     update();
 }
 
+void ApplicationMainWindow::resizeEvent(QResizeEvent * event)
+{
+  QMainWindow::resizeEvent(event);
+  
+  
+}
 
 }  // namespace insight

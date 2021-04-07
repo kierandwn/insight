@@ -96,7 +96,10 @@ void ApplicationMainWindow::resizeEvent(QResizeEvent * event)
 {
   QMainWindow::resizeEvent(event);
   
-  
+  map<string, graphic::Base *>::iterator p;
+  for (p = m_layout.first(); p != m_layout.last(); ++p) {
+      p->second->update_after_resize();
+  }
 }
 
 }  // namespace insight

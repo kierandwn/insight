@@ -63,9 +63,11 @@ class Base : public QwtPlot { //, public virtual QDesignerCustomWidgetInterface 
 //    QString toolTip() const override { return QString(); }
 //    QString whatsThis() const override { return QString(); }
   
-  virtual void update_after_data_load () = 0;
-  virtual void update_cursor_position(double tval) = 0;
-  virtual void update_view_limits(double, double) {};
+  virtual void update_after_data_load () {}
+  virtual void update_after_resize() {}
+  
+  virtual void update_cursor_position(double) {}
+  virtual void update_view_limits(double, double) {}
   
   virtual void init()   = 0;
   virtual void apply_config(nlohmann::json *) = 0;

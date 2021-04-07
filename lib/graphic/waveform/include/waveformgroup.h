@@ -62,7 +62,6 @@ class WaveformGroup {
   void add_channel(string);
   void set_dimensions(double, double);
     
-//  void set_label_colors();
   void set_label_values_at(double, data::Table *);
   void set_metric_values(double, double, double);
   

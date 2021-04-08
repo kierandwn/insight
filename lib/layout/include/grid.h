@@ -36,26 +36,28 @@ namespace layout {
 using namespace std;
 
 class Grid {
-protected:
+ protected:
   int m_size[2];
   std::map<string, graphic::Base *> m_map;
 
-public:
- Grid() : m_size{0, 0} {}
- Grid(int rows, int cols) : m_size{rows, cols} {}
+ public:
+  Grid() : m_size{0, 0} {}
+  Grid(int rows, int cols) : m_size{rows, cols} {}
 
   map<string, graphic::Base *>::iterator first();
   map<string, graphic::Base *>::iterator next();
   map<string, graphic::Base *>::iterator last();
 
   std::map<string, graphic::Base *>& map();
+  
+  void resize();
 };
 
 class Layout : public Grid {
-private:
+ private:
 //  gridLayout m_plotgrid;
 
-public:
+ public:
   Layout() {}
 
   void import_from_config( string filename, QGridLayout * grid, data::Table * data );

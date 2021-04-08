@@ -23,6 +23,7 @@
 #include <qwt_plot.h>
 
 //#include <QWidget>
+#include <QResizeEvent>
 //#include <QtUiPlugin/QDesignerCustomWidgetInterface>
 
 #include <vector>
@@ -64,7 +65,14 @@ class Base : public QwtPlot { //, public virtual QDesignerCustomWidgetInterface 
 //    QString whatsThis() const override { return QString(); }
   
   virtual void update_after_data_load () {}
-  virtual void update_after_resize() {}
+  
+  void resizeEvent(QResizeEvent * event) override {
+    QWidget::resizeEvent(event);
+
+    QSize size = QwtPlot::size();
+    QwtPlot::resize(size.width(), size.height());
+    QwtPlot::replot();
+  }
   
   virtual void update_cursor_position(double) {}
   virtual void update_view_limits(double, double) {}

@@ -96,10 +96,25 @@ void ApplicationMainWindow::resizeEvent(QResizeEvent * event)
 {
   QMainWindow::resizeEvent(event);
   
-  map<string, graphic::Base *>::iterator p;
-  for (p = m_layout.first(); p != m_layout.last(); ++p) {
-      p->second->update_after_resize();
-  }
+  QSize size = event->size();
+  ui->PlotGrid->setGeometry(QRect(0, 0, size.width(), size.height()));
+  
+//  const int n_rows = m_layout.rowCount();
+//  const int n_cols = m_layout.columnCount();
+  
+//  QObject * parent;
+//  int width;
+//  int height;
+//
+//  map<string, graphic::Base *>::iterator p;
+//  for (p = m_layout.first(); p != m_layout.last(); ++p) {
+//    parent = p->second->parent();
+//
+//    width = parent->width();
+//    height = parent->height();
+//
+//    p->second->resize(width / 2, height / 2);
+//  }
 }
 
 }  // namespace insight

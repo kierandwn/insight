@@ -110,6 +110,11 @@ void Layout::import_from_config( std::string filename, QGridLayout * grid, data:
   m_map.insert( mp.begin(), mp.end() );
 }
 
+//void Grid::resize() {
+//  const int n_rows = rowCount();
+//  const int n_cols = columnCount();
+//}
+
 
 }  // namespace layout
 }  // namespace insight

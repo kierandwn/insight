@@ -72,8 +72,7 @@ void ApplicationMainWindow::init()
   for (p = m_layout.first(); p != m_layout.last(); ++p) {
       p->second->init();
   }
-//    statusBar()->setFont(QFont("Courier", 10));
-//    statusBar()->showMessage("initialised.");
+  fit_plot_area_to_main_window_area();
 }
 
 void ApplicationMainWindow::on_actionLoad_File_triggered()
@@ -90,8 +89,10 @@ void ApplicationMainWindow::on_actionLoad_File_triggered()
 void ApplicationMainWindow::resizeEvent(QResizeEvent * event)
 {
   QMainWindow::resizeEvent(event);
-  
-//  QSize size = event->size();
+  fit_plot_area_to_main_window_area();
+}
+
+void ApplicationMainWindow::fit_plot_area_to_main_window_area() {
   QRect geom = geometry();
   
   ui->centralwidget->setGeometry(0, 0, geom.width(), geom.height());

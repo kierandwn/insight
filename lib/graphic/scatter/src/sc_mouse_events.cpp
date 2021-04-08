@@ -148,8 +148,8 @@ void ScatterDisplay::wheelEvent(QWheelEvent * event)
   replot();
 }
 
-void ScatterDisplay::update_cursor_position(double tvalue) {
-
+void ScatterDisplay::update_cursor_position(double tvalue)
+{
   for (int i = 0; i < m_nscatter_pairs; ++i) {
     string xchannel_name = m_scatter_pairs[0]->get_xchannel_name();
     string ychannel_name = m_scatter_pairs[0]->get_ychannel_name();

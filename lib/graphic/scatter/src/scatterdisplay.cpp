@@ -50,6 +50,15 @@ ScatterDisplay::ScatterDisplay(data::Table * data, layout::Layout * layout)
 }
 
 void ScatterDisplay::init_labels() {
+  set_label_positions();
+  
+  m_mean_xlabel.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
+  m_mean_ylabel.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
+  m_mean_xlabel.setAlignment(Qt::AlignRight);
+  m_mean_ylabel.setAlignment(Qt::AlignLeft);
+}
+
+void ScatterDisplay::set_label_positions() {
   int label_width = 200;
   int label_height = 15;
 
@@ -65,11 +74,6 @@ void ScatterDisplay::init_labels() {
     label_height,
     label_width
   );
-  
-  m_mean_xlabel.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
-  m_mean_ylabel.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
-  m_mean_xlabel.setAlignment(Qt::AlignRight);
-  m_mean_ylabel.setAlignment(Qt::AlignLeft);
 }
 
 // Apply configuation parameters held in json_config
@@ -168,10 +172,10 @@ void ScatterDisplay::update_after_data_load()
   replot();
 }
 
-void ScatterDisplay::update_view_limits(double xmin, double xmax)
+void ScatterDisplay::update_view_limits(double tmin, double tmax)
 {
   for (int i = 0; i < m_nscatter_pairs; ++i) {
-    m_scatter_pairs[i]->set_data_from_table(m_data, xmin, xmax);
+    m_scatter_pairs[i]->set_data_from_table(m_data, tmin, tmax);
   }
   replot();
 }
@@ -198,6 +202,23 @@ void ScatterDisplay::reset()
 {
     detachItems();
     replot();
+}
+
+void ScatterDisplay::resizeEvent(QResizeEvent * event) {
+  Base::resizeEvent(event);
+  
+  set_label_positions();
+  update_mean_lines();
+  
+  for (int i = 0; i < m_nscatter_pairs; ++i) {
+    string xchannel_name = m_scatter_pairs[0]->get_xchannel_name();
+    string ychannel_name = m_scatter_pairs[0]->get_ychannel_name();
+    
+    if (m_data->exists(xchannel_name) && m_data->exists(ychannel_name)) { // TODO move this check inside update_crosshair?
+      m_scatter_pairs[i]->update_crosshair();
+    }
+  }
+  replot();
 }
 
 }  // namespace graphic

@@ -74,6 +74,7 @@ public:
   void update_cursor_position(double=0.) override;
   
   void init_labels();
+  void set_label_positions();
   
   void update_after_data_load () override;
   void update_view_limits(double, double) override;
@@ -90,6 +91,8 @@ public:
   void mouseReleaseEvent(QMouseEvent *) override;
   //  void mouseDoubleClickEvent(QMouseEvent * event) override;
   void wheelEvent(QWheelEvent * event) override;
+  
+  void resizeEvent(QResizeEvent * event) override;
 };
 
 }  // namespace graphic

@@ -66,17 +66,6 @@ class Base : public QwtPlot { //, public virtual QDesignerCustomWidgetInterface 
   
   virtual void update_after_data_load () {}
   
-  virtual void resizeEvent(QResizeEvent * event) override {
-    QwtPlot::resizeEvent(event);
-    
-//    if (event->size().width() > 400)
-//      printf("reached: %s (%d, %d).\n", m_group_name.c_str(), event->size().width(), event->size().height());
-//
-//    QSize size = event->size();
-//    resize(size.width(), size.height());
-//    replot();
-  }
-  
   virtual void update_cursor_position(double) {}
   virtual void update_view_limits(double, double) {}
   

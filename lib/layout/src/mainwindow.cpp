@@ -22,6 +22,7 @@
 
 #include <QStyle>
 #include <QFileDialog>
+#include <QFileInfo>
 
 #include <qapplication.h>
 #include <qwt_plot.h>
@@ -43,12 +44,14 @@ ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * p
       ui(new Ui::InsightMainWindow),
       src_root_dir_(source_root_dir)
 {
-    ui->setupUi(this);
+  ui->setupUi(this);
 
-    QString layout_filename = QFileDialog::getOpenFileName(this,
-        tr("Load Data File"), src_root_dir_.append("/config", 8).c_str(), tr("Layout File (*.layout)"));
+  QString layout_filename = QFileDialog::getOpenFileName(this,
+      tr("Load Data File"), src_root_dir_.append("/config", 8).c_str(), tr("Layout File (*.layout)"));
 
-    m_layout.import_from_config(layout_filename.toStdString(), ui->PlotGrid, &m_data);
+  m_layout.import_from_config(layout_filename.toStdString(), ui->PlotGrid, &m_data);
+  
+  setWindowTitle(QFileInfo(layout_filename).fileName());
 }
 
 ApplicationMainWindow::~ApplicationMainWindow() { delete ui; }

@@ -94,7 +94,7 @@ void WaveformGroup::set_data_from_table(data::Table * table,
               continue;
           } else if (xdata[i] > x_hbound) {
               if (below_hbound) {
-                  i_hbound = i - 1;
+                  i_hbound = i;
                   below_hbound = false;
               }
               continue;

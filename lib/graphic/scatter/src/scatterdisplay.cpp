@@ -45,12 +45,6 @@ ScatterDisplay::ScatterDisplay(data::Table * data, layout::Layout * layout)
 {
   p_ui->setupUi(this);
 
-  setAutoFillBackground( true );
-  QPalette p = palette();
-
-  p.setColor(QPalette::Window, QColor(255, 255, 255, 255));
-  setPalette(p);
-
   enableAxis(xBottom, false);
   enableAxis(yLeft, false);
 }

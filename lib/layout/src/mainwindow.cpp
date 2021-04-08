@@ -60,25 +60,20 @@ void ApplicationMainWindow::update() {
     }
 }
 
-void ApplicationMainWindow::init() {
-    
-    map<string, graphic::Base *>::iterator p;
-    for (p = m_layout.first(); p != m_layout.last(); ++p) {
-        p->second->init();
-    }
+void ApplicationMainWindow::init()
+{
+  setAutoFillBackground( true );
+  QPalette background_palette = palette();
+
+  background_palette.setColor(QPalette::Window, QColor(255, 255, 255, 255));
+  setPalette(background_palette);
+  
+  map<string, graphic::Base *>::iterator p;
+  for (p = m_layout.first(); p != m_layout.last(); ++p) {
+      p->second->init();
+  }
 //    statusBar()->setFont(QFont("Courier", 10));
 //    statusBar()->showMessage("initialised.");
-}
-
-void ApplicationMainWindow::update_cursors_in_group(string group_name, double xval) {
-    if (group_name == "") return;
-    
-    map<string, graphic::Base *>::iterator p;
-    for (p = m_layout.first(); p != m_layout.last(); ++p) {
-        if (p->second->group() == group_name) {
-            p->second->update_cursor_position(xval);
-        }
-    }
 }
 
 void ApplicationMainWindow::on_actionLoad_File_triggered()
@@ -96,25 +91,11 @@ void ApplicationMainWindow::resizeEvent(QResizeEvent * event)
 {
   QMainWindow::resizeEvent(event);
   
-  QSize size = event->size();
-  ui->PlotGrid->setGeometry(QRect(0, 0, size.width(), size.height()));
+//  QSize size = event->size();
+  QRect geom = geometry();
   
-//  const int n_rows = m_layout.rowCount();
-//  const int n_cols = m_layout.columnCount();
-  
-//  QObject * parent;
-//  int width;
-//  int height;
-//
-//  map<string, graphic::Base *>::iterator p;
-//  for (p = m_layout.first(); p != m_layout.last(); ++p) {
-//    parent = p->second->parent();
-//
-//    width = parent->width();
-//    height = parent->height();
-//
-//    p->second->resize(width / 2, height / 2);
-//  }
+  ui->centralwidget->setGeometry(0, 0, geom.width(), geom.height());
+  ui->PlotGrid->setGeometry(QRect(0, 0, geom.width(), geom.height()));
 }
 
 }  // namespace insight

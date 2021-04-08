@@ -112,6 +112,8 @@ public:
 //  double process_mouse_event(QMouseEvent *) override;
   
   void init_xlabel();
+  
+  void set_xlabel_position();
   void set_xlabel_value(double);
     
   void update_label_values_at(double);
@@ -121,6 +123,8 @@ public:
     
   void init () override;
   void reset () override;
+  
+  void resizeEvent(QResizeEvent *) override;
     
   double * xlim();
 };

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1722</width>
-    <height>922</height>
+    <width>2509</width>
+    <height>1451</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,21 +18,31 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
+    <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+     <horstretch>1</horstretch>
+     <verstretch>1</verstretch>
     </sizepolicy>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>16777215</width>
+     <height>16777215</height>
+    </size>
    </property>
    <widget class="QWidget" name="gridLayoutWidget">
     <property name="geometry">
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>1721</width>
-      <height>881</height>
+      <width>2511</width>
+      <height>1431</height>
      </rect>
     </property>
-    <layout class="QGridLayout" name="PlotGrid"/>
+    <layout class="QGridLayout" name="PlotGrid">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetNoConstraint</enum>
+     </property>
+    </layout>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -40,7 +50,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1722</width>
+     <width>2509</width>
      <height>22</height>
     </rect>
    </property>
@@ -52,7 +62,6 @@
    </widget>
    <addaction name="menuFile"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
   <action name="actionLoad_File">
    <property name="text">
     <string>Load File</string>

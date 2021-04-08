@@ -57,7 +57,9 @@ class WaveformGroup {
   WaveformGroup(QwtPlot *);
     
   void init_curves();
+  
   void init_label(data::Table *);
+  void set_label_position();
     
   void add_channel(string);
   void set_dimensions(double, double);

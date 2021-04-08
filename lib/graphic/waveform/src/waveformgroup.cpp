@@ -67,50 +67,52 @@ void WaveformGroup::set_data_from_table(data::Table * table,
     double ymax, ymin, ymean;
     
     for (size_t i = 0; i < n_waveforms; ++i) {
-        data::Channel * channel = table->get(m_channel_names[i]);
-        size_t n = channel->length();
-        
-        double * ydata = new double[n];
-        
-        if (i == 0) {
-            ymin = channel->min();
-            ymax = channel->max();
-            ymean = 0.5 * (ymin + ymax);
-        }
-        
-        data::Channel * xchannel = channel->get_time_ref();
-        x_lbound = max({x_lbound, xchannel->min()});
-        x_hbound = min({x_hbound, xchannel->max()});
-        
-        double * xdata = channel->get_time_data_ptr();
-        
-        bool below_lbound = true; bool below_hbound = true;
-        int i_lbound = n - 1; int i_hbound = n - 1;
-        
-        for (size_t i = 0; i < n; ++i) {
-            if (xdata[i] < x_lbound) {
-                continue;
-            } else if (xdata[i] > x_hbound) {
-                if (below_hbound) {
-                    i_hbound = i - 1;
-                    below_hbound = false;
-                }
-                continue;
-            } else {
-                if (below_lbound) {
-                    i_lbound = i;
-                    below_lbound = false;
-                }
-            }
-            
-            ydata[i] = m_normalised_yoffset + \
-                 m_normalised_height * ((channel->operator[](i) - ymean) / (ymax - ymin));
-        }
-        int n_to_plot = i_hbound - i_lbound;
-        if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
-        
-        m_curves[i]->setSamples(&xdata[i_lbound], &ydata[i_lbound], n_to_plot);
-        delete[] ydata;
+      if (!table->exists(m_channel_names[i])) continue;
+      
+      data::Channel * channel = table->get(m_channel_names[i]);
+      size_t n = channel->length();
+      
+      double * ydata = new double[n];
+      
+      if (i == 0) {
+          ymin = channel->min();
+          ymax = channel->max();
+          ymean = 0.5 * (ymin + ymax);
+      }
+      
+      data::Channel * xchannel = channel->get_time_ref();
+      x_lbound = max({x_lbound, xchannel->min()});
+      x_hbound = min({x_hbound, xchannel->max()});
+      
+      double * xdata = channel->get_time_data_ptr();
+      
+      bool below_lbound = true; bool below_hbound = true;
+      int i_lbound = n - 1; int i_hbound = n - 1;
+      
+      for (size_t i = 0; i < n; ++i) {
+          if (xdata[i] < x_lbound) {
+              continue;
+          } else if (xdata[i] > x_hbound) {
+              if (below_hbound) {
+                  i_hbound = i - 1;
+                  below_hbound = false;
+              }
+              continue;
+          } else {
+              if (below_lbound) {
+                  i_lbound = i;
+                  below_lbound = false;
+              }
+          }
+          
+          ydata[i] = m_normalised_yoffset + \
+               m_normalised_height * ((channel->operator[](i) - ymean) / (ymax - ymin));
+      }
+      int n_to_plot = i_hbound - i_lbound;
+      if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
+      
+      m_curves[i]->setSamples(&xdata[i_lbound], &ydata[i_lbound], n_to_plot);
+      delete[] ydata;
     }
     
     double xdata_0line[2]{ x_lbound, x_hbound };
@@ -137,21 +139,25 @@ void WaveformGroup::init_curves() {
   attach(p_parent);
 }
 
-void WaveformGroup::init_label(data::Table * table) {
-    int label_xcoord = 5;
-    int label_ycoord = (1. - m_normalised_yoffset) * p_parent->height();
-    
-    int metrics_xcoord = p_parent->width() - (300 + 5);
-    int metrics_ycoord = ((1. - m_normalised_yoffset) * p_parent->height()) - 16;
-    
-    m_label.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
-    m_label.setGeometry(label_xcoord, label_ycoord, 300, 30);
-    
-    m_metrics.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
-    m_metrics.setGeometry(metrics_xcoord, metrics_ycoord, 300, 30);
-    m_metrics.setAlignment(Qt::AlignRight);
+void WaveformGroup::set_label_position() {
+  int label_xcoord = 5;
+  int label_ycoord = (1. - m_normalised_yoffset) * p_parent->height();
+  
+  int metrics_xcoord = p_parent->width() - (300 + 5);
+  int metrics_ycoord = ((1. - m_normalised_yoffset) * p_parent->height()) - 16;
+  
+  m_label.setGeometry(label_xcoord, label_ycoord, 300, 30);
+  m_metrics.setGeometry(metrics_xcoord, metrics_ycoord, 300, 30);
+}
 
-    set_label_values_at(0., table);
+void WaveformGroup::init_label(data::Table * table)
+{
+  m_label.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
+  m_metrics.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
+  m_metrics.setAlignment(Qt::AlignRight);
+  
+  set_label_position();
+  set_label_values_at(0., table);
 }
 
 void WaveformGroup::set_label_values_at(double xvalue, data::Table * table) {

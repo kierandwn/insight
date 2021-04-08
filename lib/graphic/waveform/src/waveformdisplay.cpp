@@ -37,12 +37,6 @@ WaveformDisplay::WaveformDisplay(data::Table * data, layout::Layout * layout)
       m_xlabel(this)
 {
   p_ui->setupUi(this);
-
-  setAutoFillBackground( true );
-  QPalette p = palette();
-
-  p.setColor(QPalette::Window, QColor(255, 255, 255, 255));
-  setPalette(p);
     
   QPen dark_grey(QColor(0, 0, 0, 250));
   dark_grey.setWidth(1.5);
@@ -52,22 +46,27 @@ WaveformDisplay::WaveformDisplay(data::Table * data, layout::Layout * layout)
   enableAxis(yLeft, false);
 }
 
-void WaveformDisplay::init_xlabel() {
-    int label_width = 300;
-    int label_height = 15;
-    
-    m_xlabel.setStyleSheet(
-        "QLabel { color : rgb(50, 50, 50); font : 10pt 'Courier'; }"
-    );
-    m_xlabel.setAlignment(Qt::AlignRight);
-    set_xlabel_value(0.);
-    
-    m_xlabel.setGeometry(
-        width() - (label_width + 5),
-        height() - 1.02 * label_height,
-        label_width,
-        label_height
-    );
+void WaveformDisplay::init_xlabel()
+{
+  m_xlabel.setStyleSheet(
+      "QLabel { color : rgb(50, 50, 50); font : 10pt 'Courier'; }"
+  );
+  m_xlabel.setAlignment(Qt::AlignRight);
+  set_xlabel_position();
+  
+  set_xlabel_value(0.);
+}
+
+void WaveformDisplay::set_xlabel_position() {
+  int label_width = 300;
+  int label_height = 15;
+  
+  m_xlabel.setGeometry(
+      width() - (label_width + 5),
+      height() - 1.02 * label_height,
+      label_width,
+      label_height
+  );
 }
                    
 void WaveformDisplay::set_xlabel_value(double value) {
@@ -193,6 +192,20 @@ void WaveformDisplay::reset()
 {
     detachItems();
     replot();
+}
+
+void WaveformDisplay::resizeEvent(QResizeEvent * event) {
+  Base::resizeEvent(event);
+
+  double * xlimits = xlim();
+  
+  set_xlabel_position();
+  for (int i = 0; i < m_nwaveform_groups; ++i) {
+    m_waveform_groups[i]->set_data_from_table(m_data, xlimits[0], xlimits[1]);
+    m_waveform_groups[i]->set_label_position();
+  }
+  
+  replot();
 }
 
 }  // namespace graphic

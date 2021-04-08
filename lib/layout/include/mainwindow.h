@@ -53,8 +53,6 @@ public:
 
   void update();
   void init();
-    
-  void update_cursors_in_group(string, double);
 
 private slots:
   void on_actionLoad_File_triggered();

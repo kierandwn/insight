@@ -71,8 +71,8 @@ map<string, graphic::Base *> Layout::import_from_config(json jsonConfig, QGridLa
     {
       graphic::WaveformDisplay * plot = new graphic::WaveformDisplay(data, this);
       plot->apply_config(&child_config);
-
       grid->addWidget(plot, i % rows, i / rows);
+      
       mp[id] = plot;
       i++;
     }

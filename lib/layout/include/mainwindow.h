@@ -14,7 +14,7 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with attitude.  If not, see <https://www.gnu.org/licenses/>.
+// along with insight.  If not, see <https://www.gnu.org/licenses/>.
 //
 #ifndef INSIGHTMAINWINDOW_H
 #define INSIGHTMAINWINDOW_H
@@ -44,6 +44,10 @@ using namespace std;
 class ApplicationMainWindow : public QMainWindow
 {
   Q_OBJECT
+ private:
+  Ui::InsightMainWindow * ui;
+  string src_root_dir_;
+  
  public:
   ApplicationMainWindow(std::string source_main_directory, QWidget *parent = nullptr);
   ~ApplicationMainWindow();
@@ -55,11 +59,7 @@ class ApplicationMainWindow : public QMainWindow
   void init();
   
   void fit_plot_area_to_main_window_area();
-
- private:
-  Ui::InsightMainWindow *ui;
-  string src_root_dir_;
-  
+    
  private slots:
   void on_actionLoad_File_triggered();
   void resizeEvent(QResizeEvent * event) override;

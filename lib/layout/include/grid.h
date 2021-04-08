@@ -55,13 +55,13 @@ class Grid {
 
 class Layout : public Grid {
  private:
-//  gridLayout m_plotgrid;
+//  QGridLayout * m_plotgrid;
 
  public:
   Layout() {}
 
-  void import_from_config( string filename, QGridLayout * grid, data::Table * data );
-  std::map<string, graphic::Base *> import_from_config( nlohmann::json, QGridLayout *, data::Table * );
+  void import_from_config(string, QGridLayout *, data::Table *);
+  std::map<string, graphic::Base *> import_from_config(nlohmann::json, QGridLayout *, data::Table *);
 };
 
 }  // namespace layout

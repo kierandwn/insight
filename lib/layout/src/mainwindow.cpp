@@ -47,7 +47,7 @@ ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * p
   ui->setupUi(this);
 
   QString layout_filename = QFileDialog::getOpenFileName(this,
-      tr("Load Data File"), src_root_dir_.append("/config", 8).c_str(), tr("Layout File (*.layout)"));
+    tr("Load Data File"), src_root_dir_.append("/config", 8).c_str(), tr("Layout File (*.layout)"));
 
   m_layout.import_from_config(layout_filename.toStdString(), ui->PlotGrid, &m_data);
   
@@ -57,15 +57,15 @@ ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * p
 ApplicationMainWindow::~ApplicationMainWindow() { delete ui; }
 
 void ApplicationMainWindow::update() {
-    map<string, graphic::Base *>::iterator p;
-    for (p = m_layout.first(); p != m_layout.last(); ++p) {
-        p->second->update_after_data_load();
-    }
+  map<string, graphic::Base *>::iterator p;
+  for (p = m_layout.first(); p != m_layout.last(); ++p) {
+    p->second->update_after_data_load();
+  }
 }
 
 void ApplicationMainWindow::init()
 {
-  setAutoFillBackground( true );
+  setAutoFillBackground(true);
   QPalette background_palette = palette();
 
   background_palette.setColor(QPalette::Window, QColor(255, 255, 255, 255));
@@ -73,20 +73,20 @@ void ApplicationMainWindow::init()
   
   map<string, graphic::Base *>::iterator p;
   for (p = m_layout.first(); p != m_layout.last(); ++p) {
-      p->second->init();
+    p->second->init();
   }
   fit_plot_area_to_main_window_area();
 }
 
 void ApplicationMainWindow::on_actionLoad_File_triggered()
 {
-    m_data.clear();
+  m_data.clear();
 
-    QString filename = QFileDialog::getOpenFileName(this,
-        tr("Load Data File"), tr(src_root_dir_.append("/demo", 5).c_str()), tr("CSV Files (*.csv)"));
+  QString filename = QFileDialog::getOpenFileName(this,
+    tr("Load Data File"), tr(src_root_dir_.append("/demo", 5).c_str()), tr("CSV Files (*.csv)"));
 
-    import_from_csv(filename.toStdString(), &m_data);
-    update();
+  import_from_csv(filename.toStdString(), &m_data);
+  update();
 }
 
 void ApplicationMainWindow::resizeEvent(QResizeEvent * event)

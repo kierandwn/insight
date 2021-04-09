@@ -58,14 +58,18 @@ class WaveformGroup {
     
   void init_curves();
   
-  void init_label(data::Table *);
+  void init_label();
+  void init_metric_values();
+  
   void set_label_position();
     
   void add_channel(string);
   void set_dimensions(double, double);
     
-  void set_label_values_at(double, data::Table *);
+  void set_label_values_at(double=0., data::Table * data=NULL);
   void set_metric_values(double, double, double);
+  
+  void set_zero_line_position();
   
   double * xlim() { return m_xlim; }
   double * ylim() { return m_ylim; }

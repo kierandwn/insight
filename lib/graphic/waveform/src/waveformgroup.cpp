@@ -116,10 +116,10 @@ void WaveformGroup::set_data_from_table(data::Table * table,
     m_curves[i]->setSamples(&xdata[i_lbound], &ydata[i_lbound], n_to_plot);
     delete[] ydata;
   }
-  set_zero_line_position();
-  
   m_xlim[0] = x_lbound; m_xlim[1] = x_hbound;
   m_ylim[0] = ymin; m_ylim[1] = ymax;
+  
+  set_zero_line_position(x_lbound, x_hbound);
   
   if (plotted) set_metric_values(ymin, ymax, ymean);
 }
@@ -214,11 +214,23 @@ void WaveformGroup::set_metric_values(double min, double max, double mean) {
   m_metrics.setText(QString::fromUtf8(metric_text));
 }
 
-void WaveformGroup::set_zero_line_position() {
-  double x_lbound = p_parent->axisScaleDiv(p_parent->xBottom).lowerBound();
-  double x_hbound = p_parent->axisScaleDiv(p_parent->xBottom).upperBound();
+void WaveformGroup::set_zero_line_position(double xmin, double xmax) {
+  double xdata_0line[2];
+  xdata_0line[0] = xmin;
+  xdata_0line[1] = xmax;
   
-  double xdata_0line[2]{ x_lbound, x_hbound };
+  double ydata_0line[2]{
+    m_normalised_yoffset,
+    m_normalised_yoffset
+  };
+  m_zero_line.setSamples(xdata_0line, ydata_0line, 2);
+}
+
+void WaveformGroup::set_zero_line_position() {
+  double xdata_0line[2];
+  xdata_0line[0] = p_parent->axisScaleDiv(p_parent->xBottom).lowerBound();
+  xdata_0line[1] = p_parent->axisScaleDiv(p_parent->xBottom).upperBound();
+  
   double ydata_0line[2]{
     m_normalised_yoffset,
     m_normalised_yoffset

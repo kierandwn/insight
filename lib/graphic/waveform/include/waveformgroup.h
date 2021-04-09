@@ -14,7 +14,7 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with insight.  If not, see <https://www.gnu.org/licenses/>.
+// along with insight. If not, see <https://www.gnu.org/licenses/>.
 //
 #ifndef WAVEFORM_GROUP_H_
 #define WAVEFORM_GROUP_H_
@@ -70,6 +70,7 @@ class WaveformGroup {
   void set_metric_values(double, double, double);
   
   void set_zero_line_position();
+  void set_zero_line_position(double, double);
   
   double * xlim() { return m_xlim; }
   double * ylim() { return m_ylim; }

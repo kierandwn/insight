@@ -14,7 +14,7 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with insight.  If not, see <https://www.gnu.org/licenses/>.
+// along with insight. If not, see <https://www.gnu.org/licenses/>.
 //
 #include "scatterdisplay.h"
 
@@ -97,59 +97,90 @@ void ScatterDisplay::apply_config(nlohmann::json * json_config) {
 }
 
 void ScatterDisplay::init() {
-    init_labels();
-    for (size_t i = 0; i < m_scatter_pairs.size(); ++i) {
-        m_scatter_pairs[i]->init_scatters();
-    }
-    
-    m_mean_xline.setPen(QColor(0, 0, 0, 100));
-    m_mean_xline.attach(this);
-    
-    m_mean_yline.setPen(QColor(0, 0, 0, 100));
-    m_mean_yline.attach(this);
-    
-    update_cursor_position(0.);
+  init_labels();
+  init_mean_lines();
+  init_mean_labels();
+  
+  for (size_t i = 0; i < m_scatter_pairs.size(); ++i) {
+    m_scatter_pairs[i]->init_scatters();
+  }
+//  update_cursor_position(0.);
+  init_cursor_position();
 }
 
-void ScatterDisplay::update_mean_lines() {
-    replot();
-    
-    // Get axes limits from axes objects (Qwt)
-    double x_lbound = axisScaleDiv(xBottom).lowerBound();
-    double x_hbound = axisScaleDiv(xBottom).upperBound();
-    double y_lbound = axisScaleDiv(yLeft).lowerBound();
-    double y_hbound = axisScaleDiv(yLeft).upperBound();
-    
-    double xaxes_bounds[2]{ x_lbound, x_hbound };
-    double yaxes_bounds[2]{ y_lbound, y_hbound };
+void ScatterDisplay::init_mean_lines()
+{
+  m_mean_xline.setPen(QColor(0, 0, 0, 100));
+  m_mean_xline.attach(this);
   
-    double xlimits[2];
-    double ylimits[2];
+  m_mean_yline.setPen(QColor(0, 0, 0, 100));
+  m_mean_yline.attach(this);
   
-    xlim(xlimits);
-    ylim(ylimits);
-    
-    double xmean = (xlimits[0] + xlimits[1]) / 2.;
-    double ymean = (ylimits[0] + ylimits[1]) / 2.;
-    
-    double xdata_xline[2]{xmean, xmean};
-    double ydata_yline[2]{ymean, ymean};
-    
-    m_mean_xline.setSamples(xdata_xline, yaxes_bounds, 2);
-    m_mean_yline.setSamples(xaxes_bounds, ydata_yline, 2);
-    
-    char metrics_label_text[38];
-    sprintf(metrics_label_text,
-        "%7.2f \xE2\x88\x88 [%7.2f, %7.2f[-]];",
-          xmean, xlimits[0], xlimits[1]
-    );
-    m_mean_xlabel.setText(QString::fromUtf8(metrics_label_text));
+  // Get axes limits from axes objects (Qwt)
+  double x_lbound = axisScaleDiv(xBottom).lowerBound();
+  double x_hbound = axisScaleDiv(xBottom).upperBound();
+  double y_lbound = axisScaleDiv(yLeft).lowerBound();
+  double y_hbound = axisScaleDiv(yLeft).upperBound();
+  
+  double xaxes_bounds[2]{ x_lbound, x_hbound };
+  double yaxes_bounds[2]{ y_lbound, y_hbound };
+  
+  double xmid = (x_lbound + x_hbound) / 2.;
+  double ymid = (y_lbound + y_hbound) / 2.;
 
-    sprintf(&metrics_label_text[0],
-        "%7.2f \xE2\x88\x88 [%7.2f, %7.2f[-]];",
-          ymean, ylimits[0], ylimits[1]
-    );
-    m_mean_ylabel.setText(QString::fromUtf8(metrics_label_text));
+  double xdata_xline[2]{xmid, xmid};
+  double ydata_yline[2]{ymid, ymid};
+  
+  m_mean_xline.setSamples(xdata_xline, yaxes_bounds, 2);
+  m_mean_yline.setSamples(xaxes_bounds, ydata_yline, 2);
+}
+
+void ScatterDisplay::init_mean_labels()
+{
+  m_mean_xlabel.setText("mean \xE2\x88\x88 [min., max.[unit]];");
+  m_mean_ylabel.setText("mean \xE2\x88\x88 [min., max.[unit]];");
+}
+
+void ScatterDisplay::update_mean_lines()
+{
+  replot();
+  
+  // Get axes limits from axes objects (Qwt)
+  double x_lbound = axisScaleDiv(xBottom).lowerBound();
+  double x_hbound = axisScaleDiv(xBottom).upperBound();
+  double y_lbound = axisScaleDiv(yLeft).lowerBound();
+  double y_hbound = axisScaleDiv(yLeft).upperBound();
+  
+  double xaxes_bounds[2]{ x_lbound, x_hbound };
+  double yaxes_bounds[2]{ y_lbound, y_hbound };
+
+  double xlimits[2];
+  double ylimits[2];
+
+  xlim(xlimits);
+  ylim(ylimits);
+  
+  double xmean = (xlimits[0] + xlimits[1]) / 2.;
+  double ymean = (ylimits[0] + ylimits[1]) / 2.;
+  
+  double xdata_xline[2]{xmean, xmean};
+  double ydata_yline[2]{ymean, ymean};
+  
+  m_mean_xline.setSamples(xdata_xline, yaxes_bounds, 2);
+  m_mean_yline.setSamples(xaxes_bounds, ydata_yline, 2);
+  
+  char metrics_label_text[38];
+  sprintf(metrics_label_text,
+      "%7.2f \xE2\x88\x88 [%7.2f, %7.2f[-]];",
+        xmean, xlimits[0], xlimits[1]
+  );
+  m_mean_xlabel.setText(QString::fromUtf8(metrics_label_text));
+
+  sprintf(&metrics_label_text[0],
+      "%7.2f \xE2\x88\x88 [%7.2f, %7.2f[-]];",
+        ymean, ylimits[0], ylimits[1]
+  );
+  m_mean_ylabel.setText(QString::fromUtf8(metrics_label_text));
 }
 
 void ScatterDisplay::update_after_data_load()
@@ -181,27 +212,27 @@ void ScatterDisplay::update_view_limits(double tmin, double tmax)
 }
 
 void ScatterDisplay::xlim(double * xbounds) {
-    xbounds[0] = 10e12; xbounds[1] = -10e12;
-    
-    for (int i = 0; i < m_nscatter_pairs; ++i) {
-        xbounds[0] = min({m_scatter_pairs[i]->xlim()[0], xbounds[0]});
-        xbounds[1] = max({m_scatter_pairs[i]->xlim()[1], xbounds[1]});
-    }
+  xbounds[0] = 10e12; xbounds[1] = -10e12;
+  
+  for (int i = 0; i < m_nscatter_pairs; ++i) {
+    xbounds[0] = min({m_scatter_pairs[i]->xlim()[0], xbounds[0]});
+    xbounds[1] = max({m_scatter_pairs[i]->xlim()[1], xbounds[1]});
+  }
 }
 
 void ScatterDisplay::ylim(double * ybounds) {
-    ybounds[0] = 10e12; ybounds[1] = -10e12;
-    
-    for (int i = 0; i < m_nscatter_pairs; ++i) {
-        ybounds[0] = min(m_scatter_pairs[i]->ylim()[0], ybounds[0]);
-        ybounds[1] = max(m_scatter_pairs[i]->ylim()[1], ybounds[1]);
-    }
+  ybounds[0] = 10e12; ybounds[1] = -10e12;
+  
+  for (int i = 0; i < m_nscatter_pairs; ++i) {
+    ybounds[0] = min(m_scatter_pairs[i]->ylim()[0], ybounds[0]);
+    ybounds[1] = max(m_scatter_pairs[i]->ylim()[1], ybounds[1]);
+  }
 }
 
 void ScatterDisplay::reset()
 {
-    detachItems();
-    replot();
+  detachItems();
+  replot();
 }
 
 void ScatterDisplay::resizeEvent(QResizeEvent * event) {

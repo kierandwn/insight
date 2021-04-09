@@ -148,6 +148,29 @@ void ScatterDisplay::wheelEvent(QWheelEvent * event)
   replot();
 }
 
+void ScatterDisplay::init_cursor_position()
+{
+  double x_lbound = axisScaleDiv(xBottom).lowerBound();
+  double x_hbound = axisScaleDiv(xBottom).upperBound();
+  double y_lbound = axisScaleDiv(yLeft).lowerBound();
+  double y_hbound = axisScaleDiv(yLeft).upperBound();
+
+  double x_bounds[2]{ x_lbound, x_hbound };
+  double y_bounds[2]{ y_lbound, y_hbound };
+  
+  double xrange = x_hbound - x_lbound;
+  double yrange = y_hbound - y_lbound;
+  
+  for (int i = 0; i < m_nscatter_pairs; ++i)
+    m_scatter_pairs[i]->crosshair()->set_xy(x_lbound + (i + 1) * .05 * xrange,
+                                            y_lbound + (i + 1) * .05 * yrange,
+                                            x_bounds,
+                                            y_bounds
+                                            );
+  
+  replot();
+}
+
 void ScatterDisplay::update_cursor_position(double tvalue)
 {
   for (int i = 0; i < m_nscatter_pairs; ++i) {

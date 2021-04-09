@@ -73,7 +73,6 @@ public:
   void apply_config(nlohmann::json *) override;
   void update_cursor_position(double=0.) override;
   
-  void init_labels();
   void set_label_positions();
   
   void update_after_data_load () override;
@@ -81,6 +80,12 @@ public:
   void update_mean_lines();
     
   void init () override;
+  
+  void init_labels();
+  void init_cursor_position();
+  void init_mean_lines();
+  void init_mean_labels();
+  
   void reset () override;
     
   void xlim(double *);

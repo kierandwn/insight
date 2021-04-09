@@ -71,11 +71,12 @@ void ApplicationMainWindow::init()
   background_palette.setColor(QPalette::Window, QColor(255, 255, 255, 255));
   setPalette(background_palette);
   
+  fit_plot_area_to_main_window_area();
+  
   map<string, graphic::Base *>::iterator p;
   for (p = m_layout.first(); p != m_layout.last(); ++p) {
     p->second->init();
   }
-  fit_plot_area_to_main_window_area();
 }
 
 void ApplicationMainWindow::on_actionLoad_File_triggered()

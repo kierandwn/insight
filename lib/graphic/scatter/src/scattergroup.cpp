@@ -42,7 +42,8 @@ double * ScatterGroup::xlim() { return m_xlim; }
 double * ScatterGroup::ylim() { return m_ylim; }
 double * ScatterGroup::tlim() { return m_tlim; }
 
-void ScatterGroup::update_crosshair(double tvalue) {
+void ScatterGroup::update_crosshair(double tvalue)
+{
   // Obtain plot limits from axes objects
   double x_lbound = p_parent->axisScaleDiv(p_parent->xBottom).lowerBound();
   double x_hbound = p_parent->axisScaleDiv(p_parent->xBottom).upperBound();
@@ -76,28 +77,30 @@ void ScatterGroup::set_data_from_table(data::Table * table,
                                        double x_lbound, double x_hbound,
                                        double y_lbound, double y_hbound )
 {
-    double xmax, xmin, xmean;
-    double ymax, ymin, ymean;
-    
-    m_xchannel = table->get(m_xchannel_name);
-    m_ychannel = table->get(m_ychannel_name);
-    size_t n = m_xchannel->length();
-    
-    xmin = m_xchannel->min();
-    xmax = m_xchannel->max();
-    xmean = 0.5 * (xmin + xmax);
-
-    ymin = m_ychannel->min();
-    ymax = m_ychannel->max();
-    ymean = 0.5 * (ymin + ymax);
-    
-    data::Channel * tchannel = m_xchannel->get_time_ref();
+  if (!table->exists(m_xchannel_name)) return;
   
-    t_lbound = max({t_lbound, tchannel->min()});
-    t_hbound = min({t_hbound, tchannel->max()});
-    
-    bool below_lbound = true; bool below_hbound = true;
-    int i_lbound = n - 1; int i_hbound = n - 1;
+  double xmax, xmin, xmean;
+  double ymax, ymin, ymean;
+  
+  m_xchannel = table->get(m_xchannel_name);
+  m_ychannel = table->get(m_ychannel_name);
+  size_t n = m_xchannel->length();
+  
+  xmin = m_xchannel->min();
+  xmax = m_xchannel->max();
+  xmean = 0.5 * (xmin + xmax);
+
+  ymin = m_ychannel->min();
+  ymax = m_ychannel->max();
+  ymean = 0.5 * (ymin + ymax);
+  
+  data::Channel * tchannel = m_xchannel->get_time_ref();
+
+  t_lbound = max({t_lbound, tchannel->min()});
+  t_hbound = min({t_hbound, tchannel->max()});
+  
+  bool below_lbound = true; bool below_hbound = true;
+  int i_lbound = n - 1; int i_hbound = n - 1;
   
   double * xdata = new double[n];
   double * ydata = new double[n];
@@ -106,52 +109,53 @@ void ScatterGroup::set_data_from_table(data::Table * table,
   double xi, yi, ti;
   bool x_in_bounds;
   bool y_in_bounds;
-//  bool t_in_bounds;
   
-    for (size_t i = 0; i < n; ++i) {
-      xi = m_xchannel->operator[](i);
-      yi = m_ychannel->operator[](i);
-      ti = tchannel->operator[](i);
-      
-      x_in_bounds = xi >= x_lbound and xi <= x_hbound;
-      y_in_bounds = yi >= y_lbound and yi <= y_hbound;
+  for (size_t i = 0; i < n; ++i) {
+    xi = m_xchannel->operator[](i);
+    yi = m_ychannel->operator[](i);
+    ti = tchannel->operator[](i);
+    
+    x_in_bounds = xi >= x_lbound and xi <= x_hbound;
+    y_in_bounds = yi >= y_lbound and yi <= y_hbound;
 //      t_in_bounds = ti >= t_lbound and ti <= t_hbound;
-      
-      if (x_in_bounds && y_in_bounds) {
-        xdata[i_data] = xi;
-        ydata[i_data] = yi;
-        ++i_data;
-      
-        if (tchannel->operator[](i) < t_lbound) {
-            continue;
-        } else if (tchannel->operator[](i) > t_hbound) {
-            if (below_hbound) {
-              i_hbound = i_data - 1;
-              below_hbound = false;
-              break;
-            }
-            continue;
-        } else {
-            if (below_lbound) {
-              i_lbound = i_data;
-              below_lbound = false;
-            }
+    
+    if (x_in_bounds && y_in_bounds) {
+      xdata[i_data] = xi;
+      ydata[i_data] = yi;
+      ++i_data;
+    
+      if (tchannel->operator[](i) < t_lbound) {
+        continue;
+        
+      } else if (tchannel->operator[](i) > t_hbound) {
+        if (below_hbound) {
+          i_hbound = i_data - 1;
+          below_hbound = false;
+          break;
+        }
+        continue;
+      } else {
+        if (below_lbound) {
+          i_lbound = i_data;
+          below_lbound = false;
         }
       }
     }
-    int n_to_plot = i_hbound - i_lbound;
-    if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
+  }
+  int n_to_plot = i_hbound - i_lbound;
+  if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
     
   m_scatter.setSamples(&xdata[i_lbound], &ydata[i_lbound], n_to_plot);
   m_shadow.setSamples(xdata, ydata, i_data);
-  
-//    m_scatter.setSamples(&m_xchannel->get_data_ptr()[i_lbound], &m_ychannel->get_data_ptr()[i_lbound], n_to_plot);
-//    m_shadow.setSamples(m_xchannel->get_data_ptr(), m_ychannel->get_data_ptr(), n);
     
-    m_xlim[0] = xmin; m_xlim[1] = xmax;
-    m_ylim[0] = ymin; m_ylim[1] = ymax;
+  m_xlim[0] = xmin; m_xlim[1] = xmax;
+  m_ylim[0] = ymin; m_ylim[1] = ymax;
   m_tlim[0] = t_lbound; m_tlim[1] = t_hbound;
   
+  m_crosshair.set_color(kDefaultColorOrder[m_color_index][0],
+                        kDefaultColorOrder[m_color_index][1],
+                        kDefaultColorOrder[m_color_index][2]
+                        );
   delete[] xdata;
   delete[] ydata;
 }
@@ -176,8 +180,10 @@ void ScatterGroup::init_scatters() {
   m_shadow.setSymbol(&m_shadow_symbol);
   m_shadow.attach(p_parent);
   
-//  m_crosshair.attach(p_parent);
-  m_crosshair.set_color(color[0], color[1], color[2]);
+  m_crosshair.set_color(kDefaultInactiveColor[0],
+                        kDefaultInactiveColor[1],
+                        kDefaultInactiveColor[2]
+                        );
 }
 
 void DisplayCrosshair::set_label_values(double xvalue, double yvalue)
@@ -193,7 +199,7 @@ void DisplayCrosshair::set_label_values(double xvalue, double yvalue)
       "<span style=\"color : rgb(50, 50, 50);\">%s:</span> %*.2f[-];",
           m_ychannel_name.c_str(), 7, yvalue
   );
-    
+  
   m_xlabel.setText(QString(xlabel_text));
   m_ylabel.setText(QString(ylabel_text));
 
@@ -203,7 +209,7 @@ void DisplayCrosshair::set_label_values(double xvalue, double yvalue)
 
 void DisplayCrosshair::set_xy(double x, double y, double * xlim, double * ylim)
 {
-  int label_width = 200;
+  int label_width = 300;
   int label_height = 15;
   
   double horzbar_ydata[2]{y, y};
@@ -211,14 +217,15 @@ void DisplayCrosshair::set_xy(double x, double y, double * xlim, double * ylim)
     
   m_horzbar.setSamples(xlim, horzbar_ydata, 2);
   m_vertbar.setSamples(vertbar_xdata, ylim, 2);
+  m_centrepoint.setSamples(&x, &y, 1);
   
   m_xy[0] = x;
   m_xy[1] = y;
   
   // update crosshair label positions
   m_xlabel.setGeometry(
-    5,
-    ((ylim[1] - y) / (ylim[1] - ylim[0])) * p_parent->height() - label_height,
+    p_parent->width() - (label_width + 5),
+    ((ylim[1] - y) / (ylim[1] - ylim[0])) * p_parent->height() - 16,
     label_width,
     label_height
   );

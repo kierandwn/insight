@@ -48,15 +48,26 @@ class ApplicationMainWindow : public QMainWindow
   Ui::InsightMainWindow * ui;
   string src_root_dir_;
   
+  string m_layout_dirpath;
+  string m_layout_filepath;
+  
+  double m_mainwindow_size[2];
+  
+  string m_time_channel_name; // TODO temp fix until queried at load
+  string m_time_channel_unit;
+  
  public:
   ApplicationMainWindow(std::string source_main_directory, QWidget *parent = nullptr);
   ~ApplicationMainWindow();
 
   layout::Layout m_layout;
   data::Table m_data;
-
-  void update();
+  
+  void load_config();
+  void import_from_json(string);
+  
   void init();
+  void update();
   
   void fit_plot_area_to_main_window_area();
     

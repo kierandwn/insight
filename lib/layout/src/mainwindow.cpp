@@ -45,13 +45,11 @@ ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * p
       src_root_dir_(source_root_dir)
 {
   ui->setupUi(this);
+  load_config();
 
-  QString layout_filename = QFileDialog::getOpenFileName(this,
-    tr("Load Data File"), src_root_dir_.append("/config", 8).c_str(), tr("Layout File (*.layout)"));
-
-  m_layout.import_from_config(layout_filename.toStdString(), ui->PlotGrid, &m_data);
+  m_layout.import_from_config(m_layout_filepath, ui->PlotGrid, &m_data);
   
-  setWindowTitle(QFileInfo(layout_filename).fileName());
+  setWindowTitle(QFileInfo(m_layout_filepath.c_str()).fileName());
 }
 
 ApplicationMainWindow::~ApplicationMainWindow() { delete ui; }
@@ -62,6 +60,47 @@ void ApplicationMainWindow::update() {
     p->second->update_after_data_load();
   }
 }
+
+void ApplicationMainWindow::load_config() {
+  string config_filename;
+  string user_specific_config = QDir::homePath().toStdString() + "/.insight";
+  
+  if (QFileInfo(user_specific_config.c_str()).exists()) {
+    config_filename = QDir::homePath().toStdString() + "/.insight";
+    
+  } else {
+    config_filename = src_root_dir_ + "/config/default.config";
+    
+  }
+  import_from_json(config_filename);
+}
+
+void ApplicationMainWindow::import_from_json(string filename) {
+  ifstream ifs { filename };
+  if ( !ifs.is_open() ) { cerr << "Could not open file for reading!\n"; throw; }
+
+  nlohmann::json app_config;
+  ifs >> app_config;
+  
+  string layout_filename = app_config["layout_filename"];
+  string layout_dirpath  = app_config["layout_dirpath"];
+  
+  string layout_filepath = layout_dirpath.append("/").append(layout_filename.c_str());
+  
+  if (!QFileInfo(layout_filepath.c_str()).exists()) {
+    layout_filepath = QFileDialog::getOpenFileName(this,
+      tr("Load Layout File"), m_layout_dirpath.c_str(), tr("Layout File (*.layout)")).toStdString();
+  }
+
+  m_layout_filepath = layout_filepath;
+  
+  m_time_channel_name = app_config["time_channel"];
+  m_time_channel_unit = app_config["time_unit"];
+  
+  m_mainwindow_size[0] = app_config["main_window_size"][0];
+  m_mainwindow_size[1] = app_config["main_window_size"][1];
+}
+
 
 void ApplicationMainWindow::init()
 {
@@ -81,12 +120,12 @@ void ApplicationMainWindow::init()
 
 void ApplicationMainWindow::on_actionLoad_File_triggered()
 {
-  m_data.clear();
-
-  QString filename = QFileDialog::getOpenFileName(this,
+  QStringList filenames = QFileDialog::getOpenFileNames(this,
     tr("Load Data File"), tr(src_root_dir_.append("/demo", 5).c_str()), tr("CSV Files (*.csv)"));
-
-  import_from_csv(filename.toStdString(), &m_data);
+  
+  for (QString filename : filenames) {
+    import_from_csv(filename.toStdString(), &m_data, m_time_channel_name, m_time_channel_unit);
+  }
   update();
 }
 

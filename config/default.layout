@@ -1,41 +1,11 @@
 {
     "type" : "Grid",
-    "size" : [1, 2],
+    "size" : [1, 1],
     "children" : {
         "0" : {
             "type" : "Waveform",
             "data" : {
-                "channel" : ["sinusoid_1", "sinusoid_2", "sinusoid_3", "sinusoid_4"]
-            }
-        },
-        "1" : {
-            "type" : "Grid",
-            "size" : [2, 2],
-            "children" : {
-                "2" : {
-                    "type" : "Waveform",
-                    "data" : {
-                        "channel" : ["noisydata_1"]
-                    }
-                },
-                "3" : {
-                    "type" : "Waveform",
-                    "data" : {
-                        "channel" : ["noisydata_2"]
-                    }
-                },
-                "4" : {
-                    "type" : "Waveform",
-                    "data" : {
-                        "channel" : ["noisydata_3"]
-                    }
-                },
-                "5" : {
-                    "type" : "Waveform",
-                    "data" : {
-                        "channel" : ["noisydata_4"]
-                    }
-                }
+                "channel" : []
             }
         }
     }

@@ -51,7 +51,7 @@ WaveformDisplay::WaveformDisplay(data::Table * data, layout::Layout * layout)
 void WaveformDisplay::init_xlabel()
 {
   m_xlabel.setStyleSheet(
-      "QLabel { color : rgb(50, 50, 50); font : 10pt 'Courier'; }"
+    "QLabel { color : rgb(50, 50, 50); font : 10pt 'Courier'; }"
   );
   m_xlabel.setAlignment(Qt::AlignRight);
   set_xlabel_position();
@@ -65,10 +65,10 @@ void WaveformDisplay::set_xlabel_position()
   int label_height = 15;
   
   m_xlabel.setGeometry(
-      width() - (label_width + 5),
-      height() - 1.02 * label_height,
-      label_width,
-      label_height
+    width() - (label_width + 5),
+    height() - 1.02 * label_height,
+    label_width,
+    label_height
   );
 }
                    
@@ -83,17 +83,17 @@ void WaveformDisplay::set_xlabel_value(double value)
 
 void WaveformDisplay::define_uniform_spacing()
 {
-    reset();
-    double n_groups = get_number_of_waveform_groups();
-    
-    double nheight  = 1. / (1.1 * n_groups + 0.1);
-    double npadding = 0.1; // space betwen plots descibed as factor of plot height above
-    double noffset;
-    
-    for (int i = 0; i < n_groups; ++i) {
-        noffset = ((i * (1.0 + npadding)) + (0.5 + npadding)) * nheight;
-        m_waveform_groups[i]->set_dimensions(nheight, noffset);
-    }
+  reset();
+  double n_groups = get_number_of_waveform_groups();
+  
+  double nheight  = 1. / (1.1 * n_groups + 0.1);
+  double npadding = 0.1; // space betwen plots descibed as factor of plot height above
+  double noffset;
+  
+  for (int i = 0; i < n_groups; ++i) {
+    noffset = ((i * (1.0 + npadding)) + (0.5 + npadding)) * nheight;
+    m_waveform_groups[i]->set_dimensions(nheight, noffset);
+  }
 }
 
 // Apply configuation parameters held in json_config
@@ -122,11 +122,11 @@ void WaveformDisplay::apply_config(nlohmann::json * json_config) {
 }
 
 void WaveformDisplay::init() {
-    init_xlabel();
-    for (size_t i = 0; i < m_waveform_groups.size(); ++i) {
-        m_waveform_groups[i]->init_curves();
-    }
-    m_cursor.attach(this);
+  init_xlabel();
+  for (size_t i = 0; i < m_waveform_groups.size(); ++i) {
+      m_waveform_groups[i]->init_curves();
+  }
+  m_cursor.attach(this);
 }
 
 void WaveformDisplay::update_after_data_load()
@@ -138,7 +138,11 @@ void WaveformDisplay::update_after_data_load()
     m_waveform_groups[i]->init_label();
   }
   update_view_limits();
-  update_cursor_position(xlim()[0]);
+  
+  double xlimits[2];
+  xlim(xlimits);
+  
+  update_cursor_position(xlimits[0]);
   
   replot();
   m_mouse_state = Ready;
@@ -147,12 +151,12 @@ void WaveformDisplay::update_after_data_load()
 void WaveformDisplay::update_view_limits()
 {
   cursor_in_xrange();
-  double * xlimits = xlim();
+  double xlimits[2];
   
-  setAxisScale(xBottom, xlimits[0], xlimits[1]);
-  replot();
-  
-  delete[] xlimits;
+  if (xlim(xlimits)) {
+    setAxisScale(xBottom, xlimits[0], xlimits[1]);
+    replot();
+  }
 }
 
 void WaveformDisplay::update_view_limits(double xmin, double xmax)
@@ -181,24 +185,25 @@ void WaveformDisplay::update_cursor_position(double x) {
 }
 
 void WaveformDisplay::cursor_in_xrange() {
-  double * xrange = xlim();
+  double xrange[2];
+  xlim(xrange);
+  
   if (m_xpos_cursor > xrange[0] && m_xpos_cursor < xrange[1]) { m_cursor.attach(this); }
   else { m_cursor.detach(); }
 }
 
-double * WaveformDisplay::xlim() {
-  double * widest_xbound = new double;
-  widest_xbound[0] = 10e12; widest_xbound[1] = -10e12;
-//  bool display_active = false;
+bool WaveformDisplay::xlim(double * limits) {
+  limits[0] = 10e12; limits[1] = -10e12;
+  bool display_active = false;
   
   for (int i = 0; i < m_nwaveform_groups; ++i) {
     if (m_waveform_groups[i]->any_channel_present_in(m_data)) {
-//      display_active = true;
-      widest_xbound[0] = min({m_waveform_groups[i]->xlim()[0], widest_xbound[0]});
-      widest_xbound[1] = max({m_waveform_groups[i]->xlim()[1], widest_xbound[1]});
+      display_active = true;
+      limits[0] = min({m_waveform_groups[i]->xlim()[0], limits[0]});
+      limits[1] = max({m_waveform_groups[i]->xlim()[1], limits[1]});
     }
   }
-  return widest_xbound; // KNOWN potential memory leak, returned array needs to be deleted by calling fcn.
+  return display_active;
 }
 
 void WaveformDisplay::update_label_values_at(double x) {
@@ -217,7 +222,8 @@ void WaveformDisplay::reset()
 void WaveformDisplay::resizeEvent(QResizeEvent * event) {
   Base::resizeEvent(event);
 
-  double * xlimits = xlim();
+  double xlimits[2];
+  xlim(xlimits);
   
   set_xlabel_position();
   for (int i = 0; i < m_nwaveform_groups; ++i) {

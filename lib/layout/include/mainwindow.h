@@ -26,6 +26,7 @@
 
 #include <QMainWindow>
 #include <QBoxLayout>
+#include <QStringList>
 
 #include <qapplication.h>
 #include <qwt_plot.h>
@@ -40,6 +41,10 @@
 namespace insight {
 
 using namespace std;
+
+
+string longest_common_string_prefix(string, string);
+string longest_common_string_prefix(QStringList);
 
 class ApplicationMainWindow : public QMainWindow
 {

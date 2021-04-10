@@ -123,8 +123,16 @@ void ApplicationMainWindow::on_actionLoad_File_triggered()
   QStringList filenames = QFileDialog::getOpenFileNames(this,
     tr("Load Data File"), tr(src_root_dir_.append("/demo", 5).c_str()), tr("CSV Files (*.csv)"));
   
+  string common_prefix = longest_common_string_prefix(filenames);
+  printf("longest common string prefix: %s.\n", common_prefix.c_str());
+  
   for (QString filename : filenames) {
-    import_from_csv(filename.toStdString(), &m_data, m_time_channel_name, m_time_channel_unit);
+    import_from_csv(filename.toStdString(),
+                    &m_data,
+                    common_prefix,
+                    m_time_channel_name,
+                    m_time_channel_unit
+                    );
   }
   update();
 }
@@ -140,6 +148,30 @@ void ApplicationMainWindow::fit_plot_area_to_main_window_area() {
   
   ui->centralwidget->setGeometry(0, 0, geom.width(), geom.height());
   ui->PlotGrid->setGeometry(QRect(0, 0, geom.width(), geom.height()));
+}
+
+string longest_common_string_prefix(QStringList string_list) {
+  string lcs = string_list[0].toStdString();
+  
+  for (QString st : string_list) {
+    lcs = longest_common_string_prefix(lcs, st.toStdString());
+  }
+  return lcs;
+}
+
+string longest_common_string_prefix(string X, string Y)
+{
+  int m = X.size();
+  int n = Y.size();
+  
+  int i;
+  for (i = 0; i < min(m, n); i++)
+  {
+    if (!(X[i] == Y[i])) {
+      break;
+    }
+  }
+  return X.substr(0, i);
 }
 
 }  // namespace insight

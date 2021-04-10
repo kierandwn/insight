@@ -84,6 +84,8 @@ class WaveformGroup {
   bool any_channel_present_in(data::Table *);
 };
 
+bool channel_and_time_present_in(string, data::Table *);
+
 
 }  // namespace graphic
 }  // namespace insight

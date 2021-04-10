@@ -53,29 +53,47 @@ static inline void trim(std::string &s) {
     rtrim(s);
 }
 
-void findHeaderNames (string row, vector<string> * headers, string delim)
+string findHeaderNames (string row,
+                      vector<string> * headers,
+                      string delim,
+                      string time_channel_name,
+                      string filename,
+                      string common_prefix
+                      )
 {
-    size_t pos = 0;
-    string column_header;
-    string channel_name;
+  size_t pos = 0;
+  string column_header;
+  string channel_name;
+  string channel_id;
+  
+  string id_prefix = filename.substr(
+     common_prefix.size(), filename.rfind(".")-common_prefix.size()).append("::");
+  
+  while (row.size() > 0) {
+    pos = row.find(delim);
+    channel_name = row.substr(0, pos);
+    trim(channel_name);
+    
+    channel_id = id_prefix+channel_name;
+    headers->push_back(channel_id);
 
-    while (row.size() > 0) {
-        pos = row.find(delim);
-        channel_name = row.substr(0, pos);
-        trim(channel_name);
-
-        headers->push_back(channel_name);
-
-        if (pos != string::npos) { row.erase(0, pos + delim.length()); }
-        else { row = ""; }
-    }
+    if (pos != string::npos) { row.erase(0, pos + delim.length()); }
+    else { row = ""; }
+  }
+  return id_prefix+time_channel_name;
 }
 
 double convert_to_type(string var) {
     return stod(var.c_str());
 }
 
-data::Table * import_from_csv (string filename, data::Table * t=new data::Table, string time_channel_name="time", string time_channel_unit="s", string delim=",")
+data::Table * import_from_csv (string filename,
+                               data::Table * t=new data::Table,
+                               string common_prefix="",
+                               string time_channel_name="time",
+                               string time_channel_unit="s",
+                               string delim=","
+                               )
 {
   ifstream f;
   f.open(filename);
@@ -84,13 +102,19 @@ data::Table * import_from_csv (string filename, data::Table * t=new data::Table,
   getline(f, row);
 
   vector<string> headers;
-  findHeaderNames(row, &headers, ",");
+  string time_channel_id = findHeaderNames(row,
+                                           &headers,
+                                           ",",
+                                           time_channel_name,
+                                           filename,
+                                           common_prefix
+                                           );
 
   // size_t n_columns = headers.size();
   size_t pos = 0;
 
-  for (vector<string>::iterator h = headers.begin(); h != headers.end(); ++h)
-    t->add(*(h));
+  for (string h : headers)
+    t->add(h);
 
   size_t i;
   vector<string>::iterator h;
@@ -114,8 +138,8 @@ data::Table * import_from_csv (string filename, data::Table * t=new data::Table,
     }
   }
     
-  if (t->exists(time_channel_name)) {
-    data::Channel * time_channel = t->get(time_channel_name.c_str());
+  if (t->exists(time_channel_id)) {
+    data::Channel * time_channel = t->get(time_channel_id.c_str());
     time_channel->set_unit_string(time_channel_unit);
     
     for (size_t i = 0; i < headers.size(); ++i) {

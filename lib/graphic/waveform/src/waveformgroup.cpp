@@ -68,7 +68,8 @@ void WaveformGroup::set_data_from_table(data::Table * table,
   bool plotted = false;
     
   for (size_t i = 0; i < n_waveforms; ++i) {
-    if (!table->exists(m_channel_names[i])) continue;
+    if (!channel_and_time_present_in(m_channel_names[i], table)) continue;
+    
     plotted = true;
     
     data::Channel * channel = table->get(m_channel_names[i]);
@@ -83,6 +84,8 @@ void WaveformGroup::set_data_from_table(data::Table * table,
     }
     
     data::Channel * xchannel = channel->get_time_ref();
+    if (!xchannel) continue;
+    
     x_lbound = max({x_lbound, xchannel->min()});
     x_hbound = min({x_hbound, xchannel->max()});
     
@@ -169,7 +172,7 @@ void WaveformGroup::set_label_values_at(double xvalue, data::Table * table) {
     int channel_names_total_length = 0;
     size_t n_channels = m_channel_names.size();
     for (size_t i = 0; i < n_channels; ++i) {
-        channel_names_total_length += m_channel_names[i].length();
+      channel_names_total_length += m_channel_names[i].length();
     }
     char * label_text = new char[channel_names_total_length+(n_channels*67)+1];
     
@@ -180,9 +183,10 @@ void WaveformGroup::set_label_values_at(double xvalue, data::Table * table) {
       double value;
       vector<int> color;
       
-      if (table && table->exists(channel_name)) {
+      if (table && channel_and_time_present_in(channel_name, table)) {
         value = table->get(channel_name)->value_at(xvalue);
         color = kDefaultColorOrder[i];
+        
       } else {
         value = 0.;
         color = kDefaultInactiveColor;
@@ -211,8 +215,8 @@ void WaveformGroup::set_metric_values(double min, double max, double mean) {
   char metric_text[38];
   
   sprintf(metric_text,
-      "%7.2f \xE2\x88\x88 [%7.2f, %7.2f[-]];",
-        mean, min, max
+    "%7.2f \xE2\x88\x88 [%7.2f, %7.2f[-]];",
+      mean, min, max
   );
   m_metrics.setText(QString::fromUtf8(metric_text));
 }
@@ -246,6 +250,10 @@ bool WaveformGroup::any_channel_present_in(data::Table * data) {
     if (data->exists(channel_name)) return true;
   }
   return false;
+}
+
+bool channel_and_time_present_in(string channel_name, data::Table * data) {
+  return data->exists(channel_name) && data->get(channel_name)->get_time_ref();
 }
 
 }  // namespace graphic

@@ -44,6 +44,8 @@ WaveformDisplay::WaveformDisplay(data::Table * data, layout::Layout * layout)
 
   enableAxis(xBottom, false);
   enableAxis(yLeft, false);
+  
+  setAxisScale(yLeft, 0., 1.);
 }
 
 void WaveformDisplay::init_xlabel()
@@ -57,7 +59,8 @@ void WaveformDisplay::init_xlabel()
   set_xlabel_value(0.);
 }
 
-void WaveformDisplay::set_xlabel_position() {
+void WaveformDisplay::set_xlabel_position()
+{
   int label_width = 300;
   int label_height = 15;
   
@@ -69,7 +72,8 @@ void WaveformDisplay::set_xlabel_position() {
   );
 }
                    
-void WaveformDisplay::set_xlabel_value(double value) {
+void WaveformDisplay::set_xlabel_value(double value)
+{
   char * label_text = new char[17];
   sprintf(label_text, "time: %.3f[s]", value);
   
@@ -131,12 +135,24 @@ void WaveformDisplay::update_after_data_load()
     
   for (int i = 0; i < channels_to_plot; ++i) {
     m_waveform_groups[i]->set_data_from_table(m_data);
-    m_waveform_groups[i]->init_label(m_data);
+    m_waveform_groups[i]->init_label();
   }
+  update_view_limits();
   update_cursor_position(xlim()[0]);
+  
+  replot();
+  m_mouse_state = Ready;
+}
+
+void WaveformDisplay::update_view_limits()
+{
+  cursor_in_xrange();
+  double * xlimits = xlim();
+  
+  setAxisScale(xBottom, xlimits[0], xlimits[1]);
   replot();
   
-  m_mouse_state = Ready;
+  delete[] xlimits;
 }
 
 void WaveformDisplay::update_view_limits(double xmin, double xmax)
@@ -153,45 +169,49 @@ void WaveformDisplay::update_view_limits(double xmin, double xmax)
 }
 
 void WaveformDisplay::update_cursor_position(double x) {
-    double xcursor[2]{ x, x };
-    double ycursor[2]{ 0., 1. };
-    
-    cursor_in_xrange();
-    update_label_values_at(x);
-    
-    m_cursor.setSamples(xcursor, ycursor, 2);
-    m_xpos_cursor = x;
-    replot();
+  double xcursor[2]{ x, x };
+  double ycursor[2]{ 0., 1. };
+  
+  cursor_in_xrange();
+  update_label_values_at(x);
+  
+  m_cursor.setSamples(xcursor, ycursor, 2);
+  m_xpos_cursor = x;
+  replot();
 }
 
 void WaveformDisplay::cursor_in_xrange() {
-    double * xrange = xlim();
-    if (m_xpos_cursor > xrange[0] && m_xpos_cursor < xrange[1]) { m_cursor.attach(this); }
-    else { m_cursor.detach(); }
+  double * xrange = xlim();
+  if (m_xpos_cursor > xrange[0] && m_xpos_cursor < xrange[1]) { m_cursor.attach(this); }
+  else { m_cursor.detach(); }
 }
 
 double * WaveformDisplay::xlim() {
-    double * widest_xbound = new double;
-    widest_xbound[0] = 10e12; widest_xbound[1] = -10e12;
-    
-    for (int i = 0; i < m_nwaveform_groups; ++i) {
-        widest_xbound[0] = min({m_waveform_groups[i]->xlim()[0], widest_xbound[0]});
-        widest_xbound[1] = max({m_waveform_groups[i]->xlim()[1], widest_xbound[1]});
+  double * widest_xbound = new double;
+  widest_xbound[0] = 10e12; widest_xbound[1] = -10e12;
+//  bool display_active = false;
+  
+  for (int i = 0; i < m_nwaveform_groups; ++i) {
+    if (m_waveform_groups[i]->any_channel_present_in(m_data)) {
+//      display_active = true;
+      widest_xbound[0] = min({m_waveform_groups[i]->xlim()[0], widest_xbound[0]});
+      widest_xbound[1] = max({m_waveform_groups[i]->xlim()[1], widest_xbound[1]});
     }
-    return widest_xbound; // KNOWN potential memory leak, returned array needs to be deleted by calling fcn.
+  }
+  return widest_xbound; // KNOWN potential memory leak, returned array needs to be deleted by calling fcn.
 }
 
 void WaveformDisplay::update_label_values_at(double x) {
-    for (int i = 0; i < m_nwaveform_groups; ++i) {
-        m_waveform_groups[i]->set_label_values_at(x, m_data);
-    }
-    set_xlabel_value(x);
+  for (int i = 0; i < m_nwaveform_groups; ++i) {
+      m_waveform_groups[i]->set_label_values_at(x, m_data);
+  }
+  set_xlabel_value(x);
 }
 
 void WaveformDisplay::reset()
 {
-    detachItems();
-    replot();
+  detachItems();
+  replot();
 }
 
 void WaveformDisplay::resizeEvent(QResizeEvent * event) {

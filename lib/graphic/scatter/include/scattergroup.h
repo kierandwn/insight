@@ -40,6 +40,9 @@ class DisplayCrosshair {
   QwtPlotCurve m_horzbar;
   QwtPlotCurve m_vertbar;
   
+  QwtPlotCurve m_centrepoint;
+  QwtSymbol m_centresymbol;
+  
   QLabel m_xlabel;
   VLabel m_ylabel;
   
@@ -56,19 +59,31 @@ class DisplayCrosshair {
         m_xchannel_name(xchannel_name),
         m_ychannel_name(ychannel_name)
   {
+    m_centresymbol.setStyle(QwtSymbol::Ellipse);
+    m_centresymbol.setSize(QSize(4, 4));
+    
+    m_centrepoint.setSymbol(&m_centresymbol);
+    
+    m_xlabel.setAlignment(Qt::AlignRight);
+    m_ylabel.setAlignment(Qt::AlignLeft);
+    
+    attach(parent);
+  }
+  
+  void attach(QwtPlot * parent) {
     m_horzbar.attach(parent);
     m_vertbar.attach(parent);
-    
-    
-    
-    m_xlabel.setAlignment(Qt::AlignLeft);
-    m_ylabel.setAlignment(Qt::AlignLeft);
+    m_centrepoint.attach(parent);
   }
+  
+  void detach() {
+    m_horzbar.detach();
+    m_vertbar.detach();
+    m_centrepoint.detach();
     
-//  void attach(QwtPlot * plot_area) {
-//    m_horzbar.attach(plot_area);
-//    m_vertbar.attach(plot_area);
-//  }
+    m_xlabel.setText("");
+    m_ylabel.setText("");
+  }
   
   void set_color(int r=0, int g=0, int b=0) {
     int darken = -30;
@@ -80,9 +95,12 @@ class DisplayCrosshair {
     m_horzbar.setPen(color);
     m_vertbar.setPen(color);
     
+    m_centrepoint.setPen(color);
+    m_centresymbol.setPen(color);
+    
     char stylesheet[62];
     sprintf(stylesheet,
-            "QLabel { color : rgb(%03d, %03d, %03d); font : 10pt 'Courier'; }", r, g, b);
+      "QLabel { color : rgb(%03d, %03d, %03d); font : 10pt 'Courier'; }", r, g, b);
     
     m_xlabel.setStyleSheet(stylesheet);
     m_ylabel.setStyleSheet(stylesheet);
@@ -145,6 +163,8 @@ class ScatterGroup {
   void update_crosshair();
   
   QwtPlotCurve * get_scatter_full() { return &m_shadow; }
+  
+  bool channels_present_in(data::Table *);
 };
 
 }  // namespace graphic

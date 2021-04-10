@@ -62,74 +62,77 @@ void WaveformGroup::attach(QwtPlot * plot_area)
 
 void WaveformGroup::set_data_from_table(data::Table * table,
                                         double x_lbound, double x_hbound) {
-    size_t n_waveforms = m_channel_names.size();
+  size_t n_waveforms = m_channel_names.size();
+  
+  double ymax, ymin, ymean;
+  bool plotted = false;
     
-    double ymax, ymin, ymean;
+  for (size_t i = 0; i < n_waveforms; ++i) {
+    if (!table->exists(m_channel_names[i])) continue;
+    plotted = true;
     
-    for (size_t i = 0; i < n_waveforms; ++i) {
-      if (!table->exists(m_channel_names[i])) continue;
-      
-      data::Channel * channel = table->get(m_channel_names[i]);
-      size_t n = channel->length();
-      
-      double * ydata = new double[n];
-      
-      if (i == 0) {
-          ymin = channel->min();
-          ymax = channel->max();
-          ymean = 0.5 * (ymin + ymax);
-      }
-      
-      data::Channel * xchannel = channel->get_time_ref();
-      x_lbound = max({x_lbound, xchannel->min()});
-      x_hbound = min({x_hbound, xchannel->max()});
-      
-      double * xdata = channel->get_time_data_ptr();
-      
-      bool below_lbound = true; bool below_hbound = true;
-      int i_lbound = n - 1; int i_hbound = n - 1;
-      
-      for (size_t i = 0; i < n; ++i) {
-          if (xdata[i] < x_lbound) {
-              continue;
-          } else if (xdata[i] > x_hbound) {
-              if (below_hbound) {
-                  i_hbound = i;
-                  below_hbound = false;
-              }
-              continue;
-          } else {
-              if (below_lbound) {
-                  i_lbound = i;
-                  below_lbound = false;
-              }
-          }
-          
-          ydata[i] = m_normalised_yoffset + \
-               m_normalised_height * ((channel->operator[](i) - ymean) / (ymax - ymin));
-      }
-      int n_to_plot = i_hbound - i_lbound;
-      if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
-      
-      m_curves[i]->setSamples(&xdata[i_lbound], &ydata[i_lbound], n_to_plot);
-      delete[] ydata;
+    data::Channel * channel = table->get(m_channel_names[i]);
+    size_t n = channel->length();
+    
+    double * ydata = new double[n];
+    
+    if (i == 0) {
+      ymin = channel->min();
+      ymax = channel->max();
+      ymean = 0.5 * (ymin + ymax);
     }
     
-    double xdata_0line[2]{ x_lbound, x_hbound };
-    double ydata_0line[2]{
-        m_normalised_yoffset,
-        m_normalised_yoffset
-    };
-    m_zero_line.setSamples(xdata_0line, ydata_0line, 2);
+    data::Channel * xchannel = channel->get_time_ref();
+    x_lbound = max({x_lbound, xchannel->min()});
+    x_hbound = min({x_hbound, xchannel->max()});
+    
+    double * xdata = channel->get_time_data_ptr();
+    
+    bool below_lbound = true; bool below_hbound = true;
+    int i_lbound = n - 1; int i_hbound = n - 1;
+    
+    for (size_t i = 0; i < n; ++i) {
+      if (xdata[i] < x_lbound) {
+        continue;
+      } else if (xdata[i] > x_hbound) {
+        if (below_hbound) {
+          i_hbound = i;
+          below_hbound = false;
+        }
+        continue;
+      } else {
+        if (below_lbound) {
+          i_lbound = i;
+          below_lbound = false;
+        }
+      }
+      
+      ydata[i] = m_normalised_yoffset + \
+        m_normalised_height * ((channel->operator[](i) - ymean) / (ymax - ymin));
+    }
+    int n_to_plot = i_hbound - i_lbound;
+    if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
+    
+    m_curves[i]->setSamples(&xdata[i_lbound], &ydata[i_lbound], n_to_plot);
+    delete[] ydata;
+  }
+  
+  if (plotted) {
+    set_metric_values(ymin, ymax, ymean);
     
     m_xlim[0] = x_lbound; m_xlim[1] = x_hbound;
     m_ylim[0] = ymin; m_ylim[1] = ymax;
     
-    set_metric_values(ymin, ymax, ymean);
+    set_zero_line_position(x_lbound, x_hbound);
+  }
 }
 
-void WaveformGroup::init_curves() {
-  // draw curve on graphic
+void WaveformGroup::init_curves()
+{
+  init_label();
+  set_zero_line_position();
+  
+  // set color & attach curves to plot
   vector<int> color;
   for (size_t j = 0; j < m_curves.size(); ++j) {
     color = kDefaultColorOrder[j];
@@ -141,7 +144,7 @@ void WaveformGroup::init_curves() {
 
 void WaveformGroup::set_label_position() {
   int label_xcoord = 5;
-  int label_ycoord = (1. - m_normalised_yoffset) * p_parent->height();
+  int label_ycoord = (1. - m_normalised_yoffset - m_normalised_height / 2) * p_parent->height();
   
   int metrics_xcoord = p_parent->width() - (300 + 5);
   int metrics_ycoord = ((1. - m_normalised_yoffset) * p_parent->height()) - 16;
@@ -150,14 +153,16 @@ void WaveformGroup::set_label_position() {
   m_metrics.setGeometry(metrics_xcoord, metrics_ycoord, 300, 30);
 }
 
-void WaveformGroup::init_label(data::Table * table)
+void WaveformGroup::init_label()
 {
   m_label.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
   m_metrics.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
   m_metrics.setAlignment(Qt::AlignRight);
   
   set_label_position();
-  set_label_values_at(0., table);
+  set_label_values_at();
+  
+  init_metric_values();
 }
 
 void WaveformGroup::set_label_values_at(double xvalue, data::Table * table) {
@@ -170,28 +175,36 @@ void WaveformGroup::set_label_values_at(double xvalue, data::Table * table) {
     
     int string_cursor = 0;
     for (size_t i = 0; i < n_channels; ++i) {
-        string channel_name = m_channel_names[i];
+      string channel_name = m_channel_names[i];
         
-        double value;
-        if (table->exists(channel_name)) {
-          value = table->get(channel_name)->value_at(xvalue);
-        } else {
-          value = 0.;
-        }
-        
-        sprintf(&label_text[string_cursor],
-            "%s: <span style=\"color : rgb(%03d, %03d, %03d);\">%*.2f[-];</span><br/>",
-                channel_name.c_str(),
-                kDefaultColorOrder[i][0],
-                kDefaultColorOrder[i][1],
-                kDefaultColorOrder[i][2],
-                7, value
-        );
-        string_cursor += m_channel_names[i].length()+67;
+      double value;
+      vector<int> color;
+      
+      if (table && table->exists(channel_name)) {
+        value = table->get(channel_name)->value_at(xvalue);
+        color = kDefaultColorOrder[i];
+      } else {
+        value = 0.;
+        color = kDefaultInactiveColor;
+      }
+      
+      sprintf(&label_text[string_cursor],
+        "%s: <span style=\"color : rgb(%03d, %03d, %03d);\">%*.2f[-];</span><br/>",
+            channel_name.c_str(),
+            color[0],
+            color[1],
+            color[2],
+            7, value
+      );
+      string_cursor += m_channel_names[i].length()+67;
     }
     
     m_label.setText(QString(label_text));
     delete[] label_text;
+}
+
+void WaveformGroup::init_metric_values() {
+  m_metrics.setText("mean \xE2\x88\x88 [min., max.[unit]];");
 }
 
 void WaveformGroup::set_metric_values(double min, double max, double mean) {
@@ -202,6 +215,37 @@ void WaveformGroup::set_metric_values(double min, double max, double mean) {
         mean, min, max
   );
   m_metrics.setText(QString::fromUtf8(metric_text));
+}
+
+void WaveformGroup::set_zero_line_position(double xmin, double xmax) {
+  double xdata_0line[2];
+  xdata_0line[0] = xmin;
+  xdata_0line[1] = xmax;
+  
+  double ydata_0line[2]{
+    m_normalised_yoffset,
+    m_normalised_yoffset
+  };
+  m_zero_line.setSamples(xdata_0line, ydata_0line, 2);
+}
+
+void WaveformGroup::set_zero_line_position() {
+  double xdata_0line[2];
+  xdata_0line[0] = p_parent->axisScaleDiv(p_parent->xBottom).lowerBound();
+  xdata_0line[1] = p_parent->axisScaleDiv(p_parent->xBottom).upperBound();
+  
+  double ydata_0line[2]{
+    m_normalised_yoffset,
+    m_normalised_yoffset
+  };
+  m_zero_line.setSamples(xdata_0line, ydata_0line, 2);
+}
+
+bool WaveformGroup::any_channel_present_in(data::Table * data) {
+  for (string channel_name : m_channel_names) {
+    if (data->exists(channel_name)) return true;
+  }
+  return false;
 }
 
 }  // namespace graphic

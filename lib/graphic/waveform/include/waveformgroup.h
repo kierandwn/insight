@@ -14,7 +14,7 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with insight.  If not, see <https://www.gnu.org/licenses/>.
+// along with insight. If not, see <https://www.gnu.org/licenses/>.
 //
 #ifndef WAVEFORM_GROUP_H_
 #define WAVEFORM_GROUP_H_
@@ -58,14 +58,19 @@ class WaveformGroup {
     
   void init_curves();
   
-  void init_label(data::Table *);
+  void init_label();
+  void init_metric_values();
+  
   void set_label_position();
     
   void add_channel(string);
   void set_dimensions(double, double);
     
-  void set_label_values_at(double, data::Table *);
+  void set_label_values_at(double=0., data::Table * data=NULL);
   void set_metric_values(double, double, double);
+  
+  void set_zero_line_position();
+  void set_zero_line_position(double, double);
   
   double * xlim() { return m_xlim; }
   double * ylim() { return m_ylim; }
@@ -75,6 +80,8 @@ class WaveformGroup {
     
   void attach(QwtPlot *);
   void set_data_from_table(data::Table *, double=-10e12, double=10e12);
+  
+  bool any_channel_present_in(data::Table *);
 };
 
 

@@ -28,10 +28,11 @@ using namespace insight;
 int main(int argc, char *argv[])
 {
     string file_path = __FILE__;
-    string dir_path = file_path.substr(0, file_path.rfind("\\"));
+    string dir_path = file_path.substr(0, file_path.rfind("/")); // TODO: logic for windows & linux/mac compilation here
 
     QApplication a(argc, argv);
     ApplicationMainWindow w(dir_path);
+
     w.show();
     w.init();
 

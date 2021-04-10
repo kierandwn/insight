@@ -75,52 +75,55 @@ double convert_to_type(string var) {
     return stod(var.c_str());
 }
 
-data::Table * import_from_csv (string filename, data::Table * t=new data::Table, string delim=",")
+data::Table * import_from_csv (string filename, data::Table * t=new data::Table, string time_channel_name="time", string time_channel_unit="s", string delim=",")
 {
-    ifstream f;
-    f.open(filename);
+  ifstream f;
+  f.open(filename);
 
-    string row;
-    getline(f, row);
+  string row;
+  getline(f, row);
 
-    vector<string> headers;
-    findHeaderNames(row, &headers, ",");
+  vector<string> headers;
+  findHeaderNames(row, &headers, ",");
 
-    // size_t n_columns = headers.size();
-    size_t pos = 0;
+  // size_t n_columns = headers.size();
+  size_t pos = 0;
 
-    for (vector<string>::iterator h = headers.begin(); h != headers.end(); ++h)
-        t->add(*(h));
+  for (vector<string>::iterator h = headers.begin(); h != headers.end(); ++h)
+    t->add(*(h));
 
-    size_t i;
-    vector<string>::iterator h;
+  size_t i;
+  vector<string>::iterator h;
 
-    while (getline(f, row)) {
-        pos = 0;
-        i = 0;
+  while (getline(f, row)) {
+    pos = 0;
+    i = 0;
 
-        h = headers.begin();
+    h = headers.begin();
 
-        string element;
+    string element;
 
-        while (row.size() > 0) {
-            pos = row.find(delim);
-            element = row.substr(0, pos);
-            t->get(*(h))->push(convert_to_type(element));
-            ++h;
+    while (row.size() > 0) {
+      pos = row.find(delim);
+      element = row.substr(0, pos);
+      t->get(*(h))->push(convert_to_type(element));
+      ++h;
 
-            if (pos != string::npos) { row.erase(0, pos + delim.length()); }
-            else { row = ""; }
-        }
+      if (pos != string::npos) { row.erase(0, pos + delim.length()); }
+      else { row = ""; }
     }
+  }
     
-    data::Channel * time_channel = t->get("time");
+  if (t->exists(time_channel_name)) {
+    data::Channel * time_channel = t->get(time_channel_name.c_str());
+    time_channel->set_unit_string(time_channel_unit);
     
     for (size_t i = 0; i < headers.size(); ++i) {
-        string channel_name = headers[i];
-        t->get(channel_name)->update_time_channel_ptr(time_channel);
+      string channel_name = headers[i];
+      t->get(channel_name)->update_time_channel_ptr(time_channel);
     }
-    return t;
+  }
+  return t;
 }
 
 

@@ -137,10 +137,22 @@ void WaveformDisplay::update_after_data_load()
     m_waveform_groups[i]->set_data_from_table(m_data);
     m_waveform_groups[i]->init_label();
   }
+  update_view_limits();
   update_cursor_position(xlim()[0]);
+  
+  replot();
+  m_mouse_state = Ready;
+}
+
+void WaveformDisplay::update_view_limits()
+{
+  cursor_in_xrange();
+  double * xlimits = xlim();
+  
+  setAxisScale(xBottom, xlimits[0], xlimits[1]);
   replot();
   
-  m_mouse_state = Ready;
+  delete[] xlimits;
 }
 
 void WaveformDisplay::update_view_limits(double xmin, double xmax)
@@ -177,10 +189,14 @@ void WaveformDisplay::cursor_in_xrange() {
 double * WaveformDisplay::xlim() {
   double * widest_xbound = new double;
   widest_xbound[0] = 10e12; widest_xbound[1] = -10e12;
+//  bool display_active = false;
   
   for (int i = 0; i < m_nwaveform_groups; ++i) {
+    if (m_waveform_groups[i]->any_channel_present_in(m_data)) {
+//      display_active = true;
       widest_xbound[0] = min({m_waveform_groups[i]->xlim()[0], widest_xbound[0]});
       widest_xbound[1] = max({m_waveform_groups[i]->xlim()[1], widest_xbound[1]});
+    }
   }
   return widest_xbound; // KNOWN potential memory leak, returned array needs to be deleted by calling fcn.
 }

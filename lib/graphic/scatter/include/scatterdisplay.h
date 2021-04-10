@@ -84,12 +84,13 @@ public:
   void init_labels();
   void init_cursor_position();
   void init_mean_lines();
-  void init_mean_labels();
+  
+  void descriptive_mean_labels();
   
   void reset () override;
     
-  void xlim(double *);
-  void ylim(double *);
+  bool xlim(double *);
+  bool ylim(double *);
   
   void mousePressEvent(QMouseEvent *) override;
   void mouseMoveEvent(QMouseEvent *) override;

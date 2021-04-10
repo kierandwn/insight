@@ -42,6 +42,10 @@ double * ScatterGroup::xlim() { return m_xlim; }
 double * ScatterGroup::ylim() { return m_ylim; }
 double * ScatterGroup::tlim() { return m_tlim; }
 
+bool ScatterGroup::channels_present_in(data::Table * data) {
+  return data->exists(m_xchannel_name) && data->exists(m_ychannel_name);
+}
+
 void ScatterGroup::update_crosshair(double tvalue)
 {
   // Obtain plot limits from axes objects
@@ -77,7 +81,10 @@ void ScatterGroup::set_data_from_table(data::Table * table,
                                        double x_lbound, double x_hbound,
                                        double y_lbound, double y_hbound )
 {
-  if (!table->exists(m_xchannel_name)) return;
+  if (!channels_present_in(table)) {
+    m_crosshair.detach();
+    return;
+  }
   
   double xmax, xmin, xmean;
   double ymax, ymin, ymean;
@@ -131,12 +138,11 @@ void ScatterGroup::set_data_from_table(data::Table * table,
         if (below_hbound) {
           i_hbound = i_data - 1;
           below_hbound = false;
-          break;
         }
         continue;
       } else {
         if (below_lbound) {
-          i_lbound = i_data;
+          i_lbound = i_data - 1;
           below_lbound = false;
         }
       }
@@ -163,13 +169,13 @@ void ScatterGroup::set_data_from_table(data::Table * table,
 void ScatterGroup::init_scatters() {
   // draw curve on graphic
   vector<int> color = kDefaultColorOrder[m_color_index];
-      
+
   m_symbol.setStyle(QwtSymbol::Cross);
   m_symbol.setSize(QSize(6, 6));
   m_symbol.setColor(QColor(color[0], color[1], color[2], 255));
   
   m_shadow_symbol.setStyle(QwtSymbol::Cross);
-  m_shadow_symbol.setSize(QSize(6, 6));
+  m_shadow_symbol.setSize(QSize(2, 2));
   m_shadow_symbol.setColor(QColor(color[0], color[1], color[2], 50));
     
   m_scatter.setStyle(QwtPlotCurve::NoCurve);

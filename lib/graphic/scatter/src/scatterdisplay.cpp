@@ -99,7 +99,8 @@ void ScatterDisplay::apply_config(nlohmann::json * json_config) {
 void ScatterDisplay::init() {
   init_labels();
   init_mean_lines();
-  init_mean_labels();
+  
+  descriptive_mean_labels();
   
   for (size_t i = 0; i < m_scatter_pairs.size(); ++i) {
     m_scatter_pairs[i]->init_scatters();
@@ -135,7 +136,7 @@ void ScatterDisplay::init_mean_lines()
   m_mean_yline.setSamples(xaxes_bounds, ydata_yline, 2);
 }
 
-void ScatterDisplay::init_mean_labels()
+void ScatterDisplay::descriptive_mean_labels()
 {
   m_mean_xlabel.setText("mean \xE2\x88\x88 [min., max.[unit]];");
   m_mean_ylabel.setText("mean \xE2\x88\x88 [min., max.[unit]];");
@@ -157,8 +158,10 @@ void ScatterDisplay::update_mean_lines()
   double xlimits[2];
   double ylimits[2];
 
-  xlim(xlimits);
-  ylim(ylimits);
+  if (!(xlim(xlimits) && ylim(ylimits))) {
+    descriptive_mean_labels();
+    return;
+  }
   
   double xmean = (xlimits[0] + xlimits[1]) / 2.;
   double ymean = (ylimits[0] + ylimits[1]) / 2.;
@@ -211,22 +214,32 @@ void ScatterDisplay::update_view_limits(double tmin, double tmax)
   replot();
 }
 
-void ScatterDisplay::xlim(double * xbounds) {
+bool ScatterDisplay::xlim(double * xbounds) {
   xbounds[0] = 10e12; xbounds[1] = -10e12;
+  bool scatter_active = false;
   
   for (int i = 0; i < m_nscatter_pairs; ++i) {
+    if (!m_scatter_pairs[i]->channels_present_in(m_data)) continue;
+    scatter_active = true;
+    
     xbounds[0] = min({m_scatter_pairs[i]->xlim()[0], xbounds[0]});
     xbounds[1] = max({m_scatter_pairs[i]->xlim()[1], xbounds[1]});
   }
+  return scatter_active;
 }
 
-void ScatterDisplay::ylim(double * ybounds) {
+bool ScatterDisplay::ylim(double * ybounds) {
   ybounds[0] = 10e12; ybounds[1] = -10e12;
+  bool scatter_active = false;
   
   for (int i = 0; i < m_nscatter_pairs; ++i) {
+    if (!m_scatter_pairs[i]->channels_present_in(m_data)) continue;
+    scatter_active = true;
+    
     ybounds[0] = min(m_scatter_pairs[i]->ylim()[0], ybounds[0]);
     ybounds[1] = max(m_scatter_pairs[i]->ylim()[1], ybounds[1]);
   }
+  return scatter_active;
 }
 
 void ScatterDisplay::reset()

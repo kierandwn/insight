@@ -80,6 +80,8 @@ class WaveformGroup {
     
   void attach(QwtPlot *);
   void set_data_from_table(data::Table *, double=-10e12, double=10e12);
+  
+  bool any_channel_present_in(data::Table *);
 };
 
 

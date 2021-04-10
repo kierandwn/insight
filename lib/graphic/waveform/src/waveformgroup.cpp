@@ -116,12 +116,15 @@ void WaveformGroup::set_data_from_table(data::Table * table,
     m_curves[i]->setSamples(&xdata[i_lbound], &ydata[i_lbound], n_to_plot);
     delete[] ydata;
   }
-  m_xlim[0] = x_lbound; m_xlim[1] = x_hbound;
-  m_ylim[0] = ymin; m_ylim[1] = ymax;
   
-  set_zero_line_position(x_lbound, x_hbound);
-  
-  if (plotted) set_metric_values(ymin, ymax, ymean);
+  if (plotted) {
+    set_metric_values(ymin, ymax, ymean);
+    
+    m_xlim[0] = x_lbound; m_xlim[1] = x_hbound;
+    m_ylim[0] = ymin; m_ylim[1] = ymax;
+    
+    set_zero_line_position(x_lbound, x_hbound);
+  }
 }
 
 void WaveformGroup::init_curves()
@@ -236,6 +239,13 @@ void WaveformGroup::set_zero_line_position() {
     m_normalised_yoffset
   };
   m_zero_line.setSamples(xdata_0line, ydata_0line, 2);
+}
+
+bool WaveformGroup::any_channel_present_in(data::Table * data) {
+  for (string channel_name : m_channel_names) {
+    if (data->exists(channel_name)) return true;
+  }
+  return false;
 }
 
 }  // namespace graphic

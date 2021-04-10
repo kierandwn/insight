@@ -119,6 +119,8 @@ public:
   void update_label_values_at(double);
   
   void update_after_data_load () override;
+  
+  void update_view_limits();
   void update_view_limits(double, double) override;
     
   void init () override;

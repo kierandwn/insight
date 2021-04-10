@@ -174,12 +174,9 @@ void ScatterDisplay::init_cursor_position()
 void ScatterDisplay::update_cursor_position(double tvalue)
 {
   for (int i = 0; i < m_nscatter_pairs; ++i) {
-    string xchannel_name = m_scatter_pairs[0]->get_xchannel_name();
-    string ychannel_name = m_scatter_pairs[0]->get_ychannel_name();
-    
-    if (m_data->exists(xchannel_name) && m_data->exists(ychannel_name)) { // TODO move this check inside update_crosshair?
+    if (m_scatter_pairs[i]->channels_present_in(m_data))
       m_scatter_pairs[i]->update_crosshair(tvalue);
-    }
+    
   }
   replot();
 }

@@ -38,7 +38,7 @@ namespace insight {
 namespace graphic {
 
 
-ScatterDisplay::ScatterDisplay(data::Table * data, layout::Layout * layout)
+DataXYDisplay::DataXYDisplay(data::Table * data, layout::Layout * layout)
     : LinkedPlot(data, layout),
       m_mean_xlabel(this),
       m_mean_ylabel(this)
@@ -49,7 +49,7 @@ ScatterDisplay::ScatterDisplay(data::Table * data, layout::Layout * layout)
   enableAxis(yLeft, false);
 }
 
-void ScatterDisplay::init_labels() {
+void DataXYDisplay::init_labels() {
   set_label_positions();
   
   m_mean_xlabel.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
@@ -58,7 +58,7 @@ void ScatterDisplay::init_labels() {
   m_mean_ylabel.setAlignment(Qt::AlignLeft);
 }
 
-void ScatterDisplay::set_label_positions() {
+void DataXYDisplay::set_label_positions() {
   int label_width = 200;
   int label_height = 15;
 
@@ -76,40 +76,20 @@ void ScatterDisplay::set_label_positions() {
   );
 }
 
-// Apply configuation parameters held in json_config
-void ScatterDisplay::apply_config(nlohmann::json * json_config) {
-  int i = 0;
-
-  if (json_config->contains("data")) {
-    for (auto& channel_pair : json_config->operator[]("data")["xychannels"]) {
-      ScatterGroup * scatter_pair = new ScatterGroup(this, channel_pair[0], channel_pair[1], i);
-      m_scatter_pairs.push_back(scatter_pair);
-      ++i;
-    }
-    
-    if (json_config->contains("group")) {
-      m_group_name = json_config->operator[]("group");
-    } else {
-      m_group_name = "";
-    }
-  }
-  m_nscatter_pairs = i;
-}
-
-void ScatterDisplay::init() {
+void DataXYDisplay::init() {
   init_labels();
   init_mean_lines();
   
   descriptive_mean_labels();
   
-  for (size_t i = 0; i < m_scatter_pairs.size(); ++i) {
-    m_scatter_pairs[i]->init_scatters();
+  for (size_t i = 0; i < m_data_curves.size(); ++i) {
+    m_data_curves[i]->init_curves();
   }
 //  update_cursor_position(0.);
   init_cursor_position();
 }
 
-void ScatterDisplay::init_mean_lines()
+void DataXYDisplay::init_mean_lines()
 {
   m_mean_xline.setPen(QColor(0, 0, 0, 100));
   m_mean_xline.attach(this);
@@ -136,10 +116,128 @@ void ScatterDisplay::init_mean_lines()
   m_mean_yline.setSamples(xaxes_bounds, ydata_yline, 2);
 }
 
-void ScatterDisplay::descriptive_mean_labels()
+void DataXYDisplay::descriptive_mean_labels()
 {
   m_mean_xlabel.setText("mean \xE2\x88\x88 [min., max.[unit]];");
   m_mean_ylabel.setText("mean \xE2\x88\x88 [min., max.[unit]];");
+}
+
+void DataXYDisplay::update_after_data_load()
+{
+  for (int i = 0; i < m_ncurves; ++i) {
+    m_data_curves[i]->set_data_from_table(m_data);
+  }
+  update_mean_lines();
+  
+  double xlimits[2];
+  double ylimits[2];
+  
+  xlim(xlimits);
+  ylim(ylimits);
+  
+  setAxisScale(xBottom, xlimits[0], xlimits[1]);
+  setAxisScale(yLeft, ylimits[0], ylimits[1]);
+    
+  update_cursor_position();
+  replot();
+}
+
+void DataXYDisplay::update_view_limits(double tmin, double tmax)
+{
+  for (int i = 0; i < m_ncurves; ++i) {
+    m_data_curves[i]->set_data_from_table(m_data, tmin, tmax);
+  }
+  replot();
+}
+
+bool DataXYDisplay::xlim(double * xbounds) {
+  xbounds[0] = 10e12; xbounds[1] = -10e12;
+  bool scatter_active = false;
+  
+  for (int i = 0; i < m_ncurves; ++i) {
+    if (!m_data_curves[i]->channels_present_in(m_data)) continue;
+    scatter_active = true;
+    
+    xbounds[0] = min({m_data_curves[i]->xlim()[0], xbounds[0]});
+    xbounds[1] = max({m_data_curves[i]->xlim()[1], xbounds[1]});
+  }
+  return scatter_active;
+}
+
+bool DataXYDisplay::ylim(double * ybounds) {
+  ybounds[0] = 10e12; ybounds[1] = -10e12;
+  bool scatter_active = false;
+  
+  for (int i = 0; i < m_ncurves; ++i) {
+    if (!m_data_curves[i]->channels_present_in(m_data)) continue;
+    scatter_active = true;
+    
+    ybounds[0] = min(m_data_curves[i]->ylim()[0], ybounds[0]);
+    ybounds[1] = max(m_data_curves[i]->ylim()[1], ybounds[1]);
+  }
+  return scatter_active;
+}
+
+void DataXYDisplay::reset()
+{
+  detachItems();
+  replot();
+}
+
+void DataXYDisplay::resizeEvent(QResizeEvent * event) {
+  Base::resizeEvent(event);
+  
+  set_label_positions();
+  update_mean_lines();
+  
+  for (int i = 0; i < m_ncurves; ++i) {
+    string xchannel_name = m_data_curves[0]->get_xchannel_name();
+    string ychannel_name = m_data_curves[0]->get_ychannel_name();
+    
+    if (m_data->exists(xchannel_name) && m_data->exists(ychannel_name)) { // TODO move this check inside update_crosshair?
+      m_data_curves[i]->update_crosshair();
+    }
+  }
+  replot();
+}
+
+// Apply configuation parameters held in json_config
+void ScatterDisplay::apply_config(nlohmann::json * json_config) {
+  int i = 0;
+
+  if (json_config->contains("data")) {
+    for (auto& channel_pair : json_config->operator[]("data")["xychannels"]) {
+      ScatterGroup * scatter_pair = new ScatterGroup(this, channel_pair[0], channel_pair[1], i);
+      m_data_curves.push_back(scatter_pair);
+      ++i;
+    }
+    
+    if (json_config->contains("group")) {
+      m_group_name = json_config->operator[]("group");
+    } else {
+      m_group_name = "";
+    }
+  }
+  m_ncurves = i;
+}
+
+void LineDisplay::apply_config(nlohmann::json * json_config) {
+  int i = 0;
+
+  if (json_config->contains("data")) {
+    for (auto& channel_pair : json_config->operator[]("data")["xychannels"]) {
+      LineGroup * scatter_pair = new LineGroup(this, channel_pair[0], channel_pair[1], i);
+      m_data_curves.push_back(scatter_pair);
+      ++i;
+    }
+    
+    if (json_config->contains("group")) {
+      m_group_name = json_config->operator[]("group");
+    } else {
+      m_group_name = "";
+    }
+  }
+  m_ncurves = i;
 }
 
 void ScatterDisplay::update_mean_lines()
@@ -186,83 +284,45 @@ void ScatterDisplay::update_mean_lines()
   m_mean_ylabel.setText(QString::fromUtf8(metrics_label_text));
 }
 
-void ScatterDisplay::update_after_data_load()
+void LineDisplay::update_mean_lines()
 {
-  for (int i = 0; i < m_nscatter_pairs; ++i) {
-    m_scatter_pairs[i]->set_data_from_table(m_data);
-  }
-  update_mean_lines();
+  replot();
   
+  // Get axes limits from axes objects (Qwt)
+  double x_lbound = axisScaleDiv(xBottom).lowerBound();
+  double x_hbound = axisScaleDiv(xBottom).upperBound();
+  double y_lbound = axisScaleDiv(yLeft).lowerBound();
+  double y_hbound = axisScaleDiv(yLeft).upperBound();
+  
+  double xaxes_bounds[2]{ x_lbound, x_hbound };
+  double yaxes_bounds[2]{ y_lbound, y_hbound };
+
   double xlimits[2];
   double ylimits[2];
-  
-  xlim(xlimits);
-  ylim(ylimits);
-  
-  setAxisScale(xBottom, xlimits[0], xlimits[1]);
-  setAxisScale(yLeft, ylimits[0], ylimits[1]);
-    
-  update_cursor_position();
-  replot();
-}
 
-void ScatterDisplay::update_view_limits(double tmin, double tmax)
-{
-  for (int i = 0; i < m_nscatter_pairs; ++i) {
-    m_scatter_pairs[i]->set_data_from_table(m_data, tmin, tmax);
+  if (!(xlim(xlimits) && ylim(ylimits))) {
+    descriptive_mean_labels();
+    return;
   }
-  replot();
-}
-
-bool ScatterDisplay::xlim(double * xbounds) {
-  xbounds[0] = 10e12; xbounds[1] = -10e12;
-  bool scatter_active = false;
   
-  for (int i = 0; i < m_nscatter_pairs; ++i) {
-    if (!m_scatter_pairs[i]->channels_present_in(m_data)) continue;
-    scatter_active = true;
-    
-    xbounds[0] = min({m_scatter_pairs[i]->xlim()[0], xbounds[0]});
-    xbounds[1] = max({m_scatter_pairs[i]->xlim()[1], xbounds[1]});
-  }
-  return scatter_active;
-}
-
-bool ScatterDisplay::ylim(double * ybounds) {
-  ybounds[0] = 10e12; ybounds[1] = -10e12;
-  bool scatter_active = false;
+  double xdata_xline[2]{0., 0.};
+  double ydata_yline[2]{0., 0.};
   
-  for (int i = 0; i < m_nscatter_pairs; ++i) {
-    if (!m_scatter_pairs[i]->channels_present_in(m_data)) continue;
-    scatter_active = true;
-    
-    ybounds[0] = min(m_scatter_pairs[i]->ylim()[0], ybounds[0]);
-    ybounds[1] = max(m_scatter_pairs[i]->ylim()[1], ybounds[1]);
-  }
-  return scatter_active;
-}
-
-void ScatterDisplay::reset()
-{
-  detachItems();
-  replot();
-}
-
-void ScatterDisplay::resizeEvent(QResizeEvent * event) {
-  Base::resizeEvent(event);
+  m_mean_xline.setSamples(xdata_xline, yaxes_bounds, 2);
+  m_mean_yline.setSamples(xaxes_bounds, ydata_yline, 2);
   
-  set_label_positions();
-  update_mean_lines();
-  
-  for (int i = 0; i < m_nscatter_pairs; ++i) {
-    string xchannel_name = m_scatter_pairs[0]->get_xchannel_name();
-    string ychannel_name = m_scatter_pairs[0]->get_ychannel_name();
-    
-    if (m_data->exists(xchannel_name) && m_data->exists(ychannel_name)) { // TODO move this check inside update_crosshair?
-      m_scatter_pairs[i]->update_crosshair();
-    }
-  }
-  replot();
+  char metrics_label_text[33];
+  sprintf(metrics_label_text,
+      "0. \xE2\x88\x88 [%7.2f, %7.2f[-]];",
+        xlimits[0], xlimits[1]
+  );
+  m_mean_xlabel.setText(QString::fromUtf8(metrics_label_text));
+
+  sprintf(&metrics_label_text[0],
+      "0. \xE2\x88\x88 [%7.2f, %7.2f[-]];",
+        ylimits[0], ylimits[1]
+  );
+  m_mean_ylabel.setText(QString::fromUtf8(metrics_label_text));
 }
 
 }  // namespace graphic

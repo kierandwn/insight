@@ -28,25 +28,77 @@
 namespace insight {
 namespace graphic {
 
+void DisplayCrosshair::set_label_values(double xvalue, double yvalue)
+{
+  char * xlabel_text = new char[m_xchannel_name.size()+62];
+  char * ylabel_text = new char[m_ychannel_name.size()+62];
+  
+  sprintf(xlabel_text,
+      "<span style=\"color : rgb(50, 50, 50);\">%s:</span> %*.2f[-];",
+          m_xchannel_name.c_str(), 7, xvalue
+  );
+  sprintf(ylabel_text,
+      "<span style=\"color : rgb(50, 50, 50);\">%s:</span> %*.2f[-];",
+          m_ychannel_name.c_str(), 7, yvalue
+  );
+  
+  m_xlabel.setText(QString(xlabel_text));
+  m_ylabel.setText(QString(ylabel_text));
 
-ScatterGroup::ScatterGroup(QwtPlot * parent, string xchannel_id, string ychannel_id, int color_index=0)
+  delete[] xlabel_text;
+  delete[] ylabel_text;
+}
+
+void DisplayCrosshair::set_xy(double x, double y, double * xlim, double * ylim)
+{
+  int label_width = 300;
+  int label_height = 15;
+  
+  double horzbar_ydata[2]{y, y};
+  double vertbar_xdata[2]{x, x};
+    
+  m_horzbar.setSamples(xlim, horzbar_ydata, 2);
+  m_vertbar.setSamples(vertbar_xdata, ylim, 2);
+  m_centrepoint.setSamples(&x, &y, 1);
+  
+  m_xy[0] = x;
+  m_xy[1] = y;
+  
+  // update crosshair label positions
+  m_xlabel.setGeometry(
+    p_parent->width() - (label_width + 5),
+    ((ylim[1] - y) / (ylim[1] - ylim[0])) * p_parent->height() - 16,
+    label_width,
+    label_height
+  );
+    
+  m_ylabel.setGeometry(
+    ((x - xlim[0]) / (xlim[1] - xlim[0])) * p_parent->width(),
+    5,
+    label_height,
+    label_width
+  );
+  set_label_values(x, y);
+}
+
+DataXYGroup::DataXYGroup(QwtPlot * parent, string xchannel_id, string ychannel_id, int color_index=0)
     : p_parent(parent),
       m_crosshair(parent, xchannel_id, ychannel_id),
       m_xchannel_name(xchannel_id),
       m_ychannel_name(ychannel_id),
       m_color_index(color_index)
 {}
-ScatterGroup::~ScatterGroup() {}
+DataXYGroup::~DataXYGroup() {}
 
-double * ScatterGroup::xlim() { return m_xlim; }
-double * ScatterGroup::ylim() { return m_ylim; }
-double * ScatterGroup::tlim() { return m_tlim; }
+double * DataXYGroup::xlim() { return m_xlim; }
+double * DataXYGroup::ylim() { return m_ylim; }
+double * DataXYGroup::tlim() { return m_tlim; }
 
-bool ScatterGroup::channels_present_in(data::Table * data) {
+bool DataXYGroup::channels_present_in(data::Table * data) {
   return data->exists(m_xchannel_name) && data->exists(m_ychannel_name);
 }
 
-void ScatterGroup::update_crosshair(double tvalue)
+void DataXYGroup::update_crosshair(double tvalue)
 {
   // Obtain plot limits from axes objects
   double x_lbound = p_parent->axisScaleDiv(p_parent->xBottom).lowerBound();
@@ -63,7 +115,7 @@ void ScatterGroup::update_crosshair(double tvalue)
   m_crosshair.set_xy(xvalue, yvalue, xbounds, ybounds);
 }
 
-void ScatterGroup::update_crosshair() {
+void DataXYGroup::update_crosshair() {
   // Obtain plot limits from axes objects
   double x_lbound = p_parent->axisScaleDiv(p_parent->xBottom).lowerBound();
   double x_hbound = p_parent->axisScaleDiv(p_parent->xBottom).upperBound();
@@ -76,22 +128,56 @@ void ScatterGroup::update_crosshair() {
   m_crosshair.set_xy(m_crosshair.x(), m_crosshair.y(), xbounds, ybounds);
 }
 
+void ScatterGroup::init_curves() {
+  // draw curve on graphic
+  vector<int> color = kDefaultColorOrder[m_color_index];
+
+  m_symbol.setStyle(QwtSymbol::Cross);
+  m_symbol.setSize(QSize(6, 6));
+  m_symbol.setColor(QColor(color[0], color[1], color[2], 255));
+  
+  m_shadow_symbol.setStyle(QwtSymbol::Cross);
+  m_shadow_symbol.setSize(QSize(2, 2));
+  m_shadow_symbol.setColor(QColor(color[0], color[1], color[2], 50));
+    
+  m_scatter.setStyle(QwtPlotCurve::NoCurve);
+  m_scatter.setSymbol(&m_symbol);
+  m_scatter.attach(p_parent);
+  
+  m_shadow.setStyle(QwtPlotCurve::NoCurve);
+  m_shadow.setSymbol(&m_shadow_symbol);
+  m_shadow.attach(p_parent);
+  
+  m_crosshair.set_color(kDefaultInactiveColor[0],
+                        kDefaultInactiveColor[1],
+                        kDefaultInactiveColor[2]
+                        );
+}
+
 void ScatterGroup::set_data_from_table(data::Table * table,
                                        double t_lbound, double t_hbound,
                                        double x_lbound, double x_hbound,
                                        double y_lbound, double y_hbound )
 {
+  // data is present
   if (!channels_present_in(table)) {
     m_crosshair.detach();
     return;
   }
   
+  data::Channel * ychannel = table->get(m_ychannel_name);
+  m_xchannel = table->get(m_xchannel_name);
+  
+  if (m_xchannel->get_time_ref() == ychannel) {
+    m_ychannel = ychannel;
+  } else {
+    m_ychannel = ychannel->resample_on(m_xchannel->get_time_ref(), m_xchannel->length());
+  }
+  
+  size_t n = m_xchannel->length();
+  
   double xmax, xmin, xmean;
   double ymax, ymin, ymean;
-  
-  m_xchannel = table->get(m_xchannel_name);
-  m_ychannel = table->get(m_ychannel_name);
-  size_t n = m_xchannel->length();
   
   xmin = m_xchannel->min();
   xmax = m_xchannel->max();
@@ -166,24 +252,23 @@ void ScatterGroup::set_data_from_table(data::Table * table,
   delete[] ydata;
 }
 
-void ScatterGroup::init_scatters() {
+void LineGroup::init_curves() {
   // draw curve on graphic
   vector<int> color = kDefaultColorOrder[m_color_index];
-
-  m_symbol.setStyle(QwtSymbol::Cross);
-  m_symbol.setSize(QSize(6, 6));
-  m_symbol.setColor(QColor(color[0], color[1], color[2], 255));
   
-  m_shadow_symbol.setStyle(QwtSymbol::Cross);
-  m_shadow_symbol.setSize(QSize(2, 2));
-  m_shadow_symbol.setColor(QColor(color[0], color[1], color[2], 50));
-    
-  m_scatter.setStyle(QwtPlotCurve::NoCurve);
-  m_scatter.setSymbol(&m_symbol);
-  m_scatter.attach(p_parent);
+  QColor c(color[0], color[1], color[2]);
+  c.setAlpha(180);
+  QPen pen(c);
+  pen.setWidth(3.5);
   
-  m_shadow.setStyle(QwtPlotCurve::NoCurve);
-  m_shadow.setSymbol(&m_shadow_symbol);
+  m_line.setPen(pen);
+  m_line.attach(p_parent);
+  
+  c.setAlpha(50);
+  pen.setColor(c);
+  pen.setWidth(1.5);
+  
+  m_shadow.setPen(pen);
   m_shadow.attach(p_parent);
   
   m_crosshair.set_color(kDefaultInactiveColor[0],
@@ -192,57 +277,102 @@ void ScatterGroup::init_scatters() {
                         );
 }
 
-void DisplayCrosshair::set_label_values(double xvalue, double yvalue)
+void LineGroup::set_data_from_table(data::Table * table,
+                                    double t_lbound, double t_hbound,
+                                    double x_lbound, double x_hbound,
+                                    double y_lbound, double y_hbound )
 {
-  char * xlabel_text = new char[m_xchannel_name.size()+62];
-  char * ylabel_text = new char[m_ychannel_name.size()+62];
+  // data is present
+  if (!channels_present_in(table)) {
+    m_crosshair.detach();
+    return;
+  }
   
-  sprintf(xlabel_text,
-      "<span style=\"color : rgb(50, 50, 50);\">%s:</span> %*.2f[-];",
-          m_xchannel_name.c_str(), 7, xvalue
-  );
-  sprintf(ylabel_text,
-      "<span style=\"color : rgb(50, 50, 50);\">%s:</span> %*.2f[-];",
-          m_ychannel_name.c_str(), 7, yvalue
-  );
+  data::Channel * ychannel = table->get(m_ychannel_name);
+  m_xchannel = table->get(m_xchannel_name);
   
-  m_xlabel.setText(QString(xlabel_text));
-  m_ylabel.setText(QString(ylabel_text));
+  if (m_xchannel->get_time_ref() == ychannel) {
+    m_ychannel = ychannel;
+  } else {
+    m_ychannel = ychannel->resample_on(m_xchannel->get_time_ref(), m_xchannel->length());
+  }
+  
+  size_t n = m_xchannel->length();
+  
+  double xmax, xmin, xmean;
+  double ymax, ymin, ymean;
+  
+  xmin = m_xchannel->min();
+  xmax = m_xchannel->max();
+  xmean = 0.5 * (xmin + xmax);
 
-  delete[] xlabel_text;
-  delete[] ylabel_text;
-}
+  ymin = m_ychannel->min();
+  ymax = m_ychannel->max();
+  ymean = 0.5 * (ymin + ymax);
+  
+  data::Channel * tchannel = m_xchannel->get_time_ref();
 
-void DisplayCrosshair::set_xy(double x, double y, double * xlim, double * ylim)
-{
-  int label_width = 300;
-  int label_height = 15;
+  t_lbound = max({t_lbound, tchannel->min()});
+  t_hbound = min({t_hbound, tchannel->max()});
   
-  double horzbar_ydata[2]{y, y};
-  double vertbar_xdata[2]{x, x};
+  bool below_lbound = true; bool below_hbound = true;
+  int i_lbound = n - 1; int i_hbound = n - 1;
+  
+  double * xdata = new double[n];
+  double * ydata = new double[n];
+  int i_data = 0;
+  
+  double xi, yi, ti;
+  bool x_in_bounds;
+  bool y_in_bounds;
+  
+  for (size_t i = 0; i < n; ++i) {
+    xi = m_xchannel->operator[](i);
+    yi = m_ychannel->operator[](i);
+    ti = tchannel->operator[](i);
     
-  m_horzbar.setSamples(xlim, horzbar_ydata, 2);
-  m_vertbar.setSamples(vertbar_xdata, ylim, 2);
-  m_centrepoint.setSamples(&x, &y, 1);
-  
-  m_xy[0] = x;
-  m_xy[1] = y;
-  
-  // update crosshair label positions
-  m_xlabel.setGeometry(
-    p_parent->width() - (label_width + 5),
-    ((ylim[1] - y) / (ylim[1] - ylim[0])) * p_parent->height() - 16,
-    label_width,
-    label_height
-  );
+    x_in_bounds = xi >= x_lbound and xi <= x_hbound;
+    y_in_bounds = yi >= y_lbound and yi <= y_hbound;
+//      t_in_bounds = ti >= t_lbound and ti <= t_hbound;
     
-  m_ylabel.setGeometry(
-    ((x - xlim[0]) / (xlim[1] - xlim[0])) * p_parent->width(),
-    5,
-    label_height,
-    label_width
-  );
-  set_label_values(x, y);
+    if (x_in_bounds && y_in_bounds) {
+      xdata[i_data] = xi;
+      ydata[i_data] = yi;
+      ++i_data;
+    
+      if (tchannel->operator[](i) < t_lbound) {
+        continue;
+        
+      } else if (tchannel->operator[](i) > t_hbound) {
+        if (below_hbound) {
+          i_hbound = i_data - 1;
+          below_hbound = false;
+        }
+        continue;
+      } else {
+        if (below_lbound) {
+          i_lbound = i_data - 1;
+          below_lbound = false;
+        }
+      }
+    }
+  }
+  int n_to_plot = i_hbound - i_lbound;
+  if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
+    
+  m_line.setSamples(&xdata[i_lbound], &ydata[i_lbound], n_to_plot);
+  m_shadow.setSamples(xdata, ydata, i_data);
+    
+  m_xlim[0] = xmin; m_xlim[1] = xmax;
+  m_ylim[0] = ymin; m_ylim[1] = ymax;
+  m_tlim[0] = t_lbound; m_tlim[1] = t_hbound;
+  
+  m_crosshair.set_color(kDefaultColorOrder[m_color_index][0],
+                        kDefaultColorOrder[m_color_index][1],
+                        kDefaultColorOrder[m_color_index][2]
+                        );
+  delete[] xdata;
+  delete[] ydata;
 }
 
 }  // namespace graphic

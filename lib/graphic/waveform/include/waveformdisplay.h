@@ -128,7 +128,7 @@ public:
   
   void resizeEvent(QResizeEvent *) override;
     
-  double * xlim();
+  bool xlim(double *);
 };
 
 }  // namespace graphic

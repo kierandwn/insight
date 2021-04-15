@@ -42,14 +42,10 @@ namespace graphic {
 
 using namespace std;
 
-
-
-class ScatterDisplay : public LinkedPlot
+class DataXYDisplay : public LinkedPlot
 {
   Q_OBJECT
- private:
-//  data::Table * m_data;
-    
+ protected:
   QLabel m_mean_xlabel;
   VLabel m_mean_ylabel;
     
@@ -58,26 +54,25 @@ class ScatterDisplay : public LinkedPlot
     
   Ui::ScatterDisplay * p_ui = new Ui::ScatterDisplay;
     
-  vector<ScatterGroup *> m_scatter_pairs;
+  vector<DataXYGroup *> m_data_curves;
   
-  int m_nscatter_pairs;
+  int m_ncurves;
   int m_cursor_track_curve = 0;
   
   MouseState m_mouse_state;
     
 public:
-  ScatterDisplay(data::Table *, layout::Layout *);
+  DataXYDisplay(data::Table *, layout::Layout *);
+  virtual ~DataXYDisplay() {} // TODO: resolve data leak in m_data_curves
 
-  int get_number_of_scatter_pairs() { return m_nscatter_pairs; }
-    
-  void apply_config(nlohmann::json *) override;
+  int get_number_of_scatter_pairs() { return m_ncurves; }
   void update_cursor_position(double=0.) override;
   
   void set_label_positions();
   
   void update_after_data_load () override;
   void update_view_limits(double, double) override;
-  void update_mean_lines();
+  virtual void update_mean_lines()=0;
     
   void init () override;
   
@@ -99,6 +94,27 @@ public:
   void wheelEvent(QWheelEvent * event) override;
   
   void resizeEvent(QResizeEvent * event) override;
+};
+
+class ScatterDisplay : public virtual DataXYDisplay
+{
+ public:
+  ScatterDisplay(data::Table * t, layout::Layout * l) : DataXYDisplay(t, l) {}
+  ~ScatterDisplay() {}
+  
+  void apply_config(nlohmann::json *) override;
+  
+  void update_mean_lines() override;
+};
+
+class LineDisplay : public virtual DataXYDisplay {
+ public:
+  LineDisplay(data::Table * t, layout::Layout * l) : DataXYDisplay(t, l) {}
+  ~LineDisplay() {}
+  
+  void apply_config(nlohmann::json *) override;
+  
+  void update_mean_lines() override;
 };
 
 }  // namespace graphic

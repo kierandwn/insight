@@ -14,7 +14,7 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with attitude.  If not, see <https://www.gnu.org/licenses/>.
+// along with insight.  If not, see <https://www.gnu.org/licenses/>.
 //
 #include "grid.h"
 
@@ -30,7 +30,7 @@
 #include "waveformdisplay.h"
 #include "scatterdisplay.h"
 
-//#include "table.h"
+#include "table.h"
 
 namespace insight {
 namespace layout {
@@ -79,6 +79,15 @@ map<string, graphic::Base *> Layout::import_from_config(json jsonConfig, QGridLa
     if ( typ == "Scatter" )
     {
       graphic::ScatterDisplay * plot = new graphic::ScatterDisplay(data, this);
+      plot->apply_config(&child_config);
+
+      grid->addWidget(plot, i % rows, i / rows);
+      mp[id] = plot;
+      i++;
+    }
+    if ( typ == "Line" )
+    {
+      graphic::LineDisplay * plot = new graphic::LineDisplay(data, this);
       plot->apply_config(&child_config);
 
       grid->addWidget(plot, i % rows, i / rows);

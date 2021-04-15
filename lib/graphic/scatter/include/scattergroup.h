@@ -113,19 +113,15 @@ class DisplayCrosshair {
   double y() { return m_xy[1]; }
 };
 
-class ScatterGroup {
- private:
+class DataXYGroup {
+ protected:
   QwtPlot * p_parent;
 
-  QwtPlotCurve m_scatter;
   QwtPlotCurve m_shadow;
-  
-  QwtSymbol m_symbol;
-  QwtSymbol m_shadow_symbol;
   
   data::Channel * m_xchannel;
   data::Channel * m_ychannel;
-  
+
   DisplayCrosshair m_crosshair;
 
   double m_xlim[2]{ -10e-12, 10e12 };
@@ -134,19 +130,19 @@ class ScatterGroup {
 
   string m_xchannel_name;
   string m_ychannel_name;
-  
+
   int m_color_index;
 
  public:
-  ScatterGroup(QwtPlot *, string, string, int);
-  ~ScatterGroup();
+  DataXYGroup(QwtPlot *, string, string, int);
+  virtual ~DataXYGroup();
 
-  void init_scatters();
+  virtual void init_curves()=0;
   void init_labels(data::Table *);
 
   string get_xchannel_name() { return m_xchannel_name; }
   string get_ychannel_name() { return m_ychannel_name; }
-    
+   
   void set_label_values_at(double, data::Table *);
   void set_metric_values(double, double, double);
 
@@ -154,17 +150,47 @@ class ScatterGroup {
   double * ylim();
   double * tlim();
 
-  void set_data_from_table(data::Table *, double=-10e12, double=10e12,
-                                          double=-10e12, double=10e12,
-                                          double=-10e12, double=10e12 );
-  
+  virtual void set_data_from_table(data::Table *, double=-10e12, double=10e12,
+                                                  double=-10e12, double=10e12,
+                                                  double=-10e12, double=10e12 )=0;
+
   DisplayCrosshair * crosshair() { return &m_crosshair; }
   void update_crosshair(double);
   void update_crosshair();
-  
-  QwtPlotCurve * get_scatter_full() { return &m_shadow; }
+
+  QwtPlotCurve * get_shadow() { return &m_shadow; }
   
   bool channels_present_in(data::Table *);
+};
+
+class ScatterGroup : public DataXYGroup {
+ protected:
+  QwtPlotCurve m_scatter;
+  
+  QwtSymbol m_symbol;
+  QwtSymbol m_shadow_symbol;
+
+ public:
+  ScatterGroup(QwtPlot * p, string xid, string yid, int i) : DataXYGroup(p, xid, yid, i) {};
+  ~ScatterGroup() {};
+  
+  void init_curves() override;
+  void set_data_from_table(data::Table *, double=-10e12, double=10e12,
+                                          double=-10e12, double=10e12,
+                                          double=-10e12, double=10e12 ) override;
+};
+
+class LineGroup : public DataXYGroup {
+  QwtPlotCurve m_line;
+  
+ public:
+  LineGroup(QwtPlot * p, string xid, string yid, int i) : DataXYGroup(p, xid, yid, i) {};
+  ~LineGroup() {};
+  
+  void init_curves() override;
+  void set_data_from_table(data::Table *, double=-10e12, double=10e12,
+                                          double=-10e12, double=10e12,
+                                          double=-10e12, double=10e12 ) override;
 };
 
 }  // namespace graphic

@@ -71,6 +71,29 @@ public:
     return m_items[i-1];
   }
   
+  Channel * resample_on(Channel * time_to_resample_on, size_t n) { // TODO: BEWARE memory leak
+    Channel * result = new Channel(time_to_resample_on);
+    
+    size_t k = 0;
+    for (size_t i = 0; i < n; ++i)
+    {
+      if (time_to_resample_on->operator[](i) < p_time_channel->operator[](0)) {
+        result->push(m_items[0]);
+      } else // outwith bounds, above maximum
+      if (time_to_resample_on->operator[](i) > p_time_channel->operator[](len - 1)) {
+        result->push(m_items[len - 1]);
+      } else { // interpolate between neighbouring points
+        while (!(time_to_resample_on->operator[](i) >= p_time_channel->operator[](k) && time_to_resample_on->operator[](i) < p_time_channel->operator[](k + 1)))
+        { ++k; }
+        
+        double  dt = p_time_channel->operator[](k + 1) - p_time_channel->operator[](k);
+        double ddt = time_to_resample_on->operator[](i) - p_time_channel->operator[](k);
+        result->push(m_items[k] + (m_items[k + 1] - m_items[k]) * (ddt / dt));
+      }
+    }
+    return result;
+  }
+  
   void update_time_channel_ptr(Channel * t) { p_time_channel = t; }
   
   double * get_data_ptr() { return &operator[](0); }

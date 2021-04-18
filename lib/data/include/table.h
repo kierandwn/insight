@@ -14,7 +14,7 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with attitude.  If not, see <https://www.gnu.org/licenses/>.
+// along with insight.  If not, see <https://www.gnu.org/licenses/>.
 //
 #ifndef DATATABLE_H
 #define DATATABLE_H
@@ -32,7 +32,11 @@ namespace data {
 
 using namespace std;
 
+void condition_for_sql(string& s);
 
+void establish_db(string);
+void add_table(string, vector<string>, string);
+void add_to_table(string, string, int);
 
 class Table {
 private:

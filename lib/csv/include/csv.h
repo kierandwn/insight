@@ -66,6 +66,8 @@ string findHeaderNames (string row,
   string channel_name;
   string channel_id;
   
+  vector<string> channels;
+  
   string id_prefix = filename.substr(
      common_prefix.size(), filename.rfind(".")-common_prefix.size()).append("::");
   
@@ -76,10 +78,14 @@ string findHeaderNames (string row,
     
     channel_id = id_prefix+channel_name;
     headers->push_back(channel_id);
+    
+    channels.push_back(channel_name);
 
     if (pos != string::npos) { row.erase(0, pos + delim.length()); }
     else { row = ""; }
   }
+  
+  data::add_table(id_prefix.substr(0, id_prefix.size()-2), channels, time_channel_name);
   return id_prefix+time_channel_name;
 }
 
@@ -116,26 +122,37 @@ data::Table * import_from_csv (string filename,
   for (string h : headers)
     t->add(h);
 
-  size_t i;
+  size_t k = 0;
   vector<string>::iterator h;
 
+  // for new DB soln
+  string id_prefix = filename.substr(
+     common_prefix.size(), filename.rfind(".")-common_prefix.size()).append("::");
+  
   while (getline(f, row)) {
     pos = 0;
-    i = 0;
 
     h = headers.begin();
 
     string element;
 
+//    data::add_to_table(id_prefix.substr(0, id_prefix.size()-2));
+//    string db_channel_id;
+    
+    data::add_to_table(id_prefix.substr(0, id_prefix.size()-2), row, k);
+    
     while (row.size() > 0) {
       pos = row.find(delim);
       element = row.substr(0, pos);
       t->get(*(h))->push(convert_to_type(element));
+      
+//      db_channel_id = h->substr(id_prefix.size(), h->size());
       ++h;
-
+      
       if (pos != string::npos) { row.erase(0, pos + delim.length()); }
       else { row = ""; }
     }
+    ++k;
   }
     
   if (t->exists(time_channel_id)) {

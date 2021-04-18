@@ -46,6 +46,8 @@ ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * p
 {
   ui->setupUi(this);
   load_config();
+  
+  data::establish_db(source_root_dir+"/demo/insight.db");
 
   m_layout.import_from_config(m_layout_filepath, ui->PlotGrid, &m_data);
   
@@ -124,7 +126,6 @@ void ApplicationMainWindow::on_actionLoad_File_triggered()
     tr("Load Data File"), tr(src_root_dir_.append("/demo", 5).c_str()), tr("CSV Files (*.csv)"));
   
   string common_prefix = longest_common_string_prefix(filenames);
-  printf("longest common string prefix: %s.\n", common_prefix.c_str());
   
   for (QString filename : filenames) {
     import_from_csv(filename.toStdString(),

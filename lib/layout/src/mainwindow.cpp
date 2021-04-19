@@ -38,6 +38,7 @@
 
 namespace insight {
 
+string k_USER_SPECIFIC_CONFIG_FILEPATH = QDir::homePath().toStdString() + "/.insight/.config";
 
 ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * parent)
     : QMainWindow(parent),
@@ -65,10 +66,9 @@ void ApplicationMainWindow::update() {
 
 void ApplicationMainWindow::load_config() {
   string config_filename;
-  string user_specific_config = QDir::homePath().toStdString() + "/.insight";
   
-  if (QFileInfo(user_specific_config.c_str()).exists()) {
-    config_filename = QDir::homePath().toStdString() + "/.insight";
+  if (QFileInfo(k_USER_SPECIFIC_CONFIG_FILEPATH.c_str()).exists()) {
+    config_filename = k_USER_SPECIFIC_CONFIG_FILEPATH;
     
   } else {
     config_filename = src_root_dir_ + "/config/default.config";

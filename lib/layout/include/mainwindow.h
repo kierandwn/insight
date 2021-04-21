@@ -56,10 +56,12 @@ class ApplicationMainWindow : public QMainWindow
   string m_layout_dirpath;
   string m_layout_filepath;
   
+  string m_db_filepath;
+  
   double m_mainwindow_size[2];
   
-  string m_time_channel_name; // TODO temp fix until queried at load
-  string m_time_channel_unit;
+//  string m_time_channel_name; // TODO temp fix until queried at load
+//  string m_time_channel_unit;
   
  public:
   ApplicationMainWindow(std::string source_main_directory, QWidget *parent = nullptr);

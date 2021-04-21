@@ -39,6 +39,7 @@
 namespace insight {
 
 string k_USER_SPECIFIC_CONFIG_FILEPATH = QDir::homePath().toStdString() + "/.insight/.config";
+string k_DEFAULT_DB_FILEPATH = QDir::homePath().toStdString() + "/.insight/insight.db";
 
 ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * parent)
     : QMainWindow(parent),
@@ -48,7 +49,7 @@ ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * p
   ui->setupUi(this);
   load_config();
   
-  data::establish_db(source_root_dir+"/demo/insight.db");
+  data::establish_db(m_db_filepath);
 
   m_layout.import_from_config(m_layout_filepath, ui->PlotGrid, &m_data);
   
@@ -84,6 +85,13 @@ void ApplicationMainWindow::import_from_json(string filename) {
   nlohmann::json app_config;
   ifs >> app_config;
   
+  string db_filepath = app_config["db"];
+  if ( db_filepath == "" ) {
+    m_db_filepath = k_DEFAULT_DB_FILEPATH;
+  } else {
+    m_db_filepath = db_filepath;
+  }
+  
   string layout_filename = app_config["layout_filename"];
   string layout_dirpath  = app_config["layout_dirpath"];
   
@@ -96,8 +104,11 @@ void ApplicationMainWindow::import_from_json(string filename) {
 
   m_layout_filepath = layout_filepath;
   
-  m_time_channel_name = app_config["time_channel"];
-  m_time_channel_unit = app_config["time_unit"];
+//  m_time_channel_name = app_config["time_channel"];
+//  m_time_channel_unit = app_config["time_unit"];
+  
+  m_data.set_time_channel_name(app_config["time_channel"]);
+  m_data.set_time_channel_unit(app_config["time_unit"]);
   
   m_mainwindow_size[0] = app_config["main_window_size"][0];
   m_mainwindow_size[1] = app_config["main_window_size"][1];
@@ -112,12 +123,13 @@ void ApplicationMainWindow::init()
   background_palette.setColor(QPalette::Window, QColor(255, 255, 255, 255));
   setPalette(background_palette);
   
-  fit_plot_area_to_main_window_area();
-  
   map<string, graphic::Base *>::iterator p;
   for (p = m_layout.first(); p != m_layout.last(); ++p) {
     p->second->init();
   }
+  update();
+  
+  fit_plot_area_to_main_window_area();
 }
 
 void ApplicationMainWindow::on_actionLoad_File_triggered()
@@ -125,14 +137,15 @@ void ApplicationMainWindow::on_actionLoad_File_triggered()
   QStringList filenames = QFileDialog::getOpenFileNames(this,
     tr("Load Data File"), tr(src_root_dir_.append("/demo", 5).c_str()), tr("CSV Files (*.csv)"));
   
-  string common_prefix = longest_common_string_prefix(filenames);
+  string common_prefix = "";
+  
+  if (filenames.size() > 1) {
+    common_prefix = longest_common_string_prefix(filenames);
+  }
   
   for (QString filename : filenames) {
     import_from_csv(filename.toStdString(),
-                    &m_data,
-                    common_prefix,
-                    m_time_channel_name,
-                    m_time_channel_unit
+                    common_prefix
                     );
   }
   update();

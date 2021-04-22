@@ -67,10 +67,8 @@ string determine_table_and_channel_ids(string row,
   
   vector<string> channels;
   
-  string table_id = filename.substr(
-     common_prefix.size(), filename.rfind(".")-common_prefix.size());
-  
-  table_id = table_id.substr(table_id.rfind("/")+1, table_id.size());
+  string table_id = filename.substr(common_prefix.size(), filename.size());
+  table_id = table_id.substr(0, table_id.rfind("\."));
   
   while (row.size() > 0) {
     pos = row.find(delim);
@@ -91,25 +89,29 @@ double convert_to_type(string var) {
 }
 
 void import_from_csv (string filename,
+                      string dirpath,
                       string common_prefix="",
                       string delim="," )
 {
+  string filepath = dirpath+"/"+filename;
+  
   ifstream f;
-  f.open(filename);
+  f.open(filepath);
 
   string row;
   getline(f, row);
 
   vector<string> channel_ids;
-  string table_id = determine_table_and_channel_ids(row,
+  string hreadable_id = determine_table_and_channel_ids(row,
                                                     &channel_ids,
                                                     ",",
                                                     filename,
                                                     common_prefix
                                                     );
   
-  if (!data::does_table_exist(table_id)) {
-    data::add_file(table_id, filename, channel_ids);
+  if (!data::does_file_exist(filepath))
+  {
+    data::add_file(filename, filepath, hreadable_id, channel_ids);
     
     size_t pos = 0;
     map<string, data::Channel> channels;
@@ -135,12 +137,12 @@ void import_from_csv (string filename,
       }
     }
     
-    int n = channels[channel_ids[0]].length();
-    data::add_channel_data(table_id,
+    data::add_channel_data(filepath,
                            channels,
                            channel_ids);
       
   }
+  data::add_to_layer(filepath);
   return;
 }
 

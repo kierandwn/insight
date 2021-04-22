@@ -44,7 +44,7 @@ using namespace std;
 
 
 string longest_common_string_prefix(string, string);
-string longest_common_string_prefix(QStringList);
+string longest_common_string_prefix(vector<string>);
 
 class ApplicationMainWindow : public QMainWindow
 {

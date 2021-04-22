@@ -25,6 +25,8 @@
 #include <map>
 #include <vector>
 
+#include <QSqlQuery>
+
 #include "channel.h"
 
 namespace insight {
@@ -37,15 +39,26 @@ void condition_for_sql(string& s);
 void open_db(string);
 void establish_db(string);
 
-void add_file(string, string, vector<string>);
+void add_files_table();
+void add_layer_table(int i=0);
 
-void add_table(string, vector<string>);
+void delete_layer_tables(int n=1);
+
+void add_to_layer(string, int i=0);
+
+void add_file(string, string, string, vector<string>);
+void add_table(int, vector<string>);
+
+QSqlQuery get_file_record(string);
 int get_table_id(string);
 
 int get_table_count(string);
 int get_row_count(string);
 
+bool does_file_exist(string);
 bool does_table_exist(string);
+
+bool hid_in_layer(string, int=0);
 
 void add_index_channel(string, int);
 void add_channel_data(string, string, double *, int);

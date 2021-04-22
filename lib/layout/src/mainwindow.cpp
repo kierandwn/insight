@@ -56,7 +56,11 @@ ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * p
   setWindowTitle(QFileInfo(m_layout_filepath.c_str()).fileName());
 }
 
-ApplicationMainWindow::~ApplicationMainWindow() { delete ui; }
+ApplicationMainWindow::~ApplicationMainWindow()
+{
+  delete ui;
+  data::delete_layer_tables();
+}
 
 void ApplicationMainWindow::update() {
   map<string, graphic::Base *>::iterator p;
@@ -132,19 +136,33 @@ void ApplicationMainWindow::init()
   fit_plot_area_to_main_window_area();
 }
 
+vector<string> remove_dirpath(QStringList filepaths, string dirpath) {
+  vector<string> result;
+  for (QString filepath : filepaths) {
+    result.push_back(filepath.toStdString().substr(dirpath.size()+1, filepath.size()));
+  }
+  return result;
+}
+
 void ApplicationMainWindow::on_actionLoad_File_triggered()
 {
-  QStringList filenames = QFileDialog::getOpenFileNames(this,
+  QStringList filepaths = QFileDialog::getOpenFileNames(this,
     tr("Load Data File"), tr(src_root_dir_.append("/demo", 5).c_str()), tr("CSV Files (*.csv)"));
   
   string common_prefix = "";
+  
+  string fullpath = filepaths[0].toStdString();
+  string dirpath = fullpath.substr(0, fullpath.rfind("/"));
+  
+  vector<string> filenames = remove_dirpath(filepaths, dirpath);
   
   if (filenames.size() > 1) {
     common_prefix = longest_common_string_prefix(filenames);
   }
   
-  for (QString filename : filenames) {
-    import_from_csv(filename.toStdString(),
+  for (string filename : filenames) {
+    import_from_csv(filename,
+                    dirpath,
                     common_prefix
                     );
   }
@@ -164,11 +182,11 @@ void ApplicationMainWindow::fit_plot_area_to_main_window_area() {
   ui->PlotGrid->setGeometry(QRect(0, 0, geom.width(), geom.height()));
 }
 
-string longest_common_string_prefix(QStringList string_list) {
-  string lcs = string_list[0].toStdString();
+string longest_common_string_prefix(vector<string> string_list) {
+  string lcs = string_list[0];
   
-  for (QString st : string_list) {
-    lcs = longest_common_string_prefix(lcs, st.toStdString());
+  for (string st : string_list) {
+    lcs = longest_common_string_prefix(lcs, st);
   }
   return lcs;
 }

@@ -98,33 +98,73 @@ void establish_db(string filepath)
   } else {
     open_db(filepath);
     
-    // Create file table
-    sql_query("CREATE TABLE files ( table_id INT PRIMARY KEY, filename TEXT, dirpath TEXT )");
+    add_files_table();
   }
+  add_layer_table();
   k_FILE_TABLE_LEN = get_row_count("files");
   return;
 }
 
-void add_file(string filename, string filepath, vector<string> channel_names)
+void add_files_table() {
+  sql_query("CREATE TABLE files (table_id INT, string_id TEXT, filename TEXT, filepath TEXT PRIMARY KEY)");
+  return;
+}
+
+void add_layer_table(int i) {
+  QString s = QString("CREATE TABLE layer_%1 ( table_id INT PRIMARY KEY, filename TEXT, string_id TEXT UNIQUE)").arg(to_string(i).c_str());
+  sql_query(s.toStdString());
+  return;
+}
+
+void delete_layer_tables(int n) {
+  for (int i = 0; i < n; ++i) {
+    sql_query("DROP TABLE layer_"+to_string(i)+";");
+  }
+}
+
+void add_to_layer(string filepath, int i)
+{
+  condition_for_sql(filepath);
+  
+  QSqlQuery q = get_file_record(filepath);
+  if (q.first()) {
+    int tid = q.value("table_id").toInt();
+    QString filename = q.value("filename").toString();
+    QString sid = q.value("string_id").toString();
+    
+    QSqlQuery q(k_DB);
+    q.prepare(QString("INSERT INTO layer_%1 VALUES((:tid), (:fn), (:sid))").arg(to_string(i).c_str()));
+//    q.bindValue(0, ("layer_"+to_string(i)).c_str());
+    q.bindValue(":tid", tid);
+    q.bindValue(":fn", filename);
+    q.bindValue(":sid", sid);
+    sql_query(q);
+  }
+}
+
+void add_file(string filename, string filepath, string hreadable_id, vector<string> channel_names)
 {
   condition_for_sql(filepath);
   
   if (!get_table_id(filepath))
   {
+    k_FILE_TABLE_LEN++;
+    
     QSqlQuery q(k_DB);
-    q.prepare("INSERT INTO files VALUES(?, ?, ?)");
-    q.bindValue(0, to_string(++k_FILE_TABLE_LEN).c_str());
-    q.bindValue(1, filename.c_str());
-    q.bindValue(2, filepath.c_str());
+    q.prepare("INSERT INTO files VALUES(?, ?, ?, ?)");
+    q.bindValue(0, to_string(k_FILE_TABLE_LEN).c_str());
+    q.bindValue(1, hreadable_id.c_str());
+    q.bindValue(2, filename.c_str());
+    q.bindValue(3, filepath.c_str());
     sql_query(q);
     
-    add_table(filename, channel_names);
+    add_table(k_FILE_TABLE_LEN, channel_names);
   }
 }
 
-void add_table(string filename, vector<string> channel_names)
+void add_table(int table_id, vector<string> channel_names)
 {
-  string query_string = "CREATE TABLE " + filename + " (idx INT PRIMARY KEY";
+  string query_string = "CREATE TABLE data_" + to_string(table_id) + " (idx INT PRIMARY KEY";
   string channel_name;
   for (size_t i = 0; i < channel_names.size(); ++i)
   {
@@ -137,20 +177,32 @@ void add_table(string filename, vector<string> channel_names)
   sql_query(query_string);
 }
 
-int get_table_id(string filepath) {
-//  QSqlQuery q = sql_query("SELECT table_id FROM files WHERE files.dirpath=\'" + filepath + "\');");
+QSqlQuery get_file_record(string filepath) {
+  condition_for_sql(filepath);
+  
   QSqlQuery q(k_DB);
-  q.prepare("SELECT table_id FROM files WHERE files.dirpath=?");
+  q.prepare("SELECT * FROM files WHERE files.filepath=?");
   q.bindValue(0, filepath.c_str());
   sql_query(q);
-  
-  int tid;
+  return q;
+}
+
+int get_table_id(string filepath)
+{
+  QSqlQuery q = get_file_record(filepath);
   if (q.first())
-    tid = q.value(0).toInt();
-  else
-    tid = NULL;
-      
-  return tid;
+  {
+    return q.value("table_id").toInt();
+  }
+  return 0;
+}
+
+bool does_file_exist(string filepath) {
+  condition_for_sql(filepath);
+  
+  QSqlQuery q = sql_query("SELECT count(*) FROM files WHERE filepath='" + filepath + "';");
+  q.first();
+  return q.value(0).toInt() > 0;
 }
 
 bool does_table_exist(string table_name) {
@@ -168,6 +220,17 @@ int get_row_count(string table_name) {
   QSqlQuery q = sql_query("SELECT COUNT(*) FROM " + table_name);
   q.first();
   return q.value(0).toInt();
+}
+
+bool hid_in_layer(string hid, int i)
+{
+  QSqlQuery q(k_DB);
+  q.prepare(QString("SELECT count(*) FROM layer_%1 WHERE string_id=(:hid)").arg(to_string(i).c_str()));
+  q.bindValue(":hid", hid.c_str());
+  sql_query(q);
+  
+  q.first();
+  return q.value(0).toInt() > 0;
 }
 
 void add_index_channel(string table_name, int n)
@@ -204,10 +267,12 @@ string row_values_string(map<string, Channel> channels, vector<string> channel_i
   return result;
 }
 
-void add_channel_data(string table_name, map<string, Channel> channels, vector<string> channel_ids)
+void add_channel_data(string filepath, map<string, Channel> channels, vector<string> channel_ids)
 {
+  int tid = get_table_id(filepath);
   int n = channels[channel_ids[0]].length();
-  string query_text = "INSERT INTO " + table_name + " VALUES (" + row_values_string(channels, channel_ids, 0) + ")";
+  
+  string query_text = "INSERT INTO data_" + to_string(tid) + " VALUES (" + row_values_string(channels, channel_ids, 0) + ")";
   
   for (int i = 1; i < n; ++i)
   {
@@ -217,11 +282,25 @@ void add_channel_data(string table_name, map<string, Channel> channels, vector<s
   sql_query(query_text);
 }
 
-void get_channel_data(string table_name, string channel_name, Channel * channel)
+// obtain integer table id from human readable id
+int get_tid_from_hid(string hid, int i_layer=0)
 {
   QSqlQuery q(k_DB);
-  q.prepare(QString("SELECT %1 FROM %2").arg(channel_name.c_str(),
-                                             table_name.c_str()));
+  q.prepare(QString("SELECT table_id FROM layer_%1 WHERE string_id=?").arg(to_string(i_layer).c_str()));
+  q.bindValue(0, hid.c_str());
+  sql_query(q);
+  
+  q.first();
+  return q.value("table_id").toInt();
+}
+
+void get_channel_data(string table_hid, string channel_name, Channel * channel)
+{
+  int table_id = get_tid_from_hid(table_hid);
+  
+  QSqlQuery q(k_DB);
+  q.prepare(QString("SELECT %1 FROM data_%2").arg(channel_name.c_str(),
+                                             to_string(table_id).c_str()));
   sql_query(q);
   
   if (q.isActive()) {
@@ -272,11 +351,11 @@ bool Table::exists(string id) {
     return true;
   
   else {
-    string table_id = id.substr(0, id.find("::"));
-    string channel_id = id.substr(id.find("::")+2, id.size());
-    condition_for_sql(channel_id);
+    string hid = id.substr(0, id.find("::"));
+//    string channel_id = id.substr(id.find("::")+2, id.size());
+//    condition_for_sql(channel_id); // TODO: check channel is in table
     
-    return does_table_exist(table_id);
+    return hid_in_layer(hid);
   }
 }
 

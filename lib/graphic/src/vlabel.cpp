@@ -23,6 +23,7 @@
 #include <QSize>
 
 #include <QStaticText>
+#include <QTextDocument>
 #include <QPaintEvent>
 #include <QStylePainter>
 
@@ -34,14 +35,18 @@ VLabel::VLabel(const QString& text, QWidget * parent) : QLabel(text, parent) {}
   
 void VLabel::paintEvent(QPaintEvent *) {
   QStylePainter painter(this);
-  painter.setPen(Qt::black);
+//  QTextDocument tdoc;
+//
+//  tdoc.setHtml(text().toStdString().c_str());
+  
+  //  painter.setPen(Qt::black);
   painter.setBrush(Qt::Dense1Pattern);
-
-//    painter.translate(sizeHint().width(), sizeHint().height());
-  painter.translate(sizeHint().width(), 0);
+  
+  painter.translate(sizeHint().width(), 0.);
   painter.rotate(90);
   
   painter.drawStaticText(0, 0, QStaticText(text()));
+//  tdoc.drawContents(&painter);
 }
   
 QSize VLabel::minimumSizeHint() const {

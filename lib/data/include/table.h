@@ -14,7 +14,7 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with attitude.  If not, see <https://www.gnu.org/licenses/>.
+// along with insight.  If not, see <https://www.gnu.org/licenses/>.
 //
 #ifndef DATATABLE_H
 #define DATATABLE_H
@@ -25,6 +25,8 @@
 #include <map>
 #include <vector>
 
+#include <QSqlQuery>
+
 #include "channel.h"
 
 namespace insight {
@@ -32,35 +34,71 @@ namespace data {
 
 using namespace std;
 
+void condition_for_sql(string& s);
 
+void open_db(string);
+void establish_db(string);
+
+void add_files_table();
+void add_layer_table(int i=0);
+
+void delete_layer_tables(int n=1);
+
+void add_to_layer(string, int i=0);
+
+void add_file(string, string, string, vector<string>);
+void add_table(int, vector<string>);
+
+QSqlQuery get_file_record(string);
+int get_table_id(string);
+
+int get_table_count(string);
+int get_row_count(string);
+
+bool does_file_exist(string);
+bool does_table_exist(string);
+
+bool hid_in_layer(string, int=0);
+
+void add_index_channel(string, int);
+void add_channel_data(string, string, double *, int);
+void add_channel_data(string, map<string, Channel>, vector<string>);
+
+void get_channel_data(string, string, Channel *);
 
 class Table {
 private:
-    map<string, Channel *> m_channels;
+  map<string, Channel *> m_channels_in_memory;
+  string m_time_channel_name;
+  string m_time_channel_unit;
 
 public:
-    Table() {}
-    ~Table() { clear(); }
+  Table() {}
+  ~Table() { clear(); }
 
-    Channel * get(string id) { return m_channels[id]; }
+  Channel * get(string id);
+  
+  void set_time_channel_name(string channel_name) { m_time_channel_name = channel_name; }
+  void set_time_channel_unit(string channel_unit) { m_time_channel_unit = channel_unit; }
 
-    void add(string channel_name)
-    {
-        if (m_channels.find(channel_name) == m_channels.end()) {
-            m_channels[channel_name] = new Channel;
-        }
+  void add(string channel_name)
+  {
+    if (m_channels_in_memory.find(channel_name) == m_channels_in_memory.end()) {
+      m_channels_in_memory[channel_name] = new Channel;
     }
+  }
 
-    bool exists(string id) { return (!(m_channels.find(id) == m_channels.end())); }
+//  bool exists(string id) { return (!(m_channels_in_memory.find(id) == m_channels_in_memory.end())); }
+  bool exists(string id);
 
-    void clear() {
-        for (map<string, Channel *>::iterator c = m_channels.begin(); c != m_channels.end(); ++c) {
-            delete c->second;
-        }
-        m_channels.clear();
+  void clear() {
+    for (map<string, Channel *>::iterator c = m_channels_in_memory.begin(); c != m_channels_in_memory.end(); ++c) {
+      delete c->second;
     }
+    m_channels_in_memory.clear();
+  }
 
-    Channel * operator[] (string id) { return m_channels[id]; }
+  Channel * operator[] (string id) { return m_channels_in_memory[id]; }
 };
 
 }  // namespace data

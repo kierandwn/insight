@@ -38,6 +38,8 @@
 
 namespace insight {
 
+string k_USER_SPECIFIC_CONFIG_FILEPATH = QDir::homePath().toStdString() + "/.insight/.config";
+string k_DEFAULT_DB_FILEPATH = QDir::homePath().toStdString() + "/.insight/insight.db";
 
 ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * parent)
     : QMainWindow(parent),
@@ -46,13 +48,19 @@ ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * p
 {
   ui->setupUi(this);
   load_config();
+  
+  data::establish_db(m_db_filepath);
 
   m_layout.import_from_config(m_layout_filepath, ui->PlotGrid, &m_data);
   
   setWindowTitle(QFileInfo(m_layout_filepath.c_str()).fileName());
 }
 
-ApplicationMainWindow::~ApplicationMainWindow() { delete ui; }
+ApplicationMainWindow::~ApplicationMainWindow()
+{
+  delete ui;
+  data::delete_layer_tables();
+}
 
 void ApplicationMainWindow::update() {
   map<string, graphic::Base *>::iterator p;
@@ -63,10 +71,9 @@ void ApplicationMainWindow::update() {
 
 void ApplicationMainWindow::load_config() {
   string config_filename;
-  string user_specific_config = QDir::homePath().toStdString() + "/.insight";
   
-  if (QFileInfo(user_specific_config.c_str()).exists()) {
-    config_filename = QDir::homePath().toStdString() + "/.insight";
+  if (QFileInfo(k_USER_SPECIFIC_CONFIG_FILEPATH.c_str()).exists()) {
+    config_filename = k_USER_SPECIFIC_CONFIG_FILEPATH;
     
   } else {
     config_filename = src_root_dir_ + "/config/default.config";
@@ -82,6 +89,13 @@ void ApplicationMainWindow::import_from_json(string filename) {
   nlohmann::json app_config;
   ifs >> app_config;
   
+  string db_filepath = app_config["db"];
+  if ( db_filepath == "" ) {
+    m_db_filepath = k_DEFAULT_DB_FILEPATH;
+  } else {
+    m_db_filepath = db_filepath;
+  }
+  
   string layout_filename = app_config["layout_filename"];
   string layout_dirpath  = app_config["layout_dirpath"];
   
@@ -94,8 +108,11 @@ void ApplicationMainWindow::import_from_json(string filename) {
 
   m_layout_filepath = layout_filepath;
   
-  m_time_channel_name = app_config["time_channel"];
-  m_time_channel_unit = app_config["time_unit"];
+//  m_time_channel_name = app_config["time_channel"];
+//  m_time_channel_unit = app_config["time_unit"];
+  
+  m_data.set_time_channel_name(app_config["time_channel"]);
+  m_data.set_time_channel_unit(app_config["time_unit"]);
   
   m_mainwindow_size[0] = app_config["main_window_size"][0];
   m_mainwindow_size[1] = app_config["main_window_size"][1];
@@ -110,28 +127,43 @@ void ApplicationMainWindow::init()
   background_palette.setColor(QPalette::Window, QColor(255, 255, 255, 255));
   setPalette(background_palette);
   
-  fit_plot_area_to_main_window_area();
-  
   map<string, graphic::Base *>::iterator p;
   for (p = m_layout.first(); p != m_layout.last(); ++p) {
     p->second->init();
   }
+  update();
+  
+  fit_plot_area_to_main_window_area();
+}
+
+vector<string> remove_dirpath(QStringList filepaths, string dirpath) {
+  vector<string> result;
+  for (QString filepath : filepaths) {
+    result.push_back(filepath.toStdString().substr(dirpath.size()+1, filepath.size()));
+  }
+  return result;
 }
 
 void ApplicationMainWindow::on_actionLoad_File_triggered()
 {
-  QStringList filenames = QFileDialog::getOpenFileNames(this,
+  QStringList filepaths = QFileDialog::getOpenFileNames(this,
     tr("Load Data File"), tr(src_root_dir_.append("/demo", 5).c_str()), tr("CSV Files (*.csv)"));
   
-  string common_prefix = longest_common_string_prefix(filenames);
-  printf("longest common string prefix: %s.\n", common_prefix.c_str());
+  string common_prefix = "";
   
-  for (QString filename : filenames) {
-    import_from_csv(filename.toStdString(),
-                    &m_data,
-                    common_prefix,
-                    m_time_channel_name,
-                    m_time_channel_unit
+  string fullpath = filepaths[0].toStdString();
+  string dirpath = fullpath.substr(0, fullpath.rfind("/"));
+  
+  vector<string> filenames = remove_dirpath(filepaths, dirpath);
+  
+  if (filenames.size() > 1) {
+    common_prefix = longest_common_string_prefix(filenames);
+  }
+  
+  for (string filename : filenames) {
+    import_from_csv(filename,
+                    dirpath,
+                    common_prefix
                     );
   }
   update();
@@ -150,11 +182,11 @@ void ApplicationMainWindow::fit_plot_area_to_main_window_area() {
   ui->PlotGrid->setGeometry(QRect(0, 0, geom.width(), geom.height()));
 }
 
-string longest_common_string_prefix(QStringList string_list) {
-  string lcs = string_list[0].toStdString();
+string longest_common_string_prefix(vector<string> string_list) {
+  string lcs = string_list[0];
   
-  for (QString st : string_list) {
-    lcs = longest_common_string_prefix(lcs, st.toStdString());
+  for (string st : string_list) {
+    lcs = longest_common_string_prefix(lcs, st);
   }
   return lcs;
 }

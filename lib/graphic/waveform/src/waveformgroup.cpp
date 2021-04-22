@@ -71,8 +71,8 @@ void WaveformGroup::set_data_from_table(data::Table * table,
     if (!channel_and_time_present_in(m_channel_names[i], table)) continue;
     
     plotted = true;
-    
-    data::Channel * channel = table->get(m_channel_names[i]);
+    string c_name = m_channel_names[i];
+    data::Channel * channel = table->get(c_name);
     size_t n = channel->length();
     
     double * ydata = new double[n];
@@ -84,7 +84,7 @@ void WaveformGroup::set_data_from_table(data::Table * table,
     }
     
     data::Channel * xchannel = channel->get_time_ref();
-    if (!xchannel) continue;
+    if (!xchannel) continue; // TODO: is this necessary?
     
     x_lbound = max({x_lbound, xchannel->min()});
     x_hbound = min({x_hbound, xchannel->max()});

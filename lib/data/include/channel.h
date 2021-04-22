@@ -83,7 +83,7 @@ public:
       if (time_to_resample_on->operator[](i) > p_time_channel->operator[](len - 1)) {
         result->push(m_items[len - 1]);
       } else { // interpolate between neighbouring points
-        while (!(time_to_resample_on->operator[](i) >= p_time_channel->operator[](k) && time_to_resample_on->operator[](i) < p_time_channel->operator[](k + 1)))
+        while (!(time_to_resample_on->operator[](i) >= p_time_channel->operator[](k) && time_to_resample_on->operator[](i) <= p_time_channel->operator[](k + 1)))
         { ++k; }
         
         double  dt = p_time_channel->operator[](k + 1) - p_time_channel->operator[](k);

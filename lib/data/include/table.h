@@ -37,16 +37,20 @@ using namespace std;
 void condition_for_sql(string& s);
 
 void open_db(string);
+void close_db();
+
 void establish_db(string);
 
 void add_files_table();
-void add_layer_table(int i=0);
+void add_maths_table();
+void add_layer_table(int=0);
 
-void delete_layer_tables(int n=1);
+void delete_layer_tables();
+void delete_maths_tables();
 
 void add_to_layer(string, int i=0);
 
-void add_file(string, string, string, vector<string>);
+void add_file(string, string, string, vector<string>, string);
 void add_table(int, vector<string>);
 
 QSqlQuery get_file_record(string);
@@ -59,12 +63,15 @@ bool does_file_exist(string);
 bool does_table_exist(string);
 
 bool hid_in_layer(string, int=0);
+bool mid_in_layer(string, int=0);
 
 void add_index_channel(string, int);
 void add_channel_data(string, string, double *, int);
 void add_channel_data(string, map<string, Channel>, vector<string>);
 
-void get_channel_data(string, string, Channel *);
+void get_channel_data(string, string, Channel *, Channel *);
+
+void compute_math_channels(int, string, string);
 
 class Table {
 private:
@@ -80,6 +87,9 @@ public:
   
   void set_time_channel_name(string channel_name) { m_time_channel_name = channel_name; }
   void set_time_channel_unit(string channel_unit) { m_time_channel_unit = channel_unit; }
+  
+  string get_time_channel_name() { return m_time_channel_name; }
+  string get_time_channel_unit() { return m_time_channel_unit; }
 
   void add(string channel_name)
   {

@@ -23,6 +23,9 @@ def compute_math_channels():
 		members_of_current_module = getmembers(module)
 		for member in members_of_current_module:
 			if member[0].find(prefix) == 0:
-				member[1]() # { fcn_name : fcn_obj }
+				try:
+					member[1]() # { fcn_name : fcn_obj }
+				except:
+					print("Error occurred during math computation: {}".format(member[0]))
 
 	return

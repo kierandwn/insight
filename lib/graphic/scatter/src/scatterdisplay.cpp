@@ -80,13 +80,35 @@ void DataXYDisplay::init() {
   init_labels();
   init_mean_lines();
   
-  descriptive_mean_labels();
-  
   for (size_t i = 0; i < m_data_curves.size(); ++i) {
     m_data_curves[i]->init_curves();
   }
 //  update_cursor_position(0.);
   init_cursor_position();
+}
+
+void DataXYDisplay::init_cursor_position()
+{
+  double x_lbound = axisScaleDiv(xBottom).lowerBound();
+  double x_hbound = axisScaleDiv(xBottom).upperBound();
+  double y_lbound = axisScaleDiv(yLeft).lowerBound();
+  double y_hbound = axisScaleDiv(yLeft).upperBound();
+
+  double x_bounds[2]{ x_lbound, x_hbound };
+  double y_bounds[2]{ y_lbound, y_hbound };
+  
+  double xrange = x_hbound - x_lbound;
+  double yrange = y_hbound - y_lbound;
+  
+  for (int i = 0; i < m_ncurves; ++i) {
+    m_data_curves[i]->crosshair()->set_xy(x_lbound + (i + 1) * .05 * xrange,
+                                            y_lbound + (i + 1) * .05 * yrange,
+                                            x_bounds,
+                                            y_bounds
+                                            );
+  }
+  
+  replot();
 }
 
 void DataXYDisplay::init_mean_lines()
@@ -114,6 +136,8 @@ void DataXYDisplay::init_mean_lines()
   
   m_mean_xline.setSamples(xdata_xline, yaxes_bounds, 2);
   m_mean_yline.setSamples(xaxes_bounds, ydata_yline, 2);
+  
+  descriptive_mean_labels();
 }
 
 void DataXYDisplay::descriptive_mean_labels()
@@ -124,22 +148,21 @@ void DataXYDisplay::descriptive_mean_labels()
 
 void DataXYDisplay::update_after_data_load()
 {
-  for (int i = 0; i < m_ncurves; ++i) {
+  for (int i = 0; i < m_ncurves; ++i)
     m_data_curves[i]->set_data_from_table(m_data);
-  }
-  update_mean_lines();
-  
+
   double xlimits[2];
   double ylimits[2];
-  
-  xlim(xlimits);
-  ylim(ylimits);
-  
-  setAxisScale(xBottom, xlimits[0], xlimits[1]);
-  setAxisScale(yLeft, ylimits[0], ylimits[1]);
+
+  if (xlim(xlimits) && ylim(ylimits)) {
+    setAxisScale(xBottom, xlimits[0], xlimits[1]);
+    setAxisScale(yLeft, ylimits[0], ylimits[1]);
+    replot();
     
-  update_cursor_position();
-  replot();
+    update_mean_lines();
+    update_cursor_position();
+    replot();
+  }
 }
 
 void DataXYDisplay::update_view_limits(double tmin, double tmax)

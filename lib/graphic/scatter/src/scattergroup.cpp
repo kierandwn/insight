@@ -161,7 +161,7 @@ void ScatterGroup::set_data_from_table(data::Table * table,
 {
   // data is present
   if (!channels_present_in(table)) {
-    m_crosshair.detach();
+//    m_crosshair.detach();
     return;
   }
   
@@ -284,7 +284,7 @@ void LineGroup::set_data_from_table(data::Table * table,
 {
   // data is present
   if (!channels_present_in(table)) {
-    m_crosshair.detach();
+//    m_crosshair.detach();
     return;
   }
   

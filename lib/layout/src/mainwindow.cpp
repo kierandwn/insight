@@ -149,26 +149,29 @@ void ApplicationMainWindow::on_actionLoad_File_triggered()
   QStringList filepaths = QFileDialog::getOpenFileNames(this,
     tr("Load Data File"), tr((m_source_root_dirpath+"/demo").c_str()), tr("CSV Files (*.csv)"));
   
-  string common_prefix = "";
-  
-  string fullpath = filepaths[0].toStdString();
-  string dirpath = fullpath.substr(0, fullpath.rfind("/"));
-  
-  vector<string> filenames = remove_dirpath(filepaths, dirpath);
-  
-  if (filenames.size() > 1) {
-    common_prefix = longest_common_string_prefix(filenames);
+  if (filepaths.size() > 0)
+  {
+    string common_prefix = "";
+    
+    string fullpath = filepaths[0].toStdString();
+    string dirpath = fullpath.substr(0, fullpath.rfind("/"));
+    
+    vector<string> filenames = remove_dirpath(filepaths, dirpath);
+    
+    if (filenames.size() > 1) {
+      common_prefix = longest_common_string_prefix(filenames);
+    }
+    
+    for (string filename : filenames) {
+      import_from_csv(filename,
+                      dirpath,
+                      common_prefix,
+                      m_data.get_time_channel_name()
+                      );
+    }
+    data::compute_math_channels(0, m_db_filepath, m_source_root_dirpath);
+    update();
   }
-  
-  for (string filename : filenames) {
-    import_from_csv(filename,
-                    dirpath,
-                    common_prefix,
-                    m_data.get_time_channel_name()
-                    );
-  }
-  data::compute_math_channels(0, m_db_filepath, m_source_root_dirpath);
-  update();
 }
 
 void ApplicationMainWindow::resizeEvent(QResizeEvent * event)

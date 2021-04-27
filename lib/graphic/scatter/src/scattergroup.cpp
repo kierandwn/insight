@@ -22,6 +22,7 @@
 #include <qwt_symbol.h>
 #include <qwt_plot_curve.h>
 
+#include "insight_graphic_base.h"
 #include "table.h"
 #include "channel.h"
 
@@ -51,6 +52,9 @@ void DisplayCrosshair::set_label_values(double xvalue, double yvalue)
 
 void DisplayCrosshair::set_xy(double x, double y, double * xlim, double * ylim)
 {
+  int paint_coord_x = p_parent->painter_coordx_from_axis_scale(x);
+  int paint_coord_y = p_parent->painter_coordy_from_axis_scale(y);
+  
   int label_width = 300;
   int label_height = 15;
   
@@ -67,13 +71,13 @@ void DisplayCrosshair::set_xy(double x, double y, double * xlim, double * ylim)
   // update crosshair label positions
   m_xlabel.setGeometry(
     p_parent->width() - (label_width + 5),
-    ((ylim[1] - y) / (ylim[1] - ylim[0])) * p_parent->height() - 16,
+    paint_coord_y - 10,
     label_width,
     label_height
   );
     
   m_ylabel.setGeometry(
-    ((x - xlim[0]) / (xlim[1] - xlim[0])) * p_parent->width(),
+    paint_coord_x,
     5,
     label_height,
     label_width
@@ -81,7 +85,7 @@ void DisplayCrosshair::set_xy(double x, double y, double * xlim, double * ylim)
   set_label_values(x, y);
 }
 
-DataXYGroup::DataXYGroup(QwtPlot * parent, string xchannel_id, string ychannel_id, int color_index=0)
+DataXYGroup::DataXYGroup(Base * parent, string xchannel_id, string ychannel_id, int color_index=0)
     : p_parent(parent),
       m_crosshair(parent, xchannel_id, ychannel_id),
       m_xchannel_name(xchannel_id),

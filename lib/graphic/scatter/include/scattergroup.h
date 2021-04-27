@@ -24,6 +24,7 @@
 #include <qwt_plot_curve.h>
 #include <qwt_symbol.h>
 
+#include "insight_graphic_base.h"
 #include "vlabel.h"
 #include "table.h"
 
@@ -35,7 +36,7 @@ using namespace std;
 
 class DisplayCrosshair {
  private:
-  QwtPlot * p_parent;
+  Base * p_parent;
   
   QwtPlotCurve m_horzbar;
   QwtPlotCurve m_vertbar;
@@ -52,7 +53,7 @@ class DisplayCrosshair {
   double m_xy[2];
     
  public:
-  DisplayCrosshair(QwtPlot * parent, string xchannel_name, string ychannel_name)
+  DisplayCrosshair(Base * parent, string xchannel_name, string ychannel_name)
       : p_parent(parent),
         m_xlabel(parent),
         m_ylabel(parent),
@@ -115,7 +116,7 @@ class DisplayCrosshair {
 
 class DataXYGroup {
  protected:
-  QwtPlot * p_parent;
+  Base * p_parent;
 
   QwtPlotCurve m_shadow;
   
@@ -134,7 +135,7 @@ class DataXYGroup {
   int m_color_index;
 
  public:
-  DataXYGroup(QwtPlot *, string, string, int);
+  DataXYGroup(Base *, string, string, int);
   virtual ~DataXYGroup();
 
   virtual void init_curves()=0;
@@ -171,7 +172,7 @@ class ScatterGroup : public DataXYGroup {
   QwtSymbol m_shadow_symbol;
 
  public:
-  ScatterGroup(QwtPlot * p, string xid, string yid, int i) : DataXYGroup(p, xid, yid, i) {};
+  ScatterGroup(Base * p, string xid, string yid, int i) : DataXYGroup(p, xid, yid, i) {};
   ~ScatterGroup() {};
   
   void init_curves() override;
@@ -184,7 +185,7 @@ class LineGroup : public DataXYGroup {
   QwtPlotCurve m_line;
   
  public:
-  LineGroup(QwtPlot * p, string xid, string yid, int i) : DataXYGroup(p, xid, yid, i) {};
+  LineGroup(Base * p, string xid, string yid, int i) : DataXYGroup(p, xid, yid, i) {};
   ~LineGroup() {};
   
   void init_curves() override;

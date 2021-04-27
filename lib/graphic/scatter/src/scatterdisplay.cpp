@@ -71,8 +71,8 @@ void DataXYDisplay::set_label_positions() {
   m_mean_ylabel.setGeometry(
     5,
     5,
-    label_height,
-    label_width
+    m_mean_ylabel.sizeHint().width(),
+    m_mean_ylabel.sizeHint().height()
   );
 }
 
@@ -231,6 +231,7 @@ void ScatterDisplay::apply_config(nlohmann::json * json_config) {
   if (json_config->contains("data")) {
     for (auto& channel_pair : json_config->operator[]("data")["xychannels"]) {
       ScatterGroup * scatter_pair = new ScatterGroup(this, channel_pair[0], channel_pair[1], i);
+      // TODO: get unit string from Db and update set unit strings on scatter pair. Do same with LinePair.
       m_data_curves.push_back(scatter_pair);
       ++i;
     }

@@ -96,8 +96,7 @@ public:
   void resizeEvent(QResizeEvent * event) override;
 };
 
-class ScatterDisplay : public virtual DataXYDisplay
-{
+class ScatterDisplay : public virtual DataXYDisplay { // TODO: difference between scatter/line implemented as a factory? seems unnecessary to have different plot classes?
  public:
   ScatterDisplay(data::Table * t, layout::Layout * l) : DataXYDisplay(t, l) {}
   ~ScatterDisplay() {}

@@ -73,18 +73,21 @@ void WaveformDisplay::mouseReleaseEvent(QMouseEvent *) {
   m_mouse_state = Ready;
 }
 
-void WaveformDisplay::wheelEvent(QWheelEvent * event) {
+void WaveformDisplay::wheelEvent(QWheelEvent * event)
+{
   double scroll_speed_scalar = .001;
   double vertical_scroll_delta = event->angleDelta().y();
   
-  double widest_xlim[2];
-  xlim(widest_xlim);
+  double x_lbound = axisScaleDiv(xBottom).lowerBound();
+  double x_hbound = axisScaleDiv(xBottom).upperBound();
+  double xrange = x_hbound - x_lbound;
   
-  double xrange = widest_xlim[1] - widest_xlim[0];
+  double x_mouse = axis_coordx_from_painter_scale(event->position().x());
+  double lhs_scaling = (x_mouse - x_lbound) / xrange;
   
-  widest_xlim[0] -= scroll_speed_scalar * vertical_scroll_delta * xrange;
-  widest_xlim[1] += scroll_speed_scalar * vertical_scroll_delta * xrange;
-  update_group_view_limits(widest_xlim[0], widest_xlim[1]);
+  x_lbound -= scroll_speed_scalar * vertical_scroll_delta * xrange * lhs_scaling;
+  x_hbound += scroll_speed_scalar * vertical_scroll_delta * xrange * (1. - lhs_scaling);
+  update_group_view_limits(x_lbound, x_hbound);
 }
 
 }  // namespace graphic

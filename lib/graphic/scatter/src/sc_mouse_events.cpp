@@ -119,20 +119,26 @@ void DataXYDisplay::mouseMoveEvent(QMouseEvent * event) {
 
 void DataXYDisplay::wheelEvent(QWheelEvent * event)
 {
+  double scroll_speed_scalar = .001;
+  double vertical_scroll_delta = event->angleDelta().y();
+  
   double x_lbound = axisScaleDiv(xBottom).lowerBound();
   double x_hbound = axisScaleDiv(xBottom).upperBound();
   double y_lbound = axisScaleDiv(yLeft).lowerBound();
   double y_hbound = axisScaleDiv(yLeft).upperBound();
-
   double xrange = x_hbound - x_lbound;
   double yrange = y_hbound - y_lbound;
 
-  double scroll_speed_scalar = .001;
-  double vertical_scroll_delta = event->angleDelta().y();
-  x_lbound -= vertical_scroll_delta * scroll_speed_scalar * xrange;
-  x_hbound += vertical_scroll_delta * scroll_speed_scalar * xrange;
-  y_lbound -= vertical_scroll_delta * scroll_speed_scalar * yrange;
-  y_hbound += vertical_scroll_delta * scroll_speed_scalar * yrange;
+  double x_mouse = axis_coordx_from_painter_scale(event->position().x());
+  double y_mouse = axis_coordy_from_painter_scale(event->position().y());
+  
+  double lhs_scaling = (x_mouse - x_lbound) / xrange;
+  double bottom_scaling = (y_mouse - y_lbound) / yrange;
+  
+  x_lbound -= vertical_scroll_delta * scroll_speed_scalar * xrange * lhs_scaling;
+  x_hbound += vertical_scroll_delta * scroll_speed_scalar * xrange * (1. - lhs_scaling);
+  y_lbound -= vertical_scroll_delta * scroll_speed_scalar * yrange * bottom_scaling;
+  y_hbound += vertical_scroll_delta * scroll_speed_scalar * yrange * (1. - bottom_scaling);
   
   setAxisScale(xBottom, x_lbound, x_hbound);
   setAxisScale(yLeft, y_lbound, y_hbound);
@@ -141,9 +147,9 @@ void DataXYDisplay::wheelEvent(QWheelEvent * event)
     string xchannel_name = m_data_curves[i]->get_xchannel_name(); // TODO move this check inside update_crosshair?
     string ychannel_name = m_data_curves[i]->get_ychannel_name();
     
-    if (m_data->exists(xchannel_name) && m_data->exists(ychannel_name)) {
+    if (m_data->exists(xchannel_name) && m_data->exists(ychannel_name))
       m_data_curves[i]->update_crosshair();
-    }
+    
   }
   replot();
 }
@@ -153,7 +159,6 @@ void DataXYDisplay::update_cursor_position(double tvalue)
   for (int i = 0; i < m_ncurves; ++i) {
     if (m_data_curves[i]->channels_present_in(m_data))
       m_data_curves[i]->update_crosshair(tvalue);
-    
   }
   replot();
 }

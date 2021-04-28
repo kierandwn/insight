@@ -42,7 +42,7 @@ void DisplayCrosshair::set_label_values(double xvalue, double yvalue)
       "<span style=\"color : rgb(50, 50, 50);\">%s:</span> %*.2f[-];",
           m_ychannel_name.c_str(), 7, yvalue
   );
-  
+
   m_xlabel.setText(QString(xlabel_text));
   m_ylabel.setText(QString(ylabel_text));
 
@@ -52,11 +52,10 @@ void DisplayCrosshair::set_label_values(double xvalue, double yvalue)
 
 void DisplayCrosshair::set_xy(double x, double y, double * xlim, double * ylim)
 {
+  set_label_values(x, y);
+  
   int paint_coord_x = p_parent->painter_coordx_from_axis_scale(x);
   int paint_coord_y = p_parent->painter_coordy_from_axis_scale(y);
-  
-  int label_width = 300;
-  int label_height = 15;
   
   double horzbar_ydata[2]{y, y};
   double vertbar_xdata[2]{x, x};
@@ -70,19 +69,18 @@ void DisplayCrosshair::set_xy(double x, double y, double * xlim, double * ylim)
   
   // update crosshair label positions
   m_xlabel.setGeometry(
-    p_parent->width() - (label_width + 5),
+    p_parent->width() - (m_xlabel.sizeHint().width() + 5),
     paint_coord_y - 10,
-    label_width,
-    label_height
+    m_xlabel.sizeHint().width(),
+    m_xlabel.sizeHint().height()
   );
     
   m_ylabel.setGeometry(
     paint_coord_x,
     5,
-    label_height,
-    label_width
+    m_ylabel.sizeHint().width(),
+    m_ylabel.sizeHint().height()
   );
-  set_label_values(x, y);
 }
 
 DataXYGroup::DataXYGroup(Base * parent, string xchannel_id, string ychannel_id, int color_index=0)

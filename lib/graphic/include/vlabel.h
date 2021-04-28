@@ -39,10 +39,11 @@ class VLabel : public QLabel
   VLabel(QWidget *parent);
   VLabel(const QString& text, QWidget * parent);
   
- protected:
-  void paintEvent(QPaintEvent *);
   QSize minimumSizeHint() const;
   QSize sizeHint() const;
+  
+ protected:
+  void paintEvent(QPaintEvent *);
 };
 
 }  // namespace graphic

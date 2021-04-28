@@ -34,7 +34,7 @@ namespace insight {
 namespace graphic {
 
 
-WaveformGroup::WaveformGroup(QwtPlot * parent)
+WaveformGroup::WaveformGroup(graphic::Base * parent)
     : p_parent(parent),
       m_label(parent),
       m_metrics(parent)
@@ -150,13 +150,17 @@ void WaveformGroup::init_curves()
 
 void WaveformGroup::set_label_position() {
   int label_xcoord = 5;
-  int label_ycoord = (1. - m_normalised_yoffset - m_normalised_height / 2) * p_parent->height();
+//  int label_ycoord = (1. - m_normalised_yoffset - m_normalised_height / 2) * p_parent->height();
+  int label_ycoord = p_parent->painter_coordy_from_axis_scale(m_normalised_yoffset + m_normalised_height / 2);
   
-  int metrics_xcoord = p_parent->width() - (300 + 5);
-  int metrics_ycoord = ((1. - m_normalised_yoffset) * p_parent->height()) - 16;
+  int metrics_xcoord = p_parent->width() - (m_metrics.sizeHint().width() + 5);
+  int metrics_ycoord = p_parent->painter_coordy_from_axis_scale(m_normalised_yoffset) - 12;
   
-  m_label.setGeometry(label_xcoord, label_ycoord, 300, 30);
-  m_metrics.setGeometry(metrics_xcoord, metrics_ycoord, 300, 30);
+  m_label.setGeometry(label_xcoord, label_ycoord, m_label.sizeHint().width(),
+                                                  m_label.sizeHint().height() );
+  
+  m_metrics.setGeometry(metrics_xcoord, metrics_ycoord, m_metrics.sizeHint().width(),
+                                                        m_metrics.sizeHint().height() );
 }
 
 void WaveformGroup::init_label()
@@ -165,10 +169,8 @@ void WaveformGroup::init_label()
   m_metrics.setStyleSheet("QLabel { font : 10pt 'Courier'; color : rgb(50, 50, 50); }");
   m_metrics.setAlignment(Qt::AlignRight);
   
-  set_label_position();
-  set_label_values_at();
-  
   init_metric_values();
+  set_label_values_at();
 }
 
 void WaveformGroup::set_label_values_at(double xvalue, data::Table * table) {
@@ -216,6 +218,8 @@ void WaveformGroup::set_label_values_at(double xvalue, data::Table * table) {
   
   m_label.setText(QString(label_text));
   delete[] label_text;
+  
+  set_label_position();
 }
 
 void WaveformGroup::init_metric_values() {

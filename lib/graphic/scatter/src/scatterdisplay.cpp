@@ -195,6 +195,8 @@ void DataXYDisplay::set_summary_stats_labels(double xmedian,
         ymedian, ymin, ymax, m_yaxis_unit_string.c_str()
   );
   m_mean_ylabel.setText(QString::fromUtf8(yaxes_stats_text));
+
+  set_label_positions();
 }
 
 void DataXYDisplay::update_axes_unit_strings()

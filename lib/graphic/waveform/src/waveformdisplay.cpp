@@ -147,10 +147,9 @@ void WaveformDisplay::update_after_data_load()
 {
   int channels_to_plot = get_number_of_waveform_groups();
     
-  for (int i = 0; i < channels_to_plot; ++i) {
+  for (int i = 0; i < channels_to_plot; ++i)
     m_waveform_groups[i]->set_data_from_table(m_data);
-//    m_waveform_groups[i]->init_label();
-  }
+
   update_view_limits();
   
   double xlimits[2];

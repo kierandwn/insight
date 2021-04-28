@@ -49,6 +49,12 @@ class Base : public QwtPlot { //, public virtual QDesignerCustomWidgetInterface 
     QwtScaleMap map = canvasMap(axes_id);
     return map.transform(d);
   }
+  
+  double axes_coord_from_painter_scale(int d, int axes_id)
+  {
+    QwtScaleMap map = canvasMap(axes_id);
+    return map.invTransform(d);
+  }
 
  public:
 //  Base() {}
@@ -87,6 +93,9 @@ class Base : public QwtPlot { //, public virtual QDesignerCustomWidgetInterface 
   
   int painter_coordx_from_axis_scale(double x) { return painter_coord_from_axis_scale(x, xBottom); }
   int painter_coordy_from_axis_scale(double y) { return painter_coord_from_axis_scale(y, yLeft); }
+  
+  double axis_coordx_from_painter_scale(int x) { return axes_coord_from_painter_scale(x, xBottom); }
+  double axis_coordy_from_painter_scale(int y) { return axes_coord_from_painter_scale(y, yLeft); }
 };
 
 }  // namespace graphic

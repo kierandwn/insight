@@ -31,16 +31,16 @@ namespace graphic {
 
 void DisplayCrosshair::set_label_values(double xvalue, double yvalue)
 {
-  char * xlabel_text = new char[m_xchannel_name.size()+62];
-  char * ylabel_text = new char[m_ychannel_name.size()+62];
+  char * xlabel_text = new char[m_xchannel_name.size()+m_xchannel_unit_string.size()+61];
+  char * ylabel_text = new char[m_ychannel_name.size()+m_ychannel_unit_string.size()+61];
   
   sprintf(xlabel_text,
-      "<span style=\"color : rgb(50, 50, 50);\">%s:</span> %*.2f[-];",
-          m_xchannel_name.c_str(), 7, xvalue
+      "<span style=\"color : rgb(50, 50, 50);\">%s:</span> %*.2f[%s];",
+          m_xchannel_name.c_str(), 7, xvalue, m_xchannel_unit_string.c_str()
   );
   sprintf(ylabel_text,
-      "<span style=\"color : rgb(50, 50, 50);\">%s:</span> %*.2f[-];",
-          m_ychannel_name.c_str(), 7, yvalue
+      "<span style=\"color : rgb(50, 50, 50);\">%s:</span> %*.2f[%s];",
+          m_ychannel_name.c_str(), 7, yvalue, m_ychannel_unit_string.c_str()
   );
 
   m_xlabel.setText(QString(xlabel_text));
@@ -175,6 +175,8 @@ void ScatterGroup::set_data_from_table(data::Table * table,
   } else {
     m_ychannel = ychannel->resample_on(m_xchannel->get_time_ref(), m_xchannel->length());
   }
+  m_crosshair.set_xchannel_unit_string(m_xchannel->get_unit_string());
+  m_crosshair.set_ychannel_unit_string(m_ychannel->get_unit_string());
   
   size_t n = m_xchannel->length();
   

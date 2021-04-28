@@ -50,6 +50,9 @@ class DisplayCrosshair {
   string m_xchannel_name;
   string m_ychannel_name;
   
+  string m_xchannel_unit_string = "-";
+  string m_ychannel_unit_string = "-";
+  
   double m_xy[2];
     
  public:
@@ -110,6 +113,9 @@ class DisplayCrosshair {
   void set_xy(double, double, double *, double *);
   void set_label_values(double, double);
   
+  void set_xchannel_unit_string(string s) { m_xchannel_unit_string = s; }
+  void set_ychannel_unit_string(string s) { m_ychannel_unit_string = s; }
+  
   double x() { return m_xy[0]; }
   double y() { return m_xy[1]; }
 };
@@ -158,6 +164,9 @@ class DataXYGroup {
   DisplayCrosshair * crosshair() { return &m_crosshair; }
   void update_crosshair(double);
   void update_crosshair();
+  
+  void set_xchannel_unit_string(string s) { m_crosshair.set_xchannel_unit_string(s); }
+  void set_ychannel_unit_string(string s) { m_crosshair.set_ychannel_unit_string(s); }
 
   QwtPlotCurve * get_shadow() { return &m_shadow; }
   

@@ -59,7 +59,18 @@ class DataXYDisplay : public LinkedPlot
   int m_ncurves;
   int m_cursor_track_curve = 0;
   
+  string m_xaxis_unit_string = "-";
+  string m_yaxis_unit_string = "-";
+  
   MouseState m_mouse_state;
+  
+  void set_summary_stats_labels(double xmedian,
+                                double xmin,
+                                double xmax,
+                                double ymedian,
+                                double ymin,
+                                double ymax );
+  void update_axes_unit_strings();
     
 public:
   DataXYDisplay(data::Table *, layout::Layout *);

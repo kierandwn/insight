@@ -151,18 +151,19 @@ void DataXYDisplay::update_after_data_load()
   for (int i = 0; i < m_ncurves; ++i)
     m_data_curves[i]->set_data_from_table(m_data);
 
+  update_axes_unit_strings();
+  
   double xlimits[2];
   double ylimits[2];
-
-  if (xlim(xlimits) && ylim(ylimits)) {
-    setAxisScale(xBottom, xlimits[0], xlimits[1]);
-    setAxisScale(yLeft, ylimits[0], ylimits[1]);
-    replot();
-    
-    update_mean_lines();
-    update_cursor_position();
-    replot();
-  }
+  if (!(xlim(xlimits) && ylim(ylimits))) return;
+  
+  setAxisScale(xBottom, xlimits[0], xlimits[1]);
+  setAxisScale(yLeft, ylimits[0], ylimits[1]);
+  replot();
+  
+  update_mean_lines();
+  update_cursor_position();
+  replot();
 }
 
 void DataXYDisplay::update_view_limits(double tmin, double tmax)
@@ -171,6 +172,73 @@ void DataXYDisplay::update_view_limits(double tmin, double tmax)
     m_data_curves[i]->set_data_from_table(m_data, tmin, tmax);
   }
   replot();
+}
+
+void DataXYDisplay::set_summary_stats_labels(double xmedian,
+                                            double xmin,
+                                            double xmax,
+                                            double ymedian,
+                                            double ymin,
+                                            double ymax)
+{
+  char * xaxes_stats_text = new char[37+m_xaxis_unit_string.length()];
+  char * yaxes_stats_text = new char[37+m_yaxis_unit_string.length()];
+  
+  sprintf(xaxes_stats_text,
+      "%7.2f \xE2\x88\x88 [%7.2f, %7.2f[%s]];",
+        xmedian, xmin, xmax, m_xaxis_unit_string.c_str()
+  );
+  m_mean_xlabel.setText(QString::fromUtf8(xaxes_stats_text));
+
+  sprintf(yaxes_stats_text,
+      "%7.2f \xE2\x88\x88 [%7.2f, %7.2f[%s]];",
+        ymedian, ymin, ymax, m_yaxis_unit_string.c_str()
+  );
+  m_mean_ylabel.setText(QString::fromUtf8(yaxes_stats_text));
+}
+
+void DataXYDisplay::update_axes_unit_strings()
+{
+  if (m_ncurves < 1) return;
+  
+  string xchannel_name;
+  string ychannel_name;
+  
+  // if ncurves == 1, use unit strings stored in channel object
+  if (m_data_curves[0]->channels_present_in(m_data))
+  {
+    xchannel_name = m_data_curves[0]->get_xchannel_name();
+    ychannel_name = m_data_curves[0]->get_ychannel_name();
+    
+    m_xaxis_unit_string = m_data->get(xchannel_name)->get_unit_string();
+    m_yaxis_unit_string = m_data->get(ychannel_name)->get_unit_string();
+  }
+  
+  // if n_curves > 1, check that unit strings are the same, otherwise, use '-'
+  if (m_ncurves > 1)
+  {
+    string xaxis_unit_string_to_test;
+    string yaxis_unit_string_to_test;
+    
+    for (int i = 0; i < m_ncurves; ++i) {
+      if (m_data_curves[i]->channels_present_in(m_data))
+      {
+        xchannel_name = m_data_curves[i]->get_xchannel_name();
+        ychannel_name = m_data_curves[i]->get_ychannel_name();
+        
+        xaxis_unit_string_to_test = m_data->get(xchannel_name)->get_unit_string();
+        yaxis_unit_string_to_test = m_data->get(ychannel_name)->get_unit_string();
+        
+        if (!(xaxis_unit_string_to_test == m_xaxis_unit_string))
+          m_xaxis_unit_string = '-';
+        
+        if (!(yaxis_unit_string_to_test == m_yaxis_unit_string))
+          m_yaxis_unit_string = '-';
+      }
+    }
+  }
+  
+//  m_xaxis_unit_string
 }
 
 bool DataXYDisplay::xlim(double * xbounds) {
@@ -231,7 +299,6 @@ void ScatterDisplay::apply_config(nlohmann::json * json_config) {
   if (json_config->contains("data")) {
     for (auto& channel_pair : json_config->operator[]("data")["xychannels"]) {
       ScatterGroup * scatter_pair = new ScatterGroup(this, channel_pair[0], channel_pair[1], i);
-      // TODO: get unit string from Db and update set unit strings on scatter pair. Do same with LinePair.
       m_data_curves.push_back(scatter_pair);
       ++i;
     }
@@ -294,18 +361,7 @@ void ScatterDisplay::update_mean_lines()
   m_mean_xline.setSamples(xdata_xline, yaxes_bounds, 2);
   m_mean_yline.setSamples(xaxes_bounds, ydata_yline, 2);
   
-  char metrics_label_text[38];
-  sprintf(metrics_label_text,
-      "%7.2f \xE2\x88\x88 [%7.2f, %7.2f[-]];",
-        xmean, xlimits[0], xlimits[1]
-  );
-  m_mean_xlabel.setText(QString::fromUtf8(metrics_label_text));
-
-  sprintf(&metrics_label_text[0],
-      "%7.2f \xE2\x88\x88 [%7.2f, %7.2f[-]];",
-        ymean, ylimits[0], ylimits[1]
-  );
-  m_mean_ylabel.setText(QString::fromUtf8(metrics_label_text));
+  set_summary_stats_labels(xmean, xlimits[0], xlimits[1], ymean, ylimits[0], ylimits[1]);
 }
 
 void LineDisplay::update_mean_lines()
@@ -335,18 +391,7 @@ void LineDisplay::update_mean_lines()
   m_mean_xline.setSamples(xdata_xline, yaxes_bounds, 2);
   m_mean_yline.setSamples(xaxes_bounds, ydata_yline, 2);
   
-  char metrics_label_text[33];
-  sprintf(metrics_label_text,
-      "0. \xE2\x88\x88 [%7.2f, %7.2f[-]];",
-        xlimits[0], xlimits[1]
-  );
-  m_mean_xlabel.setText(QString::fromUtf8(metrics_label_text));
-
-  sprintf(&metrics_label_text[0],
-      "0. \xE2\x88\x88 [%7.2f, %7.2f[-]];",
-        ylimits[0], ylimits[1]
-  );
-  m_mean_ylabel.setText(QString::fromUtf8(metrics_label_text));
+  set_summary_stats_labels(0., xlimits[0], xlimits[1], 0., ylimits[0], ylimits[1]);
 }
 
 }  // namespace graphic

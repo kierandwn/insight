@@ -49,6 +49,7 @@ class WaveformGroup {
   double m_xlim[2]; double m_ylim[2];
     
   vector<string> m_channel_names;
+  vector<string> m_unit_strings;
 
  public:
   double m_normalised_height;

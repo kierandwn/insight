@@ -74,8 +74,10 @@ void WaveformDisplay::set_xlabel_position()
                    
 void WaveformDisplay::set_xlabel_value(double value)
 {
-  char * label_text = new char[17];
-  sprintf(label_text, "time: %.3f[s]", value);
+  size_t label_len = 12 + m_xchannel_name.length() + m_xchannel_unit_string.length();
+  
+  char * label_text = new char[label_len];
+  sprintf(label_text, "%s: %.3f[%s]", m_xchannel_name.c_str(), value, m_xchannel_unit_string.c_str());
   
   m_xlabel.setText(QString(label_text));
   delete[] label_text;
@@ -123,10 +125,22 @@ void WaveformDisplay::apply_config(nlohmann::json * json_config) {
 
 void WaveformDisplay::init() {
   init_xlabel();
-  for (size_t i = 0; i < m_waveform_groups.size(); ++i) {
-      m_waveform_groups[i]->init_curves();
-  }
+  for (size_t i = 0; i < m_waveform_groups.size(); ++i)
+    m_waveform_groups[i]->init_curves();
+  
   m_cursor.attach(this);
+}
+
+void WaveformDisplay::update_xchannel_data() {
+  int channels_to_plot = get_number_of_waveform_groups();
+  if (channels_to_plot > 0) {
+    string first_channel_name = m_waveform_groups[0]->get_channel_name(0);
+    
+    if (m_data->exists(first_channel_name)) {
+      data::Channel * xchannel = m_data->get(first_channel_name)->get_time_ref();
+      m_xchannel_unit_string = xchannel->get_unit_string();
+    }
+  }
 }
 
 void WaveformDisplay::update_after_data_load()
@@ -142,6 +156,7 @@ void WaveformDisplay::update_after_data_load()
   double xlimits[2];
   xlim(xlimits);
   
+  update_xchannel_data();
   update_cursor_position(xlimits[0]);
   
   replot();

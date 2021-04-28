@@ -42,6 +42,8 @@ void close_db();
 void establish_db(string);
 
 void add_files_table();
+void add_units_table();
+
 void add_maths_table();
 void add_layer_table(int=0);
 
@@ -51,7 +53,9 @@ void delete_maths_tables();
 void add_to_layer(string, int i=0);
 
 void add_file(string, string, string, vector<string>, string);
-void add_table(int, vector<string>);
+void add_table(int, string, vector<string>);
+
+void init_unit_row(string, string);
 
 QSqlQuery get_file_record(string);
 int get_table_id(string);

@@ -109,6 +109,7 @@ void establish_db(string filepath)
     open_db(filepath);
     
     add_files_table();
+    add_units_table();
   }
   add_layer_table();
   add_maths_table();
@@ -118,6 +119,11 @@ void establish_db(string filepath)
 
 void add_files_table() {
   sql_query("CREATE TABLE files (table_id INT, string_id TEXT, filename TEXT, filepath TEXT PRIMARY KEY, independent_variable TEXT)");
+  return;
+}
+
+void add_units_table() {
+  sql_query("CREATE TABLE unit_table (table_sid TEXT, channel_id TEXT, unit_string TEXT)");
   return;
 }
 
@@ -150,7 +156,7 @@ void delete_maths_tables() {
   sql_query("DROP TABLE math_tables;");
 }
 
-void add_to_layer(string filepath, int i)
+void add_to_layer(string filepath, int i_layer)
 {
   condition_for_sql(filepath);
   
@@ -161,8 +167,7 @@ void add_to_layer(string filepath, int i)
     QString sid = q.value("string_id").toString();
     
     QSqlQuery q(k_DB);
-    q.prepare(QString("INSERT INTO layer_%1 VALUES((:tid), (:fn), (:sid))").arg(to_string(i).c_str()));
-//    q.bindValue(0, ("layer_"+to_string(i)).c_str());
+    q.prepare(QString("INSERT INTO layer_%1 VALUES((:tid), (:fn), (:sid))").arg(to_string(i_layer).c_str()));
     q.bindValue(":tid", tid);
     q.bindValue(":fn", filename);
     q.bindValue(":sid", sid);
@@ -187,11 +192,11 @@ void add_file(string filename, string filepath, string hreadable_id, vector<stri
     q.bindValue(4, independent_var_channel_id.c_str());
     sql_query(q);
     
-    add_table(k_FILE_TABLE_LEN, channel_names);
+    add_table(k_FILE_TABLE_LEN, hreadable_id, channel_names);
   }
 }
 
-void add_table(int table_id, vector<string> channel_names)
+void add_table(int table_id, string table_sid, vector<string> channel_names)
 {
   string query_string = "CREATE TABLE data_" + to_string(table_id) + " (idx INT PRIMARY KEY";
   string channel_name;
@@ -201,9 +206,33 @@ void add_table(int table_id, vector<string> channel_names)
     
     condition_for_sql(channel_name);
     query_string += ", "+channel_name+" DOUBLE";
+    
+    init_unit_row(table_sid, channel_name);
   }
   query_string += ");";
   sql_query(query_string);
+}
+
+void init_unit_row(string table_sid, string channel_name)
+{
+  QSqlQuery q;
+  q.prepare("SELECT count(*) FROM unit_table WHERE table_sid=(:sid) AND channel_id=(:cid);");
+  q.bindValue(":sid", table_sid.c_str());
+  q.bindValue(":cid", channel_name.c_str());
+  sql_query(q);
+  
+  q.first();
+  bool unit_row_exists = q.value(0).toInt() == 1;
+  
+  if (!unit_row_exists)
+  {
+    QSqlQuery qr;
+    qr.prepare("INSERT INTO unit_table VALUES((:sid), (:cid), (:unit))");
+    qr.bindValue(":sid", table_sid.c_str());
+    qr.bindValue(":cid", channel_name.c_str());
+    qr.bindValue(":unit", "-");
+    sql_query(qr);
+  }
 }
 
 QSqlQuery get_file_record(string filepath) {
@@ -400,6 +429,21 @@ string get_math_channel_data(string math_table_sid, string math_channel_name, Ch
   return get_math_time_channel_id(math_table_id);
 }
 
+string get_unit_string(string table_sid, string channel_id)
+{
+  QSqlQuery q(k_DB);
+  q.prepare("SELECT unit_string FROM unit_table where table_sid=(:sid) AND channel_id=(:cid);");
+  q.bindValue(":sid", table_sid.c_str());
+  q.bindValue(":cid", channel_id.c_str());
+  sql_query(q);
+  
+  if (q.isActive()) {
+    q.first();
+    return q.value("unit_string").toString().toStdString();
+  }
+  return "-";
+}
+
 Channel * Table::get(string id)
 {
   bool channel_in_memory =
@@ -435,7 +479,6 @@ Channel * Table::get(string id)
       if (!time_channel_in_memory) {
         time_channel = new Channel;
         get_math_channel_data(math_table_id, time_channel_id, time_channel);
-        time_channel->set_unit_string(m_time_channel_unit); // TODO: extract time channel unit from DB?
         
         m_channels_in_memory[time_id] = time_channel;
       }
@@ -452,7 +495,9 @@ Channel * Table::get(string id)
       if (!time_channel_in_memory) {
         time_channel = new Channel;
         get_channel_data(table_id, time_channel_id, time_channel);
-        time_channel->set_unit_string(m_time_channel_unit); // TODO: extract time channel unit from DB?
+        
+        string unit_string = get_unit_string(table_id, time_channel_id);
+        time_channel->set_unit_string(m_time_channel_unit);
         
         m_channels_in_memory[time_id] = time_channel;
       }
@@ -462,6 +507,12 @@ Channel * Table::get(string id)
       
       get_channel_data(table_id, time_channel_id, time_channel);
     }
+    // set unit strings
+    string unit_string = get_unit_string(table_id, channel_id);
+    data_channel->set_unit_string(unit_string);
+    
+    unit_string = get_unit_string(table_id, time_channel_id);
+    time_channel->set_unit_string(unit_string);
     
     data_channel->update_time_channel_ptr(time_channel);
     m_channels_in_memory[id] = data_channel;

@@ -29,39 +29,39 @@ using namespace std;
 
 void WaveformDisplay::mousePressEvent(QMouseEvent * event)
 {
-  QwtScaleMap map = canvasMap(xBottom);
-  double m_mouse_xpos = map.invTransform(event->x());
-    
+  double x_mouse = axis_coordx_from_painter_scale(event->x());
+  m_mouse_state.x(x_mouse);
   
   double widest_xlim[2];
   xlim(widest_xlim);
   
   double xrange = widest_xlim[1] - widest_xlim[0];
     
-  if (abs(m_mouse_xpos - m_xpos_cursor) < (xrange * .05))
-  m_mouse_state = CursorDrag;
+  if (abs(m_mouse_state.x() - m_xpos_cursor) < (xrange * .05))
+    m_mouse_state = CursorDrag;
     
-  update_group_cursor_positions(m_mouse_xpos);
+  update_group_cursor_positions(m_mouse_state.x());
 }
 
-void WaveformDisplay::mouseMoveEvent(QMouseEvent * event) {
+void WaveformDisplay::mouseMoveEvent(QMouseEvent * event)
+{
     if (m_mouse_state == CursorDrag) {
       mousePressEvent(event); // update cursor positon
       
     } else if (m_mouse_state == Ready || m_mouse_state == Pan) {
       m_mouse_state = Pan;
       
-      QwtScaleMap x_map = canvasMap(xBottom);
-      double delta_x = x_map.invTransform(event->x()) - x_map.invTransform(m_mouse_state.x());
+      double x_mouse = axis_coordx_from_painter_scale(event->x());
+      double delta_x = x_mouse - m_mouse_state.x();
       
       double x_lbound = axisScaleDiv(xBottom).lowerBound();
       double x_hbound = axisScaleDiv(xBottom).upperBound();
       
-      x_lbound -= delta_x;
-      x_hbound -= delta_x;
+      x_lbound -= delta_x * .80;
+      x_hbound -= delta_x * .80;
       
       update_group_view_limits(x_lbound, x_hbound);
-      m_mouse_state.x(event->x());
+      m_mouse_state.x(x_mouse);
     }
 }
 
@@ -73,18 +73,21 @@ void WaveformDisplay::mouseReleaseEvent(QMouseEvent *) {
   m_mouse_state = Ready;
 }
 
-void WaveformDisplay::wheelEvent(QWheelEvent * event) {
+void WaveformDisplay::wheelEvent(QWheelEvent * event)
+{
   double scroll_speed_scalar = .001;
   double vertical_scroll_delta = event->angleDelta().y();
   
-  double widest_xlim[2];
-  xlim(widest_xlim);
+  double x_lbound = axisScaleDiv(xBottom).lowerBound();
+  double x_hbound = axisScaleDiv(xBottom).upperBound();
+  double xrange = x_hbound - x_lbound;
   
-  double xrange = widest_xlim[1] - widest_xlim[0];
+  double x_mouse = axis_coordx_from_painter_scale(event->position().x());
+  double lhs_scaling = (x_mouse - x_lbound) / xrange;
   
-  widest_xlim[0] -= scroll_speed_scalar * vertical_scroll_delta * xrange;
-  widest_xlim[1] += scroll_speed_scalar * vertical_scroll_delta * xrange;
-  update_group_view_limits(widest_xlim[0], widest_xlim[1]);
+  x_lbound -= scroll_speed_scalar * vertical_scroll_delta * xrange * lhs_scaling;
+  x_hbound += scroll_speed_scalar * vertical_scroll_delta * xrange * (1. - lhs_scaling);
+  update_group_view_limits(x_lbound, x_hbound);
 }
 
 }  // namespace graphic

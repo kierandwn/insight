@@ -91,6 +91,7 @@ double convert_to_type(string var) {
 void import_from_csv (string filename,
                       string dirpath,
                       string common_prefix="",
+                      string independent_var_channel_id="t",
                       string delim="," )
 {
   string filepath = dirpath+"/"+filename;
@@ -111,7 +112,7 @@ void import_from_csv (string filename,
   
   if (!data::does_file_exist(filepath))
   {
-    data::add_file(filename, filepath, hreadable_id, channel_ids);
+    data::add_file(filename, filepath, hreadable_id, channel_ids, independent_var_channel_id);
     
     size_t pos = 0;
     map<string, data::Channel> channels;

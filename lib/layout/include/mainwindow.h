@@ -51,7 +51,7 @@ class ApplicationMainWindow : public QMainWindow
   Q_OBJECT
  private:
   Ui::InsightMainWindow * ui;
-  string src_root_dir_;
+  string m_source_root_dirpath;
   
   string m_layout_dirpath;
   string m_layout_filepath;

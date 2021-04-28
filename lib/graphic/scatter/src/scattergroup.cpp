@@ -22,6 +22,7 @@
 #include <qwt_symbol.h>
 #include <qwt_plot_curve.h>
 
+#include "insight_graphic_base.h"
 #include "table.h"
 #include "channel.h"
 
@@ -30,18 +31,18 @@ namespace graphic {
 
 void DisplayCrosshair::set_label_values(double xvalue, double yvalue)
 {
-  char * xlabel_text = new char[m_xchannel_name.size()+62];
-  char * ylabel_text = new char[m_ychannel_name.size()+62];
+  char * xlabel_text = new char[m_xchannel_name.size()+m_xchannel_unit_string.size()+61];
+  char * ylabel_text = new char[m_ychannel_name.size()+m_ychannel_unit_string.size()+61];
   
   sprintf(xlabel_text,
-      "<span style=\"color : rgb(50, 50, 50);\">%s:</span> %*.2f[-];",
-          m_xchannel_name.c_str(), 7, xvalue
+      "<span style=\"color : rgb(50, 50, 50);\">%s:</span> %*.2f[%s];",
+          m_xchannel_name.c_str(), 7, xvalue, m_xchannel_unit_string.c_str()
   );
   sprintf(ylabel_text,
-      "<span style=\"color : rgb(50, 50, 50);\">%s:</span> %*.2f[-];",
-          m_ychannel_name.c_str(), 7, yvalue
+      "<span style=\"color : rgb(50, 50, 50);\">%s:</span> %*.2f[%s];",
+          m_ychannel_name.c_str(), 7, yvalue, m_ychannel_unit_string.c_str()
   );
-  
+
   m_xlabel.setText(QString(xlabel_text));
   m_ylabel.setText(QString(ylabel_text));
 
@@ -51,8 +52,10 @@ void DisplayCrosshair::set_label_values(double xvalue, double yvalue)
 
 void DisplayCrosshair::set_xy(double x, double y, double * xlim, double * ylim)
 {
-  int label_width = 300;
-  int label_height = 15;
+  set_label_values(x, y);
+  
+  int paint_coord_x = p_parent->painter_coordx_from_axis_scale(x);
+  int paint_coord_y = p_parent->painter_coordy_from_axis_scale(y);
   
   double horzbar_ydata[2]{y, y};
   double vertbar_xdata[2]{x, x};
@@ -66,22 +69,21 @@ void DisplayCrosshair::set_xy(double x, double y, double * xlim, double * ylim)
   
   // update crosshair label positions
   m_xlabel.setGeometry(
-    p_parent->width() - (label_width + 5),
-    ((ylim[1] - y) / (ylim[1] - ylim[0])) * p_parent->height() - 16,
-    label_width,
-    label_height
+    p_parent->width() - (m_xlabel.sizeHint().width() + 5),
+    paint_coord_y - 10,
+    m_xlabel.sizeHint().width(),
+    m_xlabel.sizeHint().height()
   );
     
   m_ylabel.setGeometry(
-    ((x - xlim[0]) / (xlim[1] - xlim[0])) * p_parent->width(),
+    paint_coord_x,
     5,
-    label_height,
-    label_width
+    m_ylabel.sizeHint().width(),
+    m_ylabel.sizeHint().height()
   );
-  set_label_values(x, y);
 }
 
-DataXYGroup::DataXYGroup(QwtPlot * parent, string xchannel_id, string ychannel_id, int color_index=0)
+DataXYGroup::DataXYGroup(Base * parent, string xchannel_id, string ychannel_id, int color_index=0)
     : p_parent(parent),
       m_crosshair(parent, xchannel_id, ychannel_id),
       m_xchannel_name(xchannel_id),
@@ -161,7 +163,7 @@ void ScatterGroup::set_data_from_table(data::Table * table,
 {
   // data is present
   if (!channels_present_in(table)) {
-    m_crosshair.detach();
+//    m_crosshair.detach();
     return;
   }
   
@@ -173,6 +175,8 @@ void ScatterGroup::set_data_from_table(data::Table * table,
   } else {
     m_ychannel = ychannel->resample_on(m_xchannel->get_time_ref(), m_xchannel->length());
   }
+  m_crosshair.set_xchannel_unit_string(m_xchannel->get_unit_string());
+  m_crosshair.set_ychannel_unit_string(m_ychannel->get_unit_string());
   
   size_t n = m_xchannel->length();
   
@@ -284,7 +288,7 @@ void LineGroup::set_data_from_table(data::Table * table,
 {
   // data is present
   if (!channels_present_in(table)) {
-    m_crosshair.detach();
+//    m_crosshair.detach();
     return;
   }
   

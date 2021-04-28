@@ -30,23 +30,26 @@
 namespace insight {
 namespace graphic {
 
-VLabel::VLabel(QWidget * parent) : QLabel(parent) {}
+VLabel::VLabel(QWidget * parent) : QLabel(parent) {
+  setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  setWordWrap(false);
+}
 VLabel::VLabel(const QString& text, QWidget * parent) : QLabel(text, parent) {}
   
 void VLabel::paintEvent(QPaintEvent *) {
   QStylePainter painter(this);
-//  QTextDocument tdoc;
-//
-//  tdoc.setHtml(text().toStdString().c_str());
-  
-  //  painter.setPen(Qt::black);
   painter.setBrush(Qt::Dense1Pattern);
   
-  painter.translate(sizeHint().width(), 0.);
+  painter.translate(sizeHint().width(), 0);
   painter.rotate(90);
   
-  painter.drawStaticText(0, 0, QStaticText(text()));
-//  tdoc.drawContents(&painter);
+  QTextOption options;
+  options.setWrapMode(QTextOption::NoWrap);
+  
+  QStaticText static_text(text());
+  static_text.setTextOption(options);
+  
+  painter.drawStaticText(0, 0, static_text);
 }
   
 QSize VLabel::minimumSizeHint() const {

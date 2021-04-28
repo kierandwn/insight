@@ -64,6 +64,9 @@ private:
   MouseState m_mouse_state;
     
   void cursor_in_xrange();
+  
+  string m_xchannel_name = "time";
+  string m_xchannel_unit_string = "-";
 
 public:
   WaveformDisplay(data::Table *, layout::Layout *);
@@ -115,7 +118,8 @@ public:
   
   void set_xlabel_position();
   void set_xlabel_value(double);
-    
+  
+  void update_xchannel_data();
   void update_label_values_at(double);
   
   void update_after_data_load () override;

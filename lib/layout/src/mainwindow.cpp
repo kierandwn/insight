@@ -44,7 +44,7 @@ string k_DEFAULT_DB_FILEPATH = QDir::homePath().toStdString() + "/.insight/insig
 ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * parent)
     : QMainWindow(parent),
       ui(new Ui::InsightMainWindow),
-      src_root_dir_(source_root_dir)
+      m_source_root_dirpath(source_root_dir)
 {
   ui->setupUi(this);
   load_config();
@@ -59,7 +59,7 @@ ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * p
 ApplicationMainWindow::~ApplicationMainWindow()
 {
   delete ui;
-  data::delete_layer_tables();
+  data::close_db();
 }
 
 void ApplicationMainWindow::update() {
@@ -76,7 +76,7 @@ void ApplicationMainWindow::load_config() {
     config_filename = k_USER_SPECIFIC_CONFIG_FILEPATH;
     
   } else {
-    config_filename = src_root_dir_ + "/config/default.config";
+    config_filename = m_source_root_dirpath + "/config/default.config";
     
   }
   import_from_json(config_filename);
@@ -147,26 +147,31 @@ vector<string> remove_dirpath(QStringList filepaths, string dirpath) {
 void ApplicationMainWindow::on_actionLoad_File_triggered()
 {
   QStringList filepaths = QFileDialog::getOpenFileNames(this,
-    tr("Load Data File"), tr(src_root_dir_.append("/demo", 5).c_str()), tr("CSV Files (*.csv)"));
+    tr("Load Data File"), tr((m_source_root_dirpath+"/demo").c_str()), tr("CSV Files (*.csv)"));
   
-  string common_prefix = "";
-  
-  string fullpath = filepaths[0].toStdString();
-  string dirpath = fullpath.substr(0, fullpath.rfind("/"));
-  
-  vector<string> filenames = remove_dirpath(filepaths, dirpath);
-  
-  if (filenames.size() > 1) {
-    common_prefix = longest_common_string_prefix(filenames);
+  if (filepaths.size() > 0)
+  {
+    string common_prefix = "";
+    
+    string fullpath = filepaths[0].toStdString();
+    string dirpath = fullpath.substr(0, fullpath.rfind("/"));
+    
+    vector<string> filenames = remove_dirpath(filepaths, dirpath);
+    
+    if (filenames.size() > 1) {
+      common_prefix = longest_common_string_prefix(filenames);
+    }
+    
+    for (string filename : filenames) {
+      import_from_csv(filename,
+                      dirpath,
+                      common_prefix,
+                      m_data.get_time_channel_name()
+                      );
+    }
+    data::compute_math_channels(0, m_db_filepath, m_source_root_dirpath);
+    update();
   }
-  
-  for (string filename : filenames) {
-    import_from_csv(filename,
-                    dirpath,
-                    common_prefix
-                    );
-  }
-  update();
 }
 
 void ApplicationMainWindow::resizeEvent(QResizeEvent * event)
@@ -193,10 +198,10 @@ string longest_common_string_prefix(vector<string> string_list) {
 
 string longest_common_string_prefix(string X, string Y)
 {
-  int m = X.size();
-  int n = Y.size();
+  size_t m = X.size();
+  size_t n = Y.size();
   
-  int i;
+  size_t i;
   for (i = 0; i < min(m, n); i++)
   {
     if (!(X[i] == Y[i])) {

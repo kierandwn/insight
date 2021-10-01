@@ -79,6 +79,14 @@ def add_mathtable_data(mid, data, tdata):
 
 	submit_query(query)
 
+def add_math_unit_string(math_table_sid, channel_id, unit_string):
+	query = "INSERT INTO unit_table VALUES ('{}', '{}', '{}')".format( \
+		"math::{}".format(math_table_sid), \
+		channel_id, \
+		unit_string \
+	)
+	submit_query(query)
+
 def set_db_filepath(db_filepath):
 	global db_name
 	db_name = db_filepath
@@ -90,6 +98,7 @@ class Channel:
 		self.tdata = np.array([])
 		self.read_from_db = False
 		self.ivarid = "t"
+		self.unit_string = "-"
 
 		if not (table_hid=="" and channel_id==""):
 			self.read(table_hid, channel_id)
@@ -116,9 +125,13 @@ class Channel:
 	def set_timechannel_id(self, ivarid):
 		self.ivarid = ivarid
 
+	def set_unit_string(self, unit_string):
+		self.unit_string = unit_string
+
 	def write(self, math_channel_id):
 		mid = add_math_channel(math_channel_id, self.ivarid)
 		add_mathtable_data(mid, self.data, self.tdata)
+		add_math_unit_string(math_channel_id, math_channel_id, self.unit_string)
 
 	def timedata(self):
 		return self.tdata
@@ -145,6 +158,9 @@ class Channel:
 		result = Channel()
 		result.set_data(rhs + self.data) # reversed so that rhs Channels are also supported
 		return result
+
+	def len(self):
+		return len(self.data)
 
 
 

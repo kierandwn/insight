@@ -46,7 +46,7 @@ void add_files_table();
 void add_units_table();
 
 void add_maths_table();
-void add_layer_table(int=0);
+void add_layer_table();
 
 void delete_layer_tables();
 void delete_maths_tables();
@@ -64,6 +64,8 @@ int get_table_id(string);
 int get_table_count(string);
 int get_row_count(string);
 
+int file_count_in_layer(int);
+
 bool does_file_exist(string);
 bool does_table_exist(string);
 
@@ -80,15 +82,18 @@ void compute_math_channels(int, string, string);
 
 class Table {
 private:
-  map<string, Channel *> m_channels_in_memory;
+  vector<map<string, Channel *>> m_channels_in_memory;
+  
   string m_time_channel_name;
   string m_time_channel_unit;
 
 public:
-  Table() {}
+  Table() {
+    m_channels_in_memory.push_back(map<string, Channel *>());
+  }
   ~Table() { clear(); }
 
-  Channel * get(string id);
+  Channel * get(string, int=0);
   
   void set_time_channel_name(string channel_name) { m_time_channel_name = channel_name; }
   void set_time_channel_unit(string channel_unit) { m_time_channel_unit = channel_unit; }
@@ -96,24 +101,30 @@ public:
   string get_time_channel_name() { return m_time_channel_name; }
   string get_time_channel_unit() { return m_time_channel_unit; }
 
-  void add(string channel_name)
+  void add(string channel_name, int layer=0)
   {
-    if (m_channels_in_memory.find(channel_name) == m_channels_in_memory.end()) {
-      m_channels_in_memory[channel_name] = new Channel;
+    map<string, Channel *>& channels_in_layer = m_channels_in_memory[layer];
+    
+    if (channels_in_layer.find(channel_name) == channels_in_layer.end()) {
+      channels_in_layer[channel_name] = new Channel;
     }
   }
 
 //  bool exists(string id) { return (!(m_channels_in_memory.find(id) == m_channels_in_memory.end())); }
-  bool exists(string id);
+  bool exists_in_layer(string, int=0);
 
   void clear() {
-    for (map<string, Channel *>::iterator c = m_channels_in_memory.begin(); c != m_channels_in_memory.end(); ++c) {
-      delete c->second;
+    for (int layer = 0; layer < m_channels_in_memory.size(); ++layer) {
+      map<string, Channel *>& channels_in_layer = m_channels_in_memory[layer];
+      
+      for (map<string, Channel *>::iterator c = channels_in_layer.begin(); c != channels_in_layer.end(); ++c) {
+        delete c->second;
+      }
+      channels_in_layer.clear();
     }
-    m_channels_in_memory.clear();
   }
 
-  Channel * operator[] (string id) { return m_channels_in_memory[id]; }
+//  Channel * operator[] (string id) { return m_channels_in_memory[id]; }
 };
 
 }  // namespace data

@@ -156,11 +156,10 @@ void add_maths_table()
   return;
 }
 
-void add_layer_table(int i) {
+void add_layer_table()
+{
   delete_layer_tables();
-  
-  QString s = QString("CREATE TABLE layer_%1 ( table_id INT PRIMARY KEY, filename TEXT, string_id TEXT UNIQUE)").arg(to_string(i).c_str());
-  sql_query(s.toStdString());
+  sql_query("CREATE TABLE layers_table (layer INT, table_id INT, filename TEXT, string_id TEXT)");
   return;
 }
 
@@ -181,6 +180,18 @@ void delete_maths_tables()
     sql_query("DROP TABLE math_"+to_string(mid)+";");
   
   sql_query("DROP TABLE math_tables;");
+}
+
+bool is_in_layer(string string_id, int layer)
+{
+  QSqlQuery q(k_DATABASE);
+  q.prepare("SELECT count(*) FROM layers_table WHERE layer=(:layer) AND string_id=(:sid);");
+  q.bindValue(":layer", to_string(layer).c_str());
+  q.bindValue(":sid", string_id.c_str());
+  sql_query(q);
+  
+  q.first();
+  return q.value(0).toInt() >= 1;
 }
 
 void add_to_layer(string filepath, int i_layer)
@@ -502,13 +513,15 @@ string get_unit_string(string table_sid, string channel_id)
   return "-";
 }
 
-Channel * Table::get(string id)
+Channel * Table::get(string id, int layer)
 {
+  map<string, Channel *>& channels_in_layer = m_channels_in_memory[layer];
+  
   bool channel_in_memory =
-    m_channels_in_memory.find(id) != m_channels_in_memory.end();
+  channels_in_layer.find(id) != channels_in_layer.end();
   
   if (channel_in_memory)
-    return m_channels_in_memory[id];
+    return channels_in_layer[id];
     
   else {
     string table_id = id.substr(0, id.rfind("::"));
@@ -532,23 +545,24 @@ Channel * Table::get(string id)
       time_channel_id = get_math_channel_data(math_table_id, channel_id, data_channel);
       time_id = table_id+"::"+time_channel_id;
       
-      bool time_channel_in_memory = m_channels_in_memory.find(time_id) != m_channels_in_memory.end();
+      bool time_channel_in_memory = channels_in_layer.find(time_id) != channels_in_layer.end();
       
       if (!time_channel_in_memory) {
         time_channel = new Channel;
         get_math_channel_data(math_table_id, time_channel_id, time_channel);
         
-        m_channels_in_memory[time_id] = time_channel;
+        channels_in_layer[time_id] = time_channel;
       }
       else {
-        time_channel = m_channels_in_memory[time_id];
+        time_channel = channels_in_layer[time_id];
       }
+      table_id = "math::" + math_table_id;
     }
     else {
       time_channel_id = get_channel_data(table_id, channel_id, data_channel);
       
       time_id = table_id+"::"+time_channel_id;
-      bool time_channel_in_memory = m_channels_in_memory.find(time_id) != m_channels_in_memory.end();
+      bool time_channel_in_memory = channels_in_layer.find(time_id) != channels_in_layer.end();
       
       if (!time_channel_in_memory) {
         time_channel = new Channel;
@@ -557,10 +571,10 @@ Channel * Table::get(string id)
         string unit_string = get_unit_string(table_id, time_channel_id);
         time_channel->set_unit_string(m_time_channel_unit);
         
-        m_channels_in_memory[time_id] = time_channel;
+        channels_in_layer[time_id] = time_channel;
       }
       else {
-        time_channel = m_channels_in_memory[time_id];
+        time_channel = channels_in_layer[time_id];
       }
       
       get_channel_data(table_id, time_channel_id, time_channel);
@@ -573,14 +587,18 @@ Channel * Table::get(string id)
     time_channel->set_unit_string(unit_string);
     
     data_channel->update_time_channel_ptr(time_channel);
-    m_channels_in_memory[id] = data_channel;
+    channels_in_layer[id] = data_channel;
     return data_channel;
   }
 }
 
-bool Table::exists(string id) {
-  bool channel_in_memory =
-    m_channels_in_memory.find(id) != m_channels_in_memory.end();
+bool Table::exists_in_layer(string id, int layer) {
+  map<string, Channel *>& channels_in_layer = m_channels_in_memory[layer];
+
+  size_t n_channels_in_memory = channels_in_layer.size();
+  
+  bool channel_in_memory = n_channels_in_memory > 0 && \
+    channels_in_layer.find(id) != channels_in_layer.end();
   
   if (channel_in_memory)
     return true;

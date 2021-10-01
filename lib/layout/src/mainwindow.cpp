@@ -8,7 +8,7 @@
 // either version 3 of the License,
 // or (at your option) any later version.
 //
-// attitude is distributed in the hope that it will be useful,
+// insight is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
@@ -37,6 +37,7 @@
 
 
 namespace insight {
+
 
 string k_USER_SPECIFIC_CONFIG_FILEPATH = QDir::homePath().toStdString() + "/.insight/.config";
 string k_DEFAULT_DB_FILEPATH = QDir::homePath().toStdString() + "/.insight/insight.db";
@@ -146,6 +147,11 @@ vector<string> remove_dirpath(QStringList filepaths, string dirpath) {
 
 void ApplicationMainWindow::on_actionLoad_File_triggered()
 {
+  load_data_from_files(0);
+}
+
+void ApplicationMainWindow::load_data_from_files(int layer)
+{
   QStringList filepaths = QFileDialog::getOpenFileNames(this,
     tr("Load Data File"), tr((m_source_root_dirpath+"/demo").c_str()), tr("CSV Files (*.csv)"));
   
@@ -169,8 +175,27 @@ void ApplicationMainWindow::on_actionLoad_File_triggered()
                       m_data.get_time_channel_name()
                       );
     }
-    data::compute_math_channels(0, m_db_filepath, m_source_root_dirpath);
+    data::compute_math_channels(layer, m_db_filepath, m_source_root_dirpath);
     update();
+  }
+}
+
+void ApplicationMainWindow::on_actionImport_from_File_s_triggered(int layer)
+{
+  load_data_from_files(layer);
+  
+  if (layer == m_nlayer && data::file_count_in_layer(layer) > 0)
+  {
+    int current_layer = ++m_nlayer;
+    
+    QMenu * menuLayer_n = new QMenu(ui->menuAdd_to_Layer);
+    menuLayer_n->setObjectName(QString::fromUtf8("menuLayer_")+QString(to_string(m_nlayer).c_str()));
+    
+    ui->menuAdd_to_Layer->addAction(menuLayer_n->menuAction());
+    menuLayer_n->addAction(("Layer "+to_string(m_nlayer)).c_str(),
+                           [this, current_layer]() { this->on_actionImport_from_File_s_triggered(current_layer - 1); });
+    
+    menuLayer_n->setTitle(QCoreApplication::translate("InsightMainWindow", ("Layer "+to_string(m_nlayer)).c_str(), nullptr));
   }
 }
 

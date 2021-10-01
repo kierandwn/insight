@@ -59,7 +59,7 @@ ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * p
 ApplicationMainWindow::~ApplicationMainWindow()
 {
   delete ui;
-  data::close_db();
+  data::shutdown_db();
 }
 
 void ApplicationMainWindow::update() {

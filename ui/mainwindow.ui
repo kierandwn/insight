@@ -51,20 +51,38 @@
      <x>0</x>
      <y>0</y>
      <width>2509</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>Data</string>
     </property>
+    <widget class="QMenu" name="menuAdd_to_Layer">
+     <property name="title">
+      <string>Add to Layer</string>
+     </property>
+     <widget class="QMenu" name="menuLayer_1">
+      <property name="title">
+       <string>Layer 1</string>
+      </property>
+      <addaction name="actionImport_from_File_s"/>
+     </widget>
+     <addaction name="menuLayer_1"/>
+    </widget>
     <addaction name="actionLoad_File"/>
+    <addaction name="menuAdd_to_Layer"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
   <action name="actionLoad_File">
    <property name="text">
     <string>Load File</string>
+   </property>
+  </action>
+  <action name="actionImport_from_File_s">
+   <property name="text">
+    <string>Import from File(s)</string>
    </property>
   </action>
  </widget>

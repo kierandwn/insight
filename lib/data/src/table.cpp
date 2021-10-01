@@ -35,10 +35,14 @@ namespace data {
 
 using namespace std;
 
-int k_FILE_TABLE_LEN = 0;
-QSqlDatabase k_DB;
+QSqlDatabase k_DATABASE;
+const QString k_DATABASE_DRIVER("QSQLITE");
 
-string stringify(double d) {
+int k_FILE_TABLE_LEN = 0;
+string k_DATABASE_FILEPATH;
+
+string stringify(double d)
+{
   string s;
   if (isnan(d) || isinf(d))
     s = "NULL";
@@ -48,25 +52,28 @@ string stringify(double d) {
   return s;
 }
 
-QSqlQuery sql_query(string s) {
-  QSqlQuery q(k_DB);
-  q.prepare(s.c_str());
-  
-  if(!q.exec()) {
+QSqlQuery sql_query(QSqlQuery& q)
+{
+  if(!q.exec())
+  {
     qWarning() << "ERROR: " << q.lastError().text();
     qWarning() << "\t query: " << q.executedQuery();
   }
+  k_DATABASE.commit();
   return q;
 }
 
-void sql_query(QSqlQuery& q) {
-  if(!q.exec()) {
-    qWarning() << "ERROR: " << q.lastError().text();
-    qWarning() << "\t query: " << q.executedQuery();
-  }
+QSqlQuery sql_query(string s)
+{
+  QSqlQuery q(k_DATABASE);
+  q.prepare(s.c_str());
+  
+  sql_query(q);
+  return q;
 }
 
-void condition_for_sql(string& s) {
+void condition_for_sql(string& s)
+{
   replace(s.begin(), s.end(), '[', '_');
   replace(s.begin(), s.end(), ']', '_');
   replace(s.begin(), s.end(), '-', '_');
@@ -76,37 +83,51 @@ void condition_for_sql(string& s) {
   return;
 }
 
-void open_db(string filepath) {
-  const QString DRIVER("QSQLITE");
-   
-  if ( QSqlDatabase::isDriverAvailable(DRIVER) ) {
-    QSqlDatabase k_DB = QSqlDatabase::addDatabase(DRIVER);
-    
-    k_DB.setDatabaseName(filepath.c_str());
+void set_db_filepath(string filepath)
+{
+    k_DATABASE_FILEPATH = filepath;
+}
+
+void open_db()
+{
+  if ( QSqlDatabase::isDriverAvailable(k_DATABASE_DRIVER) )
+  {
+    QSqlDatabase k_DATABASE = QSqlDatabase::addDatabase(k_DATABASE_DRIVER);
+    k_DATABASE.setDatabaseName(k_DATABASE_FILEPATH.c_str());
   
     // Check that database is open
-    if(!k_DB.open()) {
-      qWarning() << "ERROR: " << k_DB.lastError();
-    }
+    if(!k_DATABASE.open())
+      qWarning() << "ERROR: " << k_DATABASE.lastError();
   }
   return;
 }
 
-void close_db() {
+void close_db()
+{
+  k_DATABASE.close();
+}
+
+void shutdown_db()
+{
   delete_layer_tables();
   delete_maths_tables();
-  k_DB.commit();
-  k_DB.close();
+  
+  close_db();
 }
 
 void establish_db(string filepath)
 {
-  if (QFileInfo(filepath.c_str()).exists()) {
-    open_db(filepath);
+  if (QFileInfo(filepath.c_str()).exists())
+  {
+    set_db_filepath(filepath);
+    open_db();
+    
     delete_layer_tables(); // remove tracking from previous session if present
     delete_maths_tables();
+    
   } else {
-    open_db(filepath);
+    set_db_filepath(filepath);
+    open_db();
     
     add_files_table();
     add_units_table();
@@ -117,18 +138,21 @@ void establish_db(string filepath)
   return;
 }
 
-void add_files_table() {
+void add_files_table()
+{
   sql_query("CREATE TABLE files (table_id INT, string_id TEXT, filename TEXT, filepath TEXT PRIMARY KEY, independent_variable TEXT)");
   return;
 }
 
-void add_units_table() {
+void add_units_table()
+{
   sql_query("CREATE TABLE unit_table (table_sid TEXT, channel_id TEXT, unit_string TEXT)");
   return;
 }
 
-void add_maths_table() {
-  sql_query("CREATE TABLE math_tables (table_id INT, string_id TEXT PRIMARY KEY, independent_variable TEXT)");
+void add_maths_table()
+{
+  sql_query("CREATE TABLE math_tables (layer INT, table_id INT, string_id TEXT PRIMARY KEY, independent_variable TEXT)");
   return;
 }
 
@@ -140,19 +164,22 @@ void add_layer_table(int i) {
   return;
 }
 
-void delete_layer_tables() {
-  for (int i = 0; i < 1; ++i) {
-    sql_query("DROP TABLE layer_"+to_string(i)+";");
-  }
+void delete_layer_tables()
+{
+  sql_query("DROP TABLE layers_table;");
 }
 
-void delete_maths_tables() {
+void delete_maths_tables()
+{
   QSqlQuery q = sql_query("SELECT table_id FROM math_tables");
-  int mid;
-  while (q.next()) {
-    mid = q.value("table_id").toInt();
+  vector<int> math_table_ids;
+  
+  while (q.next())
+    math_table_ids.push_back(q.value("table_id").toInt());
+  
+  for (auto const& mid: math_table_ids)
     sql_query("DROP TABLE math_"+to_string(mid)+";");
-  }
+  
   sql_query("DROP TABLE math_tables;");
 }
 
@@ -166,12 +193,16 @@ void add_to_layer(string filepath, int i_layer)
     QString filename = q.value("filename").toString();
     QString sid = q.value("string_id").toString();
     
-    QSqlQuery q(k_DB);
-    q.prepare(QString("INSERT INTO layer_%1 VALUES((:tid), (:fn), (:sid))").arg(to_string(i_layer).c_str()));
-    q.bindValue(":tid", tid);
-    q.bindValue(":fn", filename);
-    q.bindValue(":sid", sid);
-    sql_query(q);
+    if (!is_in_layer(sid.toStdString(), i_layer))
+    {
+      QSqlQuery q(k_DATABASE);
+      q.prepare("INSERT INTO layers_table VALUES((:layer), (:tid), (:fn), (:sid))");
+      q.bindValue(":layer", i_layer);
+      q.bindValue(":tid", tid);
+      q.bindValue(":fn", filename);
+      q.bindValue(":sid", sid);
+      sql_query(q);
+    }
   }
 }
 
@@ -183,7 +214,7 @@ void add_file(string filename, string filepath, string hreadable_id, vector<stri
   {
     k_FILE_TABLE_LEN++;
     
-    QSqlQuery q(k_DB);
+    QSqlQuery q(k_DATABASE);
     q.prepare("INSERT INTO files VALUES(?, ?, ?, ?, ?)");
     q.bindValue(0, to_string(k_FILE_TABLE_LEN).c_str());
     q.bindValue(1, hreadable_id.c_str());
@@ -220,8 +251,8 @@ void init_unit_row(string table_sid, string channel_name)
   q.bindValue(":sid", table_sid.c_str());
   q.bindValue(":cid", channel_name.c_str());
   sql_query(q);
-  
   q.first();
+  
   bool unit_row_exists = q.value(0).toInt() == 1;
   
   if (!unit_row_exists)
@@ -235,11 +266,12 @@ void init_unit_row(string table_sid, string channel_name)
   }
 }
 
-QSqlQuery get_file_record(string filepath) {
+QSqlQuery get_file_record(string filepath)
+{
   condition_for_sql(filepath);
   
-  QSqlQuery q(k_DB);
-  q.prepare("SELECT * FROM files WHERE files.filepath=?");
+  QSqlQuery q(k_DATABASE);
+  q.prepare("SELECT * FROM files WHERE files.filepath=? LIMIT 1;");
   q.bindValue(0, filepath.c_str());
   sql_query(q);
   return q;
@@ -249,56 +281,74 @@ int get_table_id(string filepath)
 {
   QSqlQuery q = get_file_record(filepath);
   if (q.first())
-  {
     return q.value("table_id").toInt();
-  }
+  
   return 0;
 }
 
-bool does_file_exist(string filepath) {
+bool does_file_exist(string filepath)
+{
   condition_for_sql(filepath);
   
   QSqlQuery q = sql_query("SELECT count(*) FROM files WHERE filepath='" + filepath + "';");
   q.first();
+  
   return q.value(0).toInt() > 0;
 }
 
-bool does_table_exist(string table_name) {
+bool does_table_exist(string table_name)
+{
   return get_table_count(table_name) > 0;
 }
 
-int get_table_count(string table_name) {
+int get_table_count(string table_name)
+{
   QSqlQuery q = sql_query("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='" + table_name + "';");
-  
   q.first();
+  
   return q.value(0).toInt();
 }
 
-int get_row_count(string table_name) {
+int get_row_count(string table_name)
+{
   QSqlQuery q = sql_query("SELECT COUNT(*) FROM " + table_name);
   q.first();
+  
   return q.value(0).toInt();
 }
 
-bool hid_in_layer(string hid, int i)
+int file_count_in_layer(int layer)
 {
-  QSqlQuery q(k_DB);
-  q.prepare(QString("SELECT count(*) FROM layer_%1 WHERE string_id=(:hid)").arg(to_string(i).c_str()));
-  q.bindValue(":hid", hid.c_str());
+  QSqlQuery q(k_DATABASE);
+  q.prepare("SELECT COUNT(*) FROM layers_table WHERE layer=(:layer)");
+  q.bindValue(":layer", layer);
   sql_query(q);
-  
   q.first();
+  
+  return q.value(0).toInt();
+}
+
+bool hid_in_layer(string hid, int layer)
+{
+  QSqlQuery q(k_DATABASE);
+  q.prepare("SELECT count(*) FROM layers_table WHERE string_id=(:hid) AND layer=(:layer)");
+  q.bindValue(":hid", hid.c_str());
+  q.bindValue(":layer", layer);
+  sql_query(q);
+  q.first();
+  
   return q.value(0).toInt() > 0;
 }
 
-bool mid_in_layer(string mid, int i)
+bool mid_in_layer(string mid, int layer)
 {
-  QSqlQuery q(k_DB);
-  q.prepare(QString("SELECT count(*) FROM math_tables WHERE string_id=(:mid)"));
+  QSqlQuery q(k_DATABASE);
+  q.prepare(QString("SELECT count(*) FROM math_tables WHERE string_id=(:mid) AND layer=(:layer)"));
   q.bindValue(":mid", mid.c_str());
+  q.bindValue(":layer", layer);
   sql_query(q);
-  
   q.first();
+  
   return q.value(0).toInt() > 0;
 }
 
@@ -317,7 +367,8 @@ void add_channel_data(string table_name, string channel_name, double * data, int
   string datapoint = stringify(data[0]);
   
   string query_text = "INSERT INTO " + table_name + "(" + channel_name + ") VALUES (" + datapoint + ")";
-  for (int i = 1; i < n; ++i) {
+  for (int i = 1; i < n; ++i)
+  {
     datapoint = stringify(data[i]);
     query_text += ",(" + datapoint + ")";
   }
@@ -352,46 +403,48 @@ void add_channel_data(string filepath, map<string, Channel> channels, vector<str
 }
 
 string get_time_channel_id(int tid) {
-  QSqlQuery q(k_DB);
-  q.prepare("SELECT independent_variable FROM files WHERE table_id=?");
+  QSqlQuery q(k_DATABASE);
+  q.prepare("SELECT independent_variable FROM files WHERE table_id=? LIMIT 1");
   q.bindValue(0, to_string(tid).c_str());
   sql_query(q);
-  
   q.first();
+  
   return q.value("independent_variable").toString().toStdString();
 }
 
 string get_math_time_channel_id(int mid) {
-  QSqlQuery q(k_DB);
-  q.prepare("SELECT independent_variable FROM math_tables WHERE table_id=?");
+  QSqlQuery q(k_DATABASE);
+  q.prepare("SELECT independent_variable FROM math_tables WHERE table_id=? LIMIT 1");
   q.bindValue(0, to_string(mid).c_str());
   sql_query(q);
-  
   q.first();
+  
   return q.value("independent_variable").toString().toStdString();
 }
 
 // obtain integer table id from human readable id
-int get_tid_from_hid(string hid, int i_layer=0)
+int get_tid_from_hid(string hid, int layer=0)
 {
-  QSqlQuery q(k_DB);
-  q.prepare(QString("SELECT table_id FROM layer_%1 WHERE string_id=?").arg(to_string(i_layer).c_str()));
-  q.bindValue(0, hid.c_str());
+  QSqlQuery q(k_DATABASE);
+  q.prepare("SELECT table_id FROM layers_table WHERE string_id=(:sid) AND layer=(:layer) LIMIT 1");
+  q.bindValue(":sid", hid.c_str());
+  q.bindValue(":layer", layer);
   sql_query(q);
-  
   q.first();
+  
   return q.value("table_id").toInt();
 }
 
 // obtain integer (math) table id from channel id
-int get_mid_from_hid(string hid, int i_layer=0)
+int get_mid_from_hid(string hid, int layer=0)
 {
-  QSqlQuery q(k_DB);
-  q.prepare("SELECT table_id FROM math_tables WHERE string_id=?");
-  q.bindValue(0, hid.c_str());
+  QSqlQuery q(k_DATABASE);
+  q.prepare("SELECT table_id FROM math_tables WHERE string_id=(:hid) AND layer=(:layer) LIMIT 1");
+  q.bindValue(":hid", hid.c_str());
+  q.bindValue(":layer", layer);
   sql_query(q);
-  
   q.first();
+  
   return q.value("table_id").toInt();
 }
 
@@ -399,7 +452,7 @@ string get_channel_data(string table_hid, string channel_name, Channel * channel
 {
   int table_id = get_tid_from_hid(table_hid);
   
-  QSqlQuery q(k_DB);
+  QSqlQuery q(k_DATABASE);
   q.prepare(QString("SELECT %1 FROM data_%2").arg(channel_name.c_str(),
                                              to_string(table_id).c_str()));
   sql_query(q);
@@ -416,7 +469,7 @@ string get_math_channel_data(string math_table_sid, string math_channel_name, Ch
 {
   int math_table_id = get_mid_from_hid(math_table_sid);
   
-  QSqlQuery q(k_DB);
+  QSqlQuery q(k_DATABASE);
   q.prepare(QString("SELECT %1 FROM math_%2").arg(math_channel_name.c_str(),
                                                   to_string(math_table_id).c_str()));
   sql_query(q);
@@ -425,22 +478,27 @@ string get_math_channel_data(string math_table_sid, string math_channel_name, Ch
   {
     while (q.next())
       channel->push(q.value(math_channel_name.c_str()).toDouble());
-  }
+  } else
+      q.finish();
+
   return get_math_time_channel_id(math_table_id);
 }
 
 string get_unit_string(string table_sid, string channel_id)
 {
-  QSqlQuery q(k_DB);
-  q.prepare("SELECT unit_string FROM unit_table where table_sid=(:sid) AND channel_id=(:cid);");
+  QSqlQuery q(k_DATABASE);
+  q.prepare("SELECT unit_string FROM unit_table where table_sid=(:sid) AND channel_id=(:cid) LIMIT 1;");
   q.bindValue(":sid", table_sid.c_str());
   q.bindValue(":cid", channel_id.c_str());
   sql_query(q);
   
-  if (q.isActive()) {
-    q.first();
-    return q.value("unit_string").toString().toStdString();
-  }
+  if (q.isActive())
+  {
+      q.first();
+      return q.value("unit_string").toString().toStdString();
+  } else
+      q.finish();
+
   return "-";
 }
 
@@ -547,14 +605,19 @@ bool Table::exists(string id) {
   }
 }
 
-void compute_math_channels(int layer, string db_filepath, string source_root_dirpath) {
+void compute_math_channels(int layer, string db_filepath, string source_root_dirpath)
+{
+  close_db();
+  
   string python_entry_filepath = source_root_dirpath + "/math/main.py";
 //  string command = "python3 ";
   string command = "/Users/kierandwn/miniforge3/bin/conda run -n apple_tensorflow python3 ";
   string cl_args = " " + db_filepath;
+  command += python_entry_filepath + cl_args + "; exit";
   
-  command += python_entry_filepath + cl_args;
   system(command.c_str());
+  
+  open_db();
 }
 
 

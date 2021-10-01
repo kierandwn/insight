@@ -40,6 +40,7 @@ void open_db(string);
 void close_db();
 
 void establish_db(string);
+void shutdown_db();
 
 void add_files_table();
 void add_units_table();

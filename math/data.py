@@ -1,72 +1,71 @@
 #! /usr/bin/env python3
+from contextlib import closing
+
 import sqlite3 as sql
 import numpy as np
 
-db = 0
+db_name = 0
 layer = 0
 n_math_tables = 0
+
+def submit_query(sql_query, all=False):
+	global db_name
+	with closing(sql.connect(db_name)) as con, con, closing(con.cursor()) as cur:
+		cur.execute(sql_query)
+		if all:
+			return cur.fetchall()
+		else:
+			return cur.fetchone()
  
 def is_hid_in_layer(hid):
-	global db, layer
-	query = "SELECT count(*) FROM layer_{} WHERE string_id='{}'".format(layer, hid)
-	c = db.cursor()
-	c.execute(query)
-
-	count = c.fetchone()
+	global layer
+	query = "SELECT count(*) FROM layers_table WHERE layer={} AND string_id='{}'".format(layer, hid)
+	count = submit_query(query)
 	return count[0]
 
 def tid_from_hid(hid):
-	global db, layer
-	query = "SELECT table_id FROM layer_{} WHERE string_id='{}'".format(layer, hid)
-	c = db.cursor()
-	c.execute(query)
-
-	tid = c.fetchone()
+	global layer
+	query = "SELECT table_id FROM layers_table WHERE layer={} AND string_id='{}'".format(layer, hid)
+	tid = submit_query(query)
 	return tid[0]
 
 def get_time_channel_id(tid):
-	global db
 	query = "SELECT independent_variable FROM files WHERE table_id='{}'".format(tid)
-	c = db.cursor()
-	c.execute(query)
-
-	ivarid = c.fetchone()
+	ivarid = submit_query(query)
 	return ivarid[0]
 
 def get_channel_data(table_id, channel_id):
-	global db
 	result = np.array([])
 	query = "SELECT {} FROM data_{}".format(channel_id, table_id)
-	c = db.cursor()
 
-	for row in c.execute(query):
+	for row in submit_query(query, all=True):
 		result = np.append(result, row[0])
 	return result
 
 def update_math_table_count():
-	global db, n_math_tables
+	global n_math_tables
 	query = "SELECT count(*) FROM math_tables"
-	c = db.cursor()
-	c.execute(query)
-	n_math_tables = c.fetchone()[0]
+	result = submit_query(query)
+	n_math_tables = result[0]
 
 def add_math_channel(math_channel_id, independent_variable_id):
-	global db, n_math_tables
+	global n_math_tables, layer
 	n_math_tables += 1
 
-	query = "INSERT INTO math_tables VALUES({}, '{}', '{}')".format( \
+	query = "INSERT INTO math_tables VALUES({}, {}, '{}', '{}')".format( \
+		layer,
 		n_math_tables, \
 		math_channel_id, \
 		independent_variable_id \
 	)
-	db.execute(query)
+	submit_query(query)
 
 	query = "CREATE TABLE math_{} (idx INT PRIMARY KEY, {} DOUBLE, {} DOUBLE)".format( \
 		n_math_tables, \
 		math_channel_id, \
 		independent_variable_id \
 	)
-	db.execute(query)
+	submit_query(query)
 	return n_math_tables
 
 def add_mathtable_data(mid, data, tdata):
@@ -78,17 +77,12 @@ def add_mathtable_data(mid, data, tdata):
 	for i in range(1, len(data)):
 		query += ",({}, {}, {})".format(i, data[i], tdata[i])
 
-	db.execute(query)
+	submit_query(query)
 
-def open(db_filepath):
-	global db
-	db = sql.connect(db_filepath)
-	update_math_table_count()
+def set_db_filepath(db_filepath):
+	global db_name
+	db_name = db_filepath
 
-def close():
-	global db
-	db.commit()
-	db.close()
 
 class Channel:
 	def __init__(self, table_hid="", channel_id=""):

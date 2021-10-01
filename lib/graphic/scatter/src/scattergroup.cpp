@@ -97,7 +97,7 @@ double * DataXYGroup::ylim() { return m_ylim; }
 double * DataXYGroup::tlim() { return m_tlim; }
 
 bool DataXYGroup::channels_present_in(data::Table * data) {
-  return data->exists(m_xchannel_name) && data->exists(m_ychannel_name);
+  return data->exists_in_layer(m_xchannel_name) && data->exists_in_layer(m_ychannel_name);
 }
 
 void DataXYGroup::update_crosshair(double tvalue)

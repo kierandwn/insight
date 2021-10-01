@@ -136,7 +136,8 @@ void WaveformDisplay::update_xchannel_data() {
   if (channels_to_plot > 0) {
     string first_channel_name = m_waveform_groups[0]->get_channel_name(0);
     
-    if (m_data->exists(first_channel_name)) {
+    if (m_data->exists_in_layer(first_channel_name))
+    {
       data::Channel * xchannel = m_data->get(first_channel_name)->get_time_ref();
       m_xchannel_unit_string = xchannel->get_unit_string();
     }

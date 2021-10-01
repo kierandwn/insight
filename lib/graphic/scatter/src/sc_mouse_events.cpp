@@ -147,7 +147,7 @@ void DataXYDisplay::wheelEvent(QWheelEvent * event)
     string xchannel_name = m_data_curves[i]->get_xchannel_name(); // TODO move this check inside update_crosshair?
     string ychannel_name = m_data_curves[i]->get_ychannel_name();
     
-    if (m_data->exists(xchannel_name) && m_data->exists(ychannel_name))
+    if (m_data->exists_in_layer(xchannel_name) && m_data->exists_in_layer(ychannel_name))
       m_data_curves[i]->update_crosshair();
     
   }

@@ -8,7 +8,7 @@
 // either version 3 of the License,
 // or (at your option) any later version.
 //
-// attitude is distributed in the hope that it will be useful,
+// insight is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
@@ -262,13 +262,14 @@ void WaveformGroup::set_zero_line_position() {
 
 bool WaveformGroup::any_channel_present_in(data::Table * data) {
   for (string channel_name : m_channel_names) {
-    if (data->exists(channel_name)) return true;
+    if (data->exists_in_layer(channel_name))
+      return true;
   }
   return false;
 }
 
 bool channel_and_time_present_in(string channel_name, data::Table * data) {
-  return data->exists(channel_name) && data->get(channel_name)->get_time_ref();
+  return data->exists_in_layer(channel_name) && data->get(channel_name)->get_time_ref();
 }
 
 }  // namespace graphic

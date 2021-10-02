@@ -62,13 +62,15 @@ void WaveformGroup::attach(QwtPlot * plot_area)
 }
 
 void WaveformGroup::set_data_from_table(data::Table * table,
-                                        double x_lbound, double x_hbound) {
+                                        double x_lbound, double x_hbound)
+{
   size_t n_waveforms = m_channel_names.size();
   
   double ymax, ymin, ymean;
   bool plotted = false;
     
-  for (size_t i = 0; i < n_waveforms; ++i) {
+  for (size_t i = 0; i < n_waveforms; ++i)
+  {
     if (!channel_and_time_present_in(m_channel_names[i], table)) continue;
     
     plotted = true;
@@ -173,7 +175,8 @@ void WaveformGroup::init_label()
   set_label_values_at();
 }
 
-void WaveformGroup::set_label_values_at(double xvalue, data::Table * table) {
+void WaveformGroup::set_label_values_at(double xvalue, data::Table * table)
+{
   int channel_names_total_length = 0;
   int unit_strings_total_length = 0;
 
@@ -184,18 +187,20 @@ void WaveformGroup::set_label_values_at(double xvalue, data::Table * table) {
     unit_strings_total_length += m_unit_strings[i].length();
   }
   size_t total_label_text_len = \
-    channel_names_total_length + unit_strings_total_length + (n_channels * 66) + 1;
+    channel_names_total_length + unit_strings_total_length + (n_channels * 67) + 1;
   
   char * label_text = new char[total_label_text_len];
   
   int string_cursor = 0;
-  for (size_t i = 0; i < n_channels; ++i) {
+  for (size_t i = 0; i < n_channels; ++i)
+  {
     string channel_name = m_channel_names[i];
       
     double value;
     vector<int> color;
     
-    if (table && channel_and_time_present_in(channel_name, table)) {
+    if (table && channel_and_time_present_in(channel_name, table))
+    {
       value = table->get(channel_name)->value_at(xvalue);
       color = kDefaultColorOrder[i];
       

@@ -110,7 +110,7 @@ void import_from_csv (string filename,
                                                     common_prefix
                                                     );
   
-  if (!data::does_file_exist(filepath))
+  if (!data::has_been_imported_before(filepath))
   {
     data::add_file(filename, filepath, hreadable_id, channel_ids, independent_var_channel_id);
     
@@ -122,7 +122,8 @@ void import_from_csv (string filename,
 
     vector<string>::iterator cid;
     
-    while (getline(f, row)) {
+    while (getline(f, row))
+    {
       pos = 0;
       cid = channel_ids.begin();
       string element;

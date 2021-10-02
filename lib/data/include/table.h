@@ -73,6 +73,7 @@ bool is_channel_in_table(string, string);
 
 int get_tid_from_hid(string, int=0);
 int get_mid_from_hid(string, int=0);
+
 bool hid_in_layer(string, int=0);
 bool mid_in_layer(string, int=0);
 

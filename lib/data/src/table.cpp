@@ -297,7 +297,7 @@ int get_table_id(string filepath)
   return 0;
 }
 
-bool does_file_exist(string filepath)
+bool has_been_imported_before(string filepath)
 {
   condition_for_sql(filepath);
   

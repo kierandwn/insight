@@ -66,7 +66,7 @@ int get_row_count(string);
 
 int file_count_in_layer(int);
 
-bool does_file_exist(string);
+bool has_been_imported_before(string);
 bool does_table_exist(string);
 
 bool is_channel_in_table(string, string);

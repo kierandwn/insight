@@ -363,6 +363,20 @@ bool mid_in_layer(string mid, int layer)
   return q.value(0).toInt() > 0;
 }
 
+bool is_channel_in_table(string channel_id, string table_id)
+{
+  QSqlQuery q = sql_query("PRAGMA table_info("+table_id+");");
+  while (q.next())
+  {
+    if (q.value(1).toString().toStdString() == channel_id)
+    {
+      q.finish();
+      return true;
+    }
+  }
+  return false;
+}
+
 void add_index_channel(string table_name, int n)
 {
   string query_text = "INSERT INTO " + table_name + "(idx) VALUES (0)";
@@ -434,7 +448,7 @@ string get_math_time_channel_id(int mid) {
 }
 
 // obtain integer table id from human readable id
-int get_tid_from_hid(string hid, int layer=0)
+int get_tid_from_hid(string hid, int layer)
 {
   QSqlQuery q(k_DATABASE);
   q.prepare("SELECT table_id FROM layers_table WHERE string_id=(:sid) AND layer=(:layer) LIMIT 1");
@@ -447,7 +461,7 @@ int get_tid_from_hid(string hid, int layer=0)
 }
 
 // obtain integer (math) table id from channel id
-int get_mid_from_hid(string hid, int layer=0)
+int get_mid_from_hid(string hid, int layer)
 {
   QSqlQuery q(k_DATABASE);
   q.prepare("SELECT table_id FROM math_tables WHERE string_id=(:hid) AND layer=(:layer) LIMIT 1");
@@ -615,10 +629,13 @@ bool Table::exists_in_layer(string id, int layer) {
       else {
         math_table_id = table_id.substr(table_id.find("::")+2, table_id.size());
       }
-      return mid_in_layer(math_table_id);
+      
+      int mid = get_mid_from_hid(math_table_id, layer); // TODO: clean logic: mid == 0 if !mid_in_layer
+      return mid_in_layer(math_table_id) && is_channel_in_table(channel_id, "math_"+to_string(mid));;
       
     } else {
-      return hid_in_layer(table_id);
+      int tid = get_tid_from_hid(table_id, layer);
+      return hid_in_layer(table_id) && is_channel_in_table(channel_id, "data_"+to_string(tid));
     }
   }
 }

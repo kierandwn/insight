@@ -54,33 +54,21 @@
      <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
+   <widget class="QMenu" name="menuLayers">
     <property name="title">
-     <string>Data</string>
+     <string>Layers</string>
     </property>
-    <widget class="QMenu" name="menuAdd_to_Layer">
+    <widget class="QMenu" name="menuLayer_1">
      <property name="title">
-      <string>Add to Layer</string>
+      <string>Layer 1</string>
      </property>
-     <widget class="QMenu" name="menuLayer_1">
-      <property name="title">
-       <string>Layer 1</string>
-      </property>
-      <addaction name="actionImport_from_File_s"/>
-     </widget>
-     <addaction name="menuLayer_1"/>
+     <addaction name="actionImport_from_Files"/>
     </widget>
-    <addaction name="actionLoad_File"/>
-    <addaction name="menuAdd_to_Layer"/>
+    <addaction name="menuLayer_1"/>
    </widget>
-   <addaction name="menuFile"/>
+   <addaction name="menuLayers"/>
   </widget>
-  <action name="actionLoad_File">
-   <property name="text">
-    <string>Load File</string>
-   </property>
-  </action>
-  <action name="actionImport_from_File_s">
+  <action name="actionImport_from_Files">
    <property name="text">
     <string>Import from File(s)</string>
    </property>

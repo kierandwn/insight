@@ -137,17 +137,13 @@ void ApplicationMainWindow::init()
   fit_plot_area_to_main_window_area();
 }
 
-vector<string> remove_dirpath(QStringList filepaths, string dirpath) {
+vector<string> remove_dirpath(QStringList filepaths, string dirpath)
+{
   vector<string> result;
   for (QString filepath : filepaths) {
     result.push_back(filepath.toStdString().substr(dirpath.size()+1, filepath.size()));
   }
   return result;
-}
-
-void ApplicationMainWindow::on_actionLoad_File_triggered()
-{
-  load_data_from_files(0);
 }
 
 void ApplicationMainWindow::load_data_from_files(int layer)
@@ -180,39 +176,22 @@ void ApplicationMainWindow::load_data_from_files(int layer)
   }
 }
 
-void ApplicationMainWindow::on_actionImport_from_File_s_triggered(int layer)
-{
-  load_data_from_files(layer);
-  
-  if (layer == m_nlayer && data::file_count_in_layer(layer) > 0)
-  {
-    int current_layer = ++m_nlayer;
-    
-    QMenu * menuLayer_n = new QMenu(ui->menuAdd_to_Layer);
-    menuLayer_n->setObjectName(QString::fromUtf8("menuLayer_")+QString(to_string(m_nlayer).c_str()));
-    
-    ui->menuAdd_to_Layer->addAction(menuLayer_n->menuAction());
-    menuLayer_n->addAction(("Layer "+to_string(m_nlayer)).c_str(),
-                           [this, current_layer]() { this->on_actionImport_from_File_s_triggered(current_layer - 1); });
-    
-    menuLayer_n->setTitle(QCoreApplication::translate("InsightMainWindow", ("Layer "+to_string(m_nlayer)).c_str(), nullptr));
-  }
-}
-
 void ApplicationMainWindow::resizeEvent(QResizeEvent * event)
 {
   QMainWindow::resizeEvent(event);
   fit_plot_area_to_main_window_area();
 }
 
-void ApplicationMainWindow::fit_plot_area_to_main_window_area() {
+void ApplicationMainWindow::fit_plot_area_to_main_window_area()
+{
   QRect geom = geometry();
   
   ui->centralwidget->setGeometry(0, 0, geom.width(), geom.height());
   ui->PlotGrid->setGeometry(QRect(0, 0, geom.width(), geom.height()));
 }
 
-string longest_common_string_prefix(vector<string> string_list) {
+string longest_common_string_prefix(vector<string> string_list)
+{
   string lcs = string_list[0];
   
   for (string st : string_list) {
@@ -237,3 +216,11 @@ string longest_common_string_prefix(string X, string Y)
 }
 
 }  // namespace insight
+
+void insight::ApplicationMainWindow::on_actionImport_from_Files_triggered(int layer)
+{
+    load_data_from_files(layer);
+
+}
+
+

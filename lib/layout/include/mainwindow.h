@@ -80,8 +80,7 @@ class ApplicationMainWindow : public QMainWindow
   void fit_plot_area_to_main_window_area();
     
  private slots:
-  void on_actionLoad_File_triggered();
-  void on_actionImport_from_File_s_triggered(int=0);
+  void on_actionImport_from_Files_triggered(int=0);
   
   void resizeEvent(QResizeEvent * event) override;
 };

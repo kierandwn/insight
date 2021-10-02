@@ -217,10 +217,36 @@ string longest_common_string_prefix(string X, string Y)
 
 }  // namespace insight
 
+void insight::ApplicationMainWindow::add_empty_layer()
+{
+  ++m_nlayer;
+    
+  QMenu * new_layer_qmenu = new QMenu(ui->menuLayers);
+  new_layer_qmenu->setObjectName(QString::fromUtf8("menuLayer_")+QString(to_string(m_nlayer).c_str()));
+
+  ui->menuLayers->addAction(new_layer_qmenu->menuAction());
+  new_layer_qmenu->addAction("Import from File(s)",
+                             [this]() { this->on_actionImport_from_Files_triggered(m_nlayer - 1); });
+
+  new_layer_qmenu->setTitle(QCoreApplication::translate("InsightMainWindow", ("Layer "+to_string(m_nlayer)).c_str(), nullptr));
+}
+
 void insight::ApplicationMainWindow::on_actionImport_from_Files_triggered(int layer)
 {
     load_data_from_files(layer);
 
+    bool all_layers_populated = true;
+    for (int i = 0; i < m_nlayer; ++i)
+    {
+      if (data::file_count_in_layer(i) == 0)
+      {
+        all_layers_populated = false;
+        break;
+      }
+    }
+        
+    if (all_layers_populated) // TODO: update check to see if all layers are populated already.
+      add_empty_layer();
 }
 
 

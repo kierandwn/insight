@@ -73,6 +73,7 @@ class ApplicationMainWindow : public QMainWindow
   void import_from_json(string);
   
   void load_data_from_files(int);
+  void add_empty_layer();
   
   void init();
   void update();

@@ -167,6 +167,7 @@ void ApplicationMainWindow::load_data_from_files(int layer)
     for (string filename : filenames) {
       import_from_csv(filename,
                       dirpath,
+                      layer,
                       common_prefix,
                       m_data.get_time_channel_name()
                       );

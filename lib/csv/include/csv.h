@@ -90,6 +90,7 @@ double convert_to_type(string var) {
 
 void import_from_csv (string filename,
                       string dirpath,
+                      int layer,
                       string common_prefix="",
                       string independent_var_channel_id="t",
                       string delim="," )
@@ -144,7 +145,7 @@ void import_from_csv (string filename,
                            channel_ids);
       
   }
-  data::add_to_layer(filepath);
+  data::add_to_layer(filepath, layer);
   return;
 }
 

@@ -56,9 +56,7 @@ class ApplicationMainWindow : public QMainWindow
   string m_layout_dirpath;
   string m_layout_filepath;
   
-  string m_db_filepath;
-  
-  int m_nlayer = 1;
+  string m_db_filepath; 
   
   double m_mainwindow_size[2];
   

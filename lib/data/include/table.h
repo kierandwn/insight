@@ -53,6 +53,8 @@ void delete_maths_tables();
 
 void add_to_layer(string, int i=0);
 
+int get_no_of_layers();
+
 void add_file(string, string, string, vector<string>, string);
 void add_table(int, string, vector<string>);
 
@@ -81,13 +83,12 @@ void add_index_channel(string, int);
 void add_channel_data(string, string, double *, int);
 void add_channel_data(string, map<string, Channel>, vector<string>);
 
-void get_channel_data(string, string, Channel *, Channel *);
-
 void compute_math_channels(int, string, string);
 
 class Table {
 private:
   vector<map<string, Channel *>> m_channels_in_memory;
+  int m_number_of_layers = 1;
   
   string m_time_channel_name;
   string m_time_channel_unit;
@@ -97,6 +98,9 @@ public:
     m_channels_in_memory.push_back(map<string, Channel *>());
   }
   ~Table() { clear(); }
+  
+  int add_layer();
+  int get_number_of_layers();
 
   Channel * get(string, int=0);
   
@@ -115,7 +119,6 @@ public:
     }
   }
 
-//  bool exists(string id) { return (!(m_channels_in_memory.find(id) == m_channels_in_memory.end())); }
   bool exists_in_layer(string, int=0);
 
   void clear() {

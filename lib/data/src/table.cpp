@@ -182,6 +182,14 @@ void delete_maths_tables()
   sql_query("DROP TABLE math_tables;");
 }
 
+int get_no_of_layers()
+{
+  QSqlQuery q = sql_query("SELECT MAX(layer) FROM layers_table;");
+  q.first();
+  
+  return q.value(0).toInt() + 1;
+}
+
 bool is_in_layer(string string_id, int layer)
 {
   QSqlQuery q(k_DATABASE);
@@ -606,7 +614,17 @@ Channel * Table::get(string id, int layer)
   }
 }
 
-bool Table::exists_in_layer(string id, int layer) {
+int Table::add_layer()
+{
+  ++m_number_of_layers;
+  m_channels_in_memory.push_back(map<string, Channel *>());
+  return m_number_of_layers;
+}
+
+int Table::get_number_of_layers() { return m_number_of_layers; }
+
+bool Table::exists_in_layer(string id, int layer)
+{
   map<string, Channel *>& channels_in_layer = m_channels_in_memory[layer];
 
   size_t n_channels_in_memory = channels_in_layer.size();

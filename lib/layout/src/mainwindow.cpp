@@ -220,16 +220,16 @@ string longest_common_string_prefix(string X, string Y)
 
 void insight::ApplicationMainWindow::add_empty_layer()
 {
-  ++m_nlayer;
+  int n_layer = m_data.add_layer();
     
   QMenu * new_layer_qmenu = new QMenu(ui->menuLayers);
-  new_layer_qmenu->setObjectName(QString::fromUtf8("menuLayer_")+QString(to_string(m_nlayer).c_str()));
+  new_layer_qmenu->setObjectName(QString::fromUtf8("menuLayer_")+QString(to_string(n_layer).c_str()));
 
   ui->menuLayers->addAction(new_layer_qmenu->menuAction());
   new_layer_qmenu->addAction("Import from File(s)",
-                             [this]() { this->on_actionImport_from_Files_triggered(m_nlayer - 1); });
+                             [this, n_layer]() { this->on_actionImport_from_Files_triggered(n_layer - 1); });
 
-  new_layer_qmenu->setTitle(QCoreApplication::translate("InsightMainWindow", ("Layer "+to_string(m_nlayer)).c_str(), nullptr));
+  new_layer_qmenu->setTitle(QCoreApplication::translate("InsightMainWindow", ("Layer "+to_string(n_layer)).c_str(), nullptr));
 }
 
 void insight::ApplicationMainWindow::on_actionImport_from_Files_triggered(int layer)
@@ -237,7 +237,7 @@ void insight::ApplicationMainWindow::on_actionImport_from_Files_triggered(int la
     load_data_from_files(layer);
 
     bool all_layers_populated = true;
-    for (int i = 0; i < m_nlayer; ++i)
+    for (int i = 0; i < m_data.get_number_of_layers(); ++i)
     {
       if (data::file_count_in_layer(i) == 0)
       {

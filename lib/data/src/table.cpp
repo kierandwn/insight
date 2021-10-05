@@ -665,7 +665,7 @@ void compute_math_channels(int layer, string db_filepath, string source_root_dir
   string python_entry_filepath = source_root_dirpath + "/math/main.py";
 //  string command = "python3 ";
   string command = "/Users/kierandwn/miniforge3/bin/conda run -n apple_tensorflow python3 ";
-  string cl_args = " " + db_filepath;
+  string cl_args = " " + db_filepath + " " + to_string(layer);
   command += python_entry_filepath + cl_args + "; exit";
   
   system(command.c_str());

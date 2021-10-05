@@ -5,7 +5,7 @@ import sqlite3 as sql
 import numpy as np
 
 db_name = 0
-layer = 0
+active_layer = 0
 n_math_tables = 0
 
 def submit_query(sql_query, all=False):
@@ -18,14 +18,14 @@ def submit_query(sql_query, all=False):
 			return cur.fetchone()
  
 def is_hid_in_layer(hid):
-	global layer
-	query = "SELECT count(*) FROM layers_table WHERE layer={} AND string_id='{}'".format(layer, hid)
+	global active_layer
+	query = "SELECT count(*) FROM layers_table WHERE layer={} AND string_id='{}'".format(active_layer, hid)
 	count = submit_query(query)
 	return count[0]
 
 def tid_from_hid(hid):
-	global layer
-	query = "SELECT table_id FROM layers_table WHERE layer={} AND string_id='{}'".format(layer, hid)
+	global active_layer
+	query = "SELECT table_id FROM layers_table WHERE layer={} AND string_id='{}'".format(active_layer, hid)
 	tid = submit_query(query)
 	return tid[0]
 
@@ -49,11 +49,11 @@ def update_math_table_count():
 	n_math_tables = result[0]
 
 def add_math_channel(math_channel_id, independent_variable_id):
-	global n_math_tables, layer
+	global n_math_tables, active_layer
 	n_math_tables += 1
 
 	query = "INSERT INTO math_tables VALUES({}, {}, '{}', '{}')".format( \
-		layer,
+		active_layer,
 		n_math_tables, \
 		math_channel_id, \
 		independent_variable_id \
@@ -91,6 +91,9 @@ def set_db_filepath(db_filepath):
 	global db_name
 	db_name = db_filepath
 
+def set_db_active_layer(layer):
+	global active_layer
+	active_layer = layer
 
 class Channel:
 	def __init__(self, table_hid="", channel_id=""):

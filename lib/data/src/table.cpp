@@ -152,7 +152,7 @@ void add_units_table()
 
 void add_maths_table()
 {
-  sql_query("CREATE TABLE math_tables (layer INT, table_id INT, string_id TEXT PRIMARY KEY, independent_variable TEXT)");
+  sql_query("CREATE TABLE math_tables (layer INT, table_id INT PRIMARY KEY, string_id TEXT, independent_variable TEXT)");
   return;
 }
 

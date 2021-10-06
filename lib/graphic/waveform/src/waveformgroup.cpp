@@ -2,7 +2,7 @@
 //
 // This file is part of insight.
 //
-// attitude is free software : you can redistribute it and /
+// insight is free software : you can redistribute it and /
 // or modify it under the terms of the GNU Lesser General Public License
 // as published by the Free Software Foundation,
 // either version 3 of the License,
@@ -39,118 +39,213 @@ WaveformGroup::WaveformGroup(graphic::Base * parent)
       m_label(parent),
       m_metrics(parent)
 {
+    m_curves.push_back(vector<QwtPlotCurve * >());
     m_zero_line.setPen(QColor(0, 0, 0, 100));
 }
 
-void WaveformGroup::set_dimensions(double normalised_height, double normalised_yoffset) {
+void WaveformGroup::set_dimensions(double normalised_height, double normalised_yoffset)
+{
     m_normalised_height  = normalised_height;
     m_normalised_yoffset = normalised_yoffset;
 }
 
-void WaveformGroup::add_channel(string channel_id) {
+void WaveformGroup::add_channel(string channel_id)
+{
   m_channel_names.push_back(channel_id);
   m_unit_strings.push_back("-");
-  m_curves.push_back(new QwtPlotCurve);
+  
+  for (size_t layer = 0; layer < m_curves.size(); ++layer)
+    m_curves[layer].push_back(new QwtPlotCurve);
 }
 
-void WaveformGroup::attach(QwtPlot * plot_area)
+void WaveformGroup::add_layer()
 {
-  for (size_t i = 0; i < m_curves.size(); ++i)
-    m_curves[i]->attach(plot_area);
+  size_t n_curves = m_curves[0].size();
+  size_t layer = m_curves.size();
   
-  m_zero_line.attach(plot_area);
+  m_curves.push_back(vector<QwtPlotCurve *>());
+  
+  for (size_t curve = 0; curve < n_curves; ++curve)
+    m_curves[layer].push_back(new QwtPlotCurve);
+  
+  reformat();
+  attach(layer);
+}
+
+void WaveformGroup::attach(int layer)
+{
+  for (size_t curve = 0; curve < m_curves[layer].size(); ++curve)
+    m_curves[layer][curve]->attach(p_parent);
+  
+  m_zero_line.attach(p_parent);
 }
 
 void WaveformGroup::set_data_from_table(data::Table * table,
-                                        double x_lbound, double x_hbound)
+                                        double x_lbound0, double x_hbound0)
 {
+  double x_lbound, x_hbound;
+  
+  int n_layers = table->get_number_of_layers();
   size_t n_waveforms = m_channel_names.size();
   
   double ymax, ymin, ymean;
   bool plotted = false;
-    
-  for (size_t i = 0; i < n_waveforms; ++i)
+  
+  double x0, xf;
+  
+  for (size_t i_waveform = 0; i_waveform < n_waveforms; ++i_waveform)
   {
-    if (!channel_and_time_present_in(m_channel_names[i], table)) continue;
+    string channel_name = m_channel_names[i_waveform];
     
-    plotted = true;
-    string c_name = m_channel_names[i];
-    data::Channel * channel = table->get(c_name);
-    size_t n = channel->length();
-    
-    m_unit_strings[i] = channel->get_unit_string();
-    
-    double * ydata = new double[n];
-    
-    if (i == 0) {
-      ymin = channel->min();
-      ymax = channel->max();
-      ymean = 0.5 * (ymin + ymax);
-    }
-    
-    data::Channel * xchannel = channel->get_time_ref();
-    if (!xchannel) continue; // TODO: is this necessary?
-    
-    x_lbound = max({x_lbound, xchannel->min()});
-    x_hbound = min({x_hbound, xchannel->max()});
-    
-    double * xdata = channel->get_time_data_ptr();
-    
-    bool below_lbound = true; bool below_hbound = true;
-    int i_lbound = n - 1; int i_hbound = n - 1;
-    
-    for (size_t i = 0; i < n; ++i) {
-      if (xdata[i] < x_lbound) {
-        continue;
-      } else if (xdata[i] > x_hbound) {
-        if (below_hbound) {
-          i_hbound = i;
-          below_hbound = false;
-        }
-        continue;
-      } else {
-        if (below_lbound) {
-          i_lbound = i;
-          below_lbound = false;
-        }
+    for (int i_layer = 0; i_layer < n_layers; ++i_layer)
+    {
+      if (!channel_and_time_present_in(m_channel_names[i_waveform], table, i_layer)) continue;
+      
+      x0 = table->get(m_channel_names[0], i_layer)->get_time_ref()->operator[](0);
+      xf = table->get(m_channel_names[0], i_layer)->get_time_ref()->operator[](table->get(m_channel_names[0], i_layer)->get_time_ref()->length() - 1);
+      
+      plotted = true;
+      
+      data::Channel * channel = table->get(channel_name, i_layer);
+      size_t n = channel->length();
+      
+      m_unit_strings[i_waveform] = channel->get_unit_string(); // TODO: if match, use unit_string, otherwise use "-"
+      
+      double * xdata = new double[n];
+      double * ydata = new double[n];
+      
+      if (i_waveform == 0)
+      {
+        ymin = channel->min();
+        ymax = channel->max();
+        ymean = 0.5 * (ymin + ymax);
       }
       
-      ydata[i] = m_normalised_yoffset + \
-        m_normalised_height * ((channel->operator[](i) - ymean) / (ymax - ymin));
+      data::Channel * xchannel = channel->get_time_ref();
+      if (!xchannel) continue; // TODO: is this necessary?
+          
+      if (m_zeroed_xdomain)
+      {
+//        x_lbound = xchannel->min() + x_lbound;
+//        x_hbound = xchannel->min() + x_hbound;
+        x_lbound = max({x0 + x_lbound0, x0});
+        x_hbound = min({x0 + x_hbound0, xf});
+      }
+      else
+      {
+        x_lbound = max({x_lbound0, xchannel->min()});
+        x_hbound = min({x_hbound0, xchannel->max()});
+      }
+      
+      if (!m_zeroed_xdomain)
+        xdata = channel->get_time_data_ptr();
+      
+      bool below_lbound = true; bool below_hbound = true;
+      int i_lbound = n - 1; int i_hbound = n - 1;
+      
+      double xi;
+      double xmin = xchannel->min();
+      
+      for (size_t i = 0; i < n; ++i)
+      {
+        xi = xchannel->operator[](i);
+        
+//        if (m_zeroed_xdomain)
+//          xi = xdata[i]; // - xmin;
+//
+//        else
+//          xi = xdata[i];
+          
+        if (xi < x_lbound)
+          continue;
+
+        else if (xi > x_hbound)
+        {
+          if (below_hbound)
+          {
+            i_hbound = i;
+            below_hbound = false;
+          }
+          continue;
+        }
+        else
+        {
+          if (below_lbound)
+          {
+            i_lbound = i;
+            below_lbound = false;
+          }
+        }
+        
+        if (m_zeroed_xdomain)
+          xdata[i] = xi - x0;
+        
+        ydata[i] = m_normalised_yoffset + \
+          m_normalised_height * ((channel->operator[](i) - ymean) / (ymax - ymin)); // TODO: fix ->operator[]() ick
+      }
+      int n_to_plot = i_hbound - i_lbound;
+      if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
+      
+      m_curves[i_layer][i_waveform]->setSamples(&xdata[i_lbound], &ydata[i_lbound], n_to_plot);
+      
+      delete[] ydata;
+      if (m_zeroed_xdomain)
+        delete[] xdata;
     }
-    int n_to_plot = i_hbound - i_lbound;
-    if (n_to_plot < 2) { n_to_plot = 2; i_hbound = i_lbound + 1; }
-    
-    m_curves[i]->setSamples(&xdata[i_lbound], &ydata[i_lbound], n_to_plot);
-    delete[] ydata;
   }
-  
+    
   if (plotted) {
     set_metric_values(ymin, ymax, ymean);
     
-    m_xlim[0] = x_lbound; m_xlim[1] = x_hbound;
+    if (m_zeroed_xdomain)
+    {
+      m_xlim[0] = x_lbound - x0;
+      m_xlim[1] = x_hbound - x0;
+    }
+    else {
+      m_xlim[0] = x_lbound;
+      m_xlim[1] = x_hbound;
+    }
+    
     m_ylim[0] = ymin; m_ylim[1] = ymax;
     
-    set_zero_line_position(x_lbound, x_hbound);
+    set_zero_line_position(m_xlim[0], m_xlim[1]);
   }
 }
 
-void WaveformGroup::init_curves()
+void WaveformGroup::init()
 {
   init_label();
   set_zero_line_position();
   
-  // set color & attach curves to plot
-  vector<int> color;
-  for (size_t j = 0; j < m_curves.size(); ++j) {
-    color = kDefaultColorOrder[j];
-    QPen pen(QColor(color[0], color[1], color[2], color[3]));
-    m_curves[j]->setPen(pen);
-  }
-  attach(p_parent);
+  reformat();
+  attach(0);
 }
 
-void WaveformGroup::set_label_position() {
+void WaveformGroup::reformat()
+{
+  size_t n_layers = m_curves.size();
+  bool is_multi_layer = n_layers > 1;
+  
+  // set color & attach curves to plot
+  vector<int> color;
+  for (size_t layer = 0; layer < m_curves.size(); ++layer)
+  {
+    for (size_t curve = 0; curve < m_curves[0].size(); ++curve)
+    {
+      if (is_multi_layer)
+        color = kDefaultColorOrder[layer];
+      else
+        color = kDefaultColorOrder[curve];
+      
+      QPen pen(QColor(color[0], color[1], color[2], color[3]));
+      m_curves[layer][curve]->setPen(pen);
+    }
+  }
+}
+
+void WaveformGroup::set_label_position()
+{
   int label_xcoord = 5;
 //  int label_ycoord = (1. - m_normalised_yoffset - m_normalised_height / 2) * p_parent->height();
   int label_ycoord = p_parent->painter_coordy_from_axis_scale(m_normalised_yoffset + m_normalised_height / 2);
@@ -199,7 +294,7 @@ void WaveformGroup::set_label_values_at(double xvalue, data::Table * table)
     double value;
     vector<int> color;
     
-    if (table && channel_and_time_present_in(channel_name, table))
+    if (table && channel_and_time_present_in(channel_name, table, 0))
     {
       value = table->get(channel_name)->value_at(xvalue);
       color = kDefaultColorOrder[i];
@@ -227,11 +322,13 @@ void WaveformGroup::set_label_values_at(double xvalue, data::Table * table)
   set_label_position();
 }
 
-void WaveformGroup::init_metric_values() {
+void WaveformGroup::init_metric_values()
+{
   m_metrics.setText("mean \xE2\x88\x88 [min., max.[unit]];");
 }
 
-void WaveformGroup::set_metric_values(double min, double max, double mean) {
+void WaveformGroup::set_metric_values(double min, double max, double mean)
+{
   char metric_text[37+m_unit_strings[0].length()];
   
   sprintf(metric_text,
@@ -241,7 +338,8 @@ void WaveformGroup::set_metric_values(double min, double max, double mean) {
   m_metrics.setText(QString::fromUtf8(metric_text));
 }
 
-void WaveformGroup::set_zero_line_position(double xmin, double xmax) {
+void WaveformGroup::set_zero_line_position(double xmin, double xmax)
+{
   double xdata_0line[2];
   xdata_0line[0] = xmin;
   xdata_0line[1] = xmax;
@@ -253,7 +351,8 @@ void WaveformGroup::set_zero_line_position(double xmin, double xmax) {
   m_zero_line.setSamples(xdata_0line, ydata_0line, 2);
 }
 
-void WaveformGroup::set_zero_line_position() {
+void WaveformGroup::set_zero_line_position()
+{
   double xdata_0line[2];
   xdata_0line[0] = p_parent->axisScaleDiv(p_parent->xBottom).lowerBound();
   xdata_0line[1] = p_parent->axisScaleDiv(p_parent->xBottom).upperBound();
@@ -265,16 +364,22 @@ void WaveformGroup::set_zero_line_position() {
   m_zero_line.setSamples(xdata_0line, ydata_0line, 2);
 }
 
-bool WaveformGroup::any_channel_present_in(data::Table * data) {
-  for (string channel_name : m_channel_names) {
-    if (data->exists_in_layer(channel_name))
-      return true;
+bool WaveformGroup::any_channel_present_in(data::Table * data)
+{
+  for (size_t layer = 0; layer < m_curves.size(); ++layer)
+  {
+    for (string channel_name : m_channel_names)
+    {
+      if (data->exists_in_layer(channel_name, layer))
+        return true;
+    }
   }
   return false;
 }
 
-bool channel_and_time_present_in(string channel_name, data::Table * data) {
-  return data->exists_in_layer(channel_name) && data->get(channel_name)->get_time_ref();
+bool channel_and_time_present_in(string channel_name, data::Table * data, int layer)
+{
+  return data->exists_in_layer(channel_name, layer) && data->get(channel_name, layer)->get_time_ref();
 }
 
 }  // namespace graphic

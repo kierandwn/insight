@@ -2,13 +2,13 @@
 //
 // This file is part of insight.
 //
-// attitude is free software : you can redistribute it and /
+// insight is free software : you can redistribute it and /
 // or modify it under the terms of the GNU Lesser General Public License
 // as published by the Free Software Foundation,
 // either version 3 of the License,
 // or (at your option) any later version.
 //
-// attitude is distributed in the hope that it will be useful,
+// insight is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
@@ -41,12 +41,13 @@ class WaveformGroup {
  private:
   graphic::Base * p_parent;
     
-  vector<QwtPlotCurve *> m_curves;
+  vector<vector<QwtPlotCurve *>> m_curves;
   QwtPlotCurve m_zero_line;
   
   QLabel m_label;
   QLabel m_metrics;
     
+  bool m_zeroed_xdomain = true;
   double m_xlim[2]; double m_ylim[2];
     
   vector<string> m_channel_names;
@@ -58,14 +59,18 @@ class WaveformGroup {
     
   WaveformGroup(graphic::Base *);
     
-  void init_curves();
+  void init();
+  void reformat();
   
   void init_label();
   void init_metric_values();
   
   void set_label_position();
+  void set_number_of_layers(size_t);
     
   void add_channel(string);
+  void add_layer();
+  
   void set_dimensions(double, double);
     
   void set_label_values_at(double=0., data::Table * data=NULL);
@@ -78,15 +83,15 @@ class WaveformGroup {
   double * ylim() { return m_ylim; }
     
   string get_channel_name(int i) { return m_channel_names[i]; }
-  QwtPlotCurve * get_curve_ref(int i) { return m_curves[i]; }
+  QwtPlotCurve * get_curve_ref(int channel, int layer) { return m_curves[layer][channel]; }
     
-  void attach(QwtPlot *);
+  void attach(int);
   void set_data_from_table(data::Table *, double=-10e12, double=10e12);
   
   bool any_channel_present_in(data::Table *);
 };
 
-bool channel_and_time_present_in(string, data::Table *);
+bool channel_and_time_present_in(string, data::Table *, int);
 
 
 }  // namespace graphic

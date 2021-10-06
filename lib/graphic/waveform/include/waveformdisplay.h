@@ -2,7 +2,7 @@
 //
 // This file is part of insight.
 //
-// attitude is free software : you can redistribute it and /
+// insight is free software : you can redistribute it and /
 // or modify it under the terms of the GNU Lesser General Public License
 // as published by the Free Software Foundation,
 // either version 3 of the License,
@@ -67,6 +67,8 @@ private:
   
   string m_xchannel_name = "time";
   string m_xchannel_unit_string = "-";
+  
+  int m_number_of_layers = 1;
 
 public:
   WaveformDisplay(data::Table *, layout::Layout *);

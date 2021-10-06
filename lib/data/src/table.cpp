@@ -481,9 +481,9 @@ int get_mid_from_hid(string hid, int layer)
   return q.value("table_id").toInt();
 }
 
-string get_channel_data(string table_hid, string channel_name, Channel * channel)
+string get_channel_data(string table_hid, string channel_name, int layer, Channel * channel)
 {
-  int table_id = get_tid_from_hid(table_hid);
+  int table_id = get_tid_from_hid(table_hid, layer);
   
   QSqlQuery q(k_DATABASE);
   q.prepare(QString("SELECT %1 FROM data_%2").arg(channel_name.c_str(),
@@ -498,9 +498,9 @@ string get_channel_data(string table_hid, string channel_name, Channel * channel
   return get_time_channel_id(table_id);
 }
 
-string get_math_channel_data(string math_table_sid, string math_channel_name, Channel * channel)
+string get_math_channel_data(string math_table_sid, string math_channel_name, int layer, Channel * channel)
 {
-  int math_table_id = get_mid_from_hid(math_table_sid);
+  int math_table_id = get_mid_from_hid(math_table_sid, layer);
   
   QSqlQuery q(k_DATABASE);
   q.prepare(QString("SELECT %1 FROM math_%2").arg(math_channel_name.c_str(),
@@ -564,14 +564,14 @@ Channel * Table::get(string id, int layer)
         math_table_id = table_id.substr(table_id.find("::")+2, table_id.size());
       }
       
-      time_channel_id = get_math_channel_data(math_table_id, channel_id, data_channel);
+      time_channel_id = get_math_channel_data(math_table_id, channel_id, layer, data_channel);
       time_id = table_id+"::"+time_channel_id;
       
       bool time_channel_in_memory = channels_in_layer.find(time_id) != channels_in_layer.end();
       
       if (!time_channel_in_memory) {
         time_channel = new Channel;
-        get_math_channel_data(math_table_id, time_channel_id, time_channel);
+        get_math_channel_data(math_table_id, time_channel_id, layer, time_channel);
         
         channels_in_layer[time_id] = time_channel;
       }
@@ -581,14 +581,14 @@ Channel * Table::get(string id, int layer)
       table_id = "math::" + math_table_id;
     }
     else {
-      time_channel_id = get_channel_data(table_id, channel_id, data_channel);
+      time_channel_id = get_channel_data(table_id, channel_id, layer, data_channel);
       
       time_id = table_id+"::"+time_channel_id;
       bool time_channel_in_memory = channels_in_layer.find(time_id) != channels_in_layer.end();
       
       if (!time_channel_in_memory) {
         time_channel = new Channel;
-        get_channel_data(table_id, time_channel_id, time_channel);
+        get_channel_data(table_id, time_channel_id, layer, time_channel);
         
         string unit_string = get_unit_string(table_id, time_channel_id);
         time_channel->set_unit_string(m_time_channel_unit);
@@ -599,7 +599,7 @@ Channel * Table::get(string id, int layer)
         time_channel = channels_in_layer[time_id];
       }
       
-      get_channel_data(table_id, time_channel_id, time_channel);
+      get_channel_data(table_id, time_channel_id, layer, time_channel);
     }
     // set unit strings
     string unit_string = get_unit_string(table_id, channel_id);

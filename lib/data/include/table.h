@@ -88,14 +88,14 @@ void compute_math_channels(int, string, string);
 class Table {
 private:
   vector<map<string, Channel *>> m_channels_in_memory;
-  int m_number_of_layers = 1;
+  int m_number_of_layers = 0;
   
   string m_time_channel_name;
   string m_time_channel_unit;
 
 public:
   Table() {
-    m_channels_in_memory.push_back(map<string, Channel *>());
+    add_layer();
   }
   ~Table() { clear(); }
   

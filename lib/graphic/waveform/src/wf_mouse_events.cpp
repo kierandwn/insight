@@ -37,18 +37,20 @@ void WaveformDisplay::mousePressEvent(QMouseEvent * event)
   
   double xrange = widest_xlim[1] - widest_xlim[0];
     
-  if (abs(m_mouse_state.x() - m_xpos_cursor) < (xrange * .05))
+  if (abs(x_mouse - m_xpos_cursor) < (xrange * .05))
     m_mouse_state = CursorDrag;
     
-  update_group_cursor_positions(m_mouse_state.x());
+  update_group_cursor_positions(x_denormalised(m_mouse_state.x()));
 }
 
 void WaveformDisplay::mouseMoveEvent(QMouseEvent * event)
 {
-    if (m_mouse_state == CursorDrag) {
+    if (m_mouse_state == CursorDrag)
+    {
       mousePressEvent(event); // update cursor positon
-      
-    } else if (m_mouse_state == Ready || m_mouse_state == Pan) {
+    }
+    else if (m_mouse_state == Ready || m_mouse_state == Pan)
+    {
       m_mouse_state = Pan;
       
       double x_mouse = axis_coordx_from_painter_scale(event->x());
@@ -60,16 +62,18 @@ void WaveformDisplay::mouseMoveEvent(QMouseEvent * event)
       x_lbound -= delta_x * .80;
       x_hbound -= delta_x * .80;
       
-      update_group_view_limits(x_lbound, x_hbound);
+      update_group_view_limits(x_denormalised(x_lbound), x_denormalised(x_hbound));
       m_mouse_state.x(x_mouse);
     }
 }
 
-void WaveformDisplay::mouseDoubleClickEvent(QMouseEvent *) {
+void WaveformDisplay::mouseDoubleClickEvent(QMouseEvent *)
+{
     cout << "reached: double-click" << endl;
 }
 
-void WaveformDisplay::mouseReleaseEvent(QMouseEvent *) {
+void WaveformDisplay::mouseReleaseEvent(QMouseEvent *)
+{
   m_mouse_state = Ready;
 }
 
@@ -87,7 +91,7 @@ void WaveformDisplay::wheelEvent(QWheelEvent * event)
   
   x_lbound -= scroll_speed_scalar * vertical_scroll_delta * xrange * lhs_scaling;
   x_hbound += scroll_speed_scalar * vertical_scroll_delta * xrange * (1. - lhs_scaling);
-  update_group_view_limits(x_lbound, x_hbound);
+  update_group_view_limits(x_denormalised(x_lbound), x_denormalised(x_hbound));
 }
 
 }  // namespace graphic

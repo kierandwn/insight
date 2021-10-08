@@ -184,30 +184,16 @@ void WaveformGroup::set_data_from_table(data::Table * table,
         delete[] xdata;
     }
   }
-    
-  if (plotted) {
+  if (plotted)
     set_metric_values(ymin, ymax, ymean);
-    
-    if (m_zeroed_xdomain)
-    {
-      m_xlim[0] = x_lbound - x0;
-      m_xlim[1] = x_hbound - x0;
-    }
-    else {
-      m_xlim[0] = x_lbound;
-      m_xlim[1] = x_hbound;
-    }
-    
-    m_ylim[0] = ymin; m_ylim[1] = ymax;
-    
-    set_zero_line_position(m_xlim[0], m_xlim[1]);
-  }
+  
+  set_zero_line_position(x_lbound0, x_hbound0);
 }
 
 void WaveformGroup::init()
 {
   init_label();
-  set_zero_line_position();
+  set_zero_line_position(0., 1.);
   
   reformat();
   attach(0);
@@ -334,20 +320,7 @@ void WaveformGroup::set_zero_line_position(double xmin, double xmax)
   double xdata_0line[2];
   xdata_0line[0] = xmin;
   xdata_0line[1] = xmax;
-  
-  double ydata_0line[2]{
-    m_normalised_yoffset,
-    m_normalised_yoffset
-  };
-  m_zero_line.setSamples(xdata_0line, ydata_0line, 2);
-}
 
-void WaveformGroup::set_zero_line_position()
-{
-  double xdata_0line[2];
-  xdata_0line[0] = p_parent->axisScaleDiv(p_parent->xBottom).lowerBound();
-  xdata_0line[1] = p_parent->axisScaleDiv(p_parent->xBottom).upperBound();
-  
   double ydata_0line[2]{
     m_normalised_yoffset,
     m_normalised_yoffset
@@ -368,10 +341,39 @@ bool WaveformGroup::any_channel_present_in(data::Table * data)
   return false;
 }
 
+void WaveformGroup::get_xlimits_in_data(double * xlimits)
+{
+  data::Table * data = p_parent->get_data_table_ref();
+  
+  int n_layers = data->get_number_of_layers();
+  vector<string> channel_names = get_channel_names();
+  
+  double xmin =  10e13;
+  double xmax = -10e13;
+  
+  for (string& channel_name : channel_names)
+  {
+    for (int layer = 0; layer < n_layers; ++layer)
+    {
+      data::Channel * xchannel = data->get(channel_name, layer)->get_time_ref();
+      
+      double current_xchannel_min = xchannel->min();
+      double current_xchannel_max = xchannel->max();
+      
+      xmin = min({xmin, current_xchannel_min});
+      xmax = max({xmax, current_xchannel_max});
+    }
+  }
+  xlimits[0] = xmin;
+  xlimits[1] = xmax;
+}
+
 bool channel_and_time_present_in(string channel_name, data::Table * data, int layer)
 {
   return data->exists_in_layer(channel_name, layer) && data->get(channel_name, layer)->get_time_ref();
 }
+
+
 
 }  // namespace graphic
 }  // namespace insight

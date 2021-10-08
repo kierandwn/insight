@@ -60,6 +60,7 @@ private:
   QwtPlotCurve m_cursor;
   double m_xpos_cursor;
   
+  double m_max_xbounds[2]{0., 1.};
 //  double m_xlim[2];
   MouseState m_mouse_state;
     
@@ -130,7 +131,6 @@ public:
   
   void update_after_data_load () override;
   
-  void update_view_limits();
   void update_view_limits(double, double) override;
     
   void init () override;
@@ -139,6 +139,8 @@ public:
   void resizeEvent(QResizeEvent *) override;
     
   bool xlim(double *);
+  void get_max_xrange(double *);
+  
   double x_normalised(double x, int layer=0)
   {
     if (m_normalised_x)

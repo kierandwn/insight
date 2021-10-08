@@ -50,7 +50,6 @@ class WaveformGroup
     
   bool m_zeroed_xdomain = true;
   vector<double> m_zero_points_x{0.};
-  double m_xlim[2]; double m_ylim[2];
     
   vector<string> m_channel_names;
   vector<string> m_unit_strings;
@@ -81,13 +80,14 @@ class WaveformGroup
   void set_zero_line_position();
   void set_zero_line_position(double, double);
   
-  double * xlim() { return m_xlim; }
-  double * ylim() { return m_ylim; }
+  void get_xlimits_in_data(double *);
   
   double x_normalised(double x, int layer) { return x - m_zero_points_x[layer]; }
   double x_denormalised(double x, int layer) { return x + m_zero_points_x[layer]; }
     
   string get_channel_name(int i) { return m_channel_names[i]; }
+  vector<string> get_channel_names() { return m_channel_names; }
+  
   QwtPlotCurve * get_curve_ref(int channel, int layer) { return m_curves[layer][channel]; }
     
   void attach(int);

@@ -64,6 +64,7 @@ void WaveformGroup::add_layer()
   size_t layer = m_curves.size();
   
   m_curves.push_back(vector<QwtPlotCurve *>());
+  m_zero_points_x.push_back(0.);
   
   for (size_t curve = 0; curve < n_curves; ++curve)
     m_curves[layer].push_back(new QwtPlotCurve);
@@ -100,14 +101,13 @@ void WaveformGroup::set_data_from_table(data::Table * table,
     for (int i_layer = 0; i_layer < n_layers; ++i_layer)
     {
       if (!channel_and_time_present_in(m_channel_names[i_waveform], table, i_layer)) continue;
-      
-      x0 = table->get(m_channel_names[0], i_layer)->get_time_ref()->operator[](0);
-      xf = table->get(m_channel_names[0], i_layer)->get_time_ref()->operator[](table->get(m_channel_names[0], i_layer)->get_time_ref()->length() - 1);
-      
       plotted = true;
       
       data::Channel * channel = table->get(channel_name, i_layer);
       size_t n = channel->length();
+      
+      data::Channel * xchannel = channel->get_time_ref();
+      if (!xchannel) continue; // TODO: is this necessary?
       
       m_unit_strings[i_waveform] = channel->get_unit_string(); // TODO: if match, use unit_string, otherwise use "-"
       
@@ -121,20 +121,18 @@ void WaveformGroup::set_data_from_table(data::Table * table,
         ymean = 0.5 * (ymin + ymax);
       }
       
-      data::Channel * xchannel = channel->get_time_ref();
-      if (!xchannel) continue; // TODO: is this necessary?
-          
+      x0 = table->get(m_channel_names[i_waveform], i_layer)->get_time_ref()->operator[](0);
+      xf = table->get(m_channel_names[i_waveform], i_layer)->get_time_ref()->operator[](n - 1);
+      
       if (m_zeroed_xdomain)
       {
-//        x_lbound = xchannel->min() + x_lbound;
-//        x_hbound = xchannel->min() + x_hbound;
-        x_lbound = max({x0 + x_lbound0, x0});
-        x_hbound = min({x0 + x_hbound0, xf});
+        x_lbound = max({x_denormalised(x_lbound0, i_layer), x0});
+        x_hbound = min({x_denormalised(x_hbound0, i_layer), xf});
       }
       else
       {
-        x_lbound = max({x_lbound0, xchannel->min()});
-        x_hbound = min({x_hbound0, xchannel->max()});
+        x_lbound = max({x_lbound0, x0});
+        x_hbound = min({x_hbound0, xf});
       }
       
       if (!m_zeroed_xdomain)
@@ -144,17 +142,10 @@ void WaveformGroup::set_data_from_table(data::Table * table,
       int i_lbound = n - 1; int i_hbound = n - 1;
       
       double xi;
-      double xmin = xchannel->min();
       
       for (size_t i = 0; i < n; ++i)
       {
         xi = xchannel->operator[](i);
-        
-//        if (m_zeroed_xdomain)
-//          xi = xdata[i]; // - xmin;
-//
-//        else
-//          xi = xdata[i];
           
         if (xi < x_lbound)
           continue;
@@ -178,7 +169,7 @@ void WaveformGroup::set_data_from_table(data::Table * table,
         }
         
         if (m_zeroed_xdomain)
-          xdata[i] = xi - x0;
+          xdata[i] = x_normalised(xi, i_layer);
         
         ydata[i] = m_normalised_yoffset + \
           m_normalised_height * ((channel->operator[](i) - ymean) / (ymax - ymin)); // TODO: fix ->operator[]() ick

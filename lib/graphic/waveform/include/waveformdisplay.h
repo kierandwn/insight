@@ -68,6 +68,9 @@ private:
   string m_xchannel_name = "time";
   string m_xchannel_unit_string = "-";
   
+  bool m_normalised_x = true;
+  vector<double> m_xzeros{ 0. };
+  
   int m_number_of_layers = 1;
 
 public:
@@ -112,6 +115,7 @@ public:
   void apply_config(nlohmann::json *) override;
   void update_cursor_position(double) override;
   
+  void determine_zero_xvalues();
 //  void update_group_cursor_positions(double);
 //  void update_group_view_limits(double, double);
 //  double process_mouse_event(QMouseEvent *) override;
@@ -135,6 +139,28 @@ public:
   void resizeEvent(QResizeEvent *) override;
     
   bool xlim(double *);
+  double x_normalised(double x, int layer=0)
+  {
+    if (m_normalised_x)
+    {
+      return x - m_xzeros[layer];
+    }
+    else
+    {
+      return x;
+    }
+  }
+  double x_denormalised(double x, int layer=0)
+  {
+    if (m_normalised_x)
+    {
+      return x + m_xzeros[layer];
+    }
+    else
+    {
+      return x;
+    }
+  }
 };
 
 }  // namespace graphic

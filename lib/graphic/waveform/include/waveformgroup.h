@@ -37,7 +37,8 @@ namespace graphic {
 
 using namespace std;
 
-class WaveformGroup {
+class WaveformGroup
+{
  private:
   graphic::Base * p_parent;
     
@@ -48,6 +49,7 @@ class WaveformGroup {
   QLabel m_metrics;
     
   bool m_zeroed_xdomain = true;
+  vector<double> m_zero_points_x{0.};
   double m_xlim[2]; double m_ylim[2];
     
   vector<string> m_channel_names;
@@ -81,12 +83,17 @@ class WaveformGroup {
   
   double * xlim() { return m_xlim; }
   double * ylim() { return m_ylim; }
+  
+  double x_normalised(double x, int layer) { return x - m_zero_points_x[layer]; }
+  double x_denormalised(double x, int layer) { return x + m_zero_points_x[layer]; }
     
   string get_channel_name(int i) { return m_channel_names[i]; }
   QwtPlotCurve * get_curve_ref(int channel, int layer) { return m_curves[layer][channel]; }
     
   void attach(int);
   void set_data_from_table(data::Table *, double=-10e12, double=10e12);
+  
+  void set_x_zero_value(double zero_value, int layer) { m_zero_points_x[layer] = zero_value; }
   
   bool any_channel_present_in(data::Table *);
 };

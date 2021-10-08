@@ -229,8 +229,7 @@ vector<int> WaveformGroup::determine_line_color(int curve, int layer)
 void WaveformGroup::set_label_position()
 {
   int label_xcoord = 5;
-//  int label_ycoord = (1. - m_normalised_yoffset - m_normalised_height / 2) * p_parent->height();
-  int label_ycoord = p_parent->painter_coordy_from_axis_scale(m_normalised_yoffset + m_normalised_height / 2);
+  int label_ycoord = p_parent->painter_coordy_from_axis_scale(m_normalised_yoffset - m_normalised_height / 2) - m_label.sizeHint().height();
   
   int metrics_xcoord = p_parent->width() - (m_metrics.sizeHint().width() + 5);
   int metrics_ycoord = p_parent->painter_coordy_from_axis_scale(m_normalised_yoffset) - 12;
@@ -273,6 +272,7 @@ void WaveformGroup::set_label_values_at(double xpos, data::Table * table)
   char * label_text = new char[total_label_text_len];
   
   int string_cursor = 0;
+  
   for (size_t i = 0; i < n_channels; ++i)
   {
     string channel_name = m_channel_names[i];

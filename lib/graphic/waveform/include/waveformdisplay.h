@@ -61,6 +61,7 @@ private:
   double m_xpos_cursor;
   
   double m_max_xbounds[2]{0., 1.};
+  
 //  double m_xlim[2];
   MouseState m_mouse_state;
     
@@ -117,9 +118,6 @@ public:
   void update_cursor_position(double) override;
   
   void determine_zero_xvalues();
-//  void update_group_cursor_positions(double);
-//  void update_group_view_limits(double, double);
-//  double process_mouse_event(QMouseEvent *) override;
   
   void init_xlabel();
   

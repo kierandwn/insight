@@ -137,6 +137,37 @@ void WaveformDisplay::init()
   m_cursor.attach(this);
 }
 
+void WaveformDisplay::determine_zero_xvalues()
+{
+  int n_layers = m_data->get_number_of_layers();
+  
+  for (int layer = 0; layer < n_layers; ++layer)
+  {
+    double x_zero = 10e13;
+    
+    for (WaveformGroup * group : m_waveform_groups)
+    {
+      vector<string> channel_names = group->get_channel_names();
+      
+      for (string& channel_name : channel_names)
+      {
+        if (m_data->exists_in_layer(channel_name, layer))
+        {
+          data::Channel * xchannel = m_data->get(channel_name, layer)->get_time_ref();
+          
+          double current_xchannel_zero = xchannel->operator[](0);
+          x_zero = min({x_zero, current_xchannel_zero});
+        }
+      }
+    }
+    
+    for (WaveformGroup * group : m_waveform_groups)
+      group->set_x_zero_value(x_zero, layer);
+    
+    m_xzeros[layer] = x_zero;
+  }
+}
+
 void WaveformDisplay::update_xchannel_data()
 {
   int channels_to_plot = get_number_of_waveform_groups();

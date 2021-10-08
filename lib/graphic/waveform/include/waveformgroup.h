@@ -66,6 +66,8 @@ class WaveformGroup
   void init_label();
   void init_metric_values();
   
+  vector<int> determine_line_color(int, int);
+  
   void set_label_position();
   void set_number_of_layers(size_t);
     
@@ -77,7 +79,6 @@ class WaveformGroup
   void set_label_values_at(double=0., data::Table * data=NULL);
   void set_metric_values(double, double, double);
   
-  void set_zero_line_position();
   void set_zero_line_position(double, double);
   
   void get_xlimits_in_data(double *);

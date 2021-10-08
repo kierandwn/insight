@@ -201,24 +201,29 @@ void WaveformGroup::init()
 
 void WaveformGroup::reformat()
 {
-  size_t n_layers = m_curves.size();
-  bool is_multi_layer = n_layers > 1;
-  
   // set color & attach curves to plot
   vector<int> color;
   for (size_t layer = 0; layer < m_curves.size(); ++layer)
   {
     for (size_t curve = 0; curve < m_curves[0].size(); ++curve)
     {
-      if (is_multi_layer)
-        color = kDefaultColorOrder[layer];
-      else
-        color = kDefaultColorOrder[curve];
+      color = determine_line_color(curve, layer);
       
       QPen pen(QColor(color[0], color[1], color[2], color[3]));
       m_curves[layer][curve]->setPen(pen);
     }
   }
+}
+
+vector<int> WaveformGroup::determine_line_color(int curve, int layer)
+{
+  size_t n_layers = m_curves.size();
+  bool is_multi_layer = n_layers > 1;
+  
+  if (is_multi_layer)
+    return kDefaultColorOrder[layer];
+  else
+    return kDefaultColorOrder[curve];
 }
 
 void WaveformGroup::set_label_position()
@@ -247,19 +252,23 @@ void WaveformGroup::init_label()
   set_label_values_at();
 }
 
-void WaveformGroup::set_label_values_at(double xvalue, data::Table * table)
+void WaveformGroup::set_label_values_at(double xpos, data::Table * table)
 {
+  // note the distiction between xpos and xvalue: xpos is the position on the normalised xdomain where the cursor
+  // is positioned. xvalue is the corresponding denormalised value on the absolute domain.
   int channel_names_total_length = 0;
   int unit_strings_total_length = 0;
 
   size_t n_channels = m_channel_names.size();
+  int n_layers = p_parent->get_data_table_ref()->get_number_of_layers();
+  
   for (size_t i = 0; i < n_channels; ++i)
   {
     channel_names_total_length += m_channel_names[i].length();
     unit_strings_total_length += m_unit_strings[i].length();
   }
-  size_t total_label_text_len = \
-    channel_names_total_length + unit_strings_total_length + (n_channels * 67) + 1;
+  size_t total_label_text_len = 1000; // \ // TODO: make this math work
+  //  channel_names_total_length + unit_strings_total_length + (n_channels * 60) + (n_layers * 7) + 1;
   
   char * label_text = new char[total_label_text_len];
   
@@ -267,32 +276,41 @@ void WaveformGroup::set_label_values_at(double xvalue, data::Table * table)
   for (size_t i = 0; i < n_channels; ++i)
   {
     string channel_name = m_channel_names[i];
-      
-    double value;
-    vector<int> color;
     
-    if (table && channel_and_time_present_in(channel_name, table, 0))
+    sprintf(&label_text[string_cursor], "%s: ", channel_name.c_str());
+    string_cursor += channel_name.length() + 2;
+    
+    for (int layer = 0; layer < n_layers; ++layer)
     {
-      value = table->get(channel_name)->value_at(xvalue);
-      color = kDefaultColorOrder[i];
+      double value;
+      vector<int> color;
       
-    } else {
-      value = 0.;
-      color = kDefaultInactiveColor;
+      if (table && channel_and_time_present_in(channel_name, table, layer))
+      {
+        value = table->get(channel_name, layer)->value_at(x_denormalised(xpos, layer));
+        color = determine_line_color(i, layer);
+        
+      }
+      else
+      {
+        continue;
+//        value = 0.;
+//        color = kDefaultInactiveColor;
+      }
+      
+      sprintf(&label_text[string_cursor],
+        "<span style=\"color : rgb(%03d, %03d, %03d);\">%*.2f[%s]; </span>",
+            color[0],
+            color[1],
+            color[2],
+            7, value,
+            m_unit_strings[i].c_str()
+      );
+      string_cursor += m_unit_strings[i].length() + 60;
     }
-    
-    sprintf(&label_text[string_cursor],
-      "%s: <span style=\"color : rgb(%03d, %03d, %03d);\">%*.2f[%s];</span><br/>",
-          channel_name.c_str(),
-          color[0],
-          color[1],
-          color[2],
-          7, value,
-          m_unit_strings[i].c_str()
-    );
-    string_cursor += m_channel_names[i].length()+m_unit_strings[i].length()+67;
+    sprintf(&label_text[string_cursor], "<br/>");
+    string_cursor += 5;
   }
-  
   m_label.setText(QString(label_text));
   delete[] label_text;
   

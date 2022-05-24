@@ -18,6 +18,8 @@ __all__ = [ basename(f)[:-3] for f in modules if isfile(join(module_dir, f)) and
 def compute_math_channels():
 	prefix = 'math_'
 
+	data.update_math_table_count()
+
 	for module_name in __all__:
 		module = importlib.import_module('math_functions.'+module_name)
 		members_of_current_module = getmembers(module)

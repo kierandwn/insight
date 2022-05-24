@@ -56,12 +56,9 @@ class ApplicationMainWindow : public QMainWindow
   string m_layout_dirpath;
   string m_layout_filepath;
   
-  string m_db_filepath;
+  string m_db_filepath; 
   
   double m_mainwindow_size[2];
-  
-//  string m_time_channel_name; // TODO temp fix until queried at load
-//  string m_time_channel_unit;
   
  public:
   ApplicationMainWindow(std::string source_main_directory, QWidget *parent = nullptr);
@@ -73,13 +70,17 @@ class ApplicationMainWindow : public QMainWindow
   void load_config();
   void import_from_json(string);
   
+  void load_data_from_files(int);
+  void add_empty_layer();
+  
   void init();
   void update();
   
   void fit_plot_area_to_main_window_area();
     
  private slots:
-  void on_actionLoad_File_triggered();
+  void on_actionImport_from_Files_triggered(int=0);
+  
   void resizeEvent(QResizeEvent * event) override;
 };
 

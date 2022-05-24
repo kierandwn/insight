@@ -35,7 +35,8 @@ namespace layout {
 
 using namespace std;
 
-class Grid {
+class Grid
+{
  protected:
   int m_size[2];
   std::map<string, graphic::Base *> m_map;
@@ -53,7 +54,8 @@ class Grid {
   void resize();
 };
 
-class Layout : public Grid {
+class Layout : public Grid
+{
  private:
 //  QGridLayout * m_plotgrid;
 

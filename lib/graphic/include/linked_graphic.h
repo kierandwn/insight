@@ -29,38 +29,47 @@ namespace insight {
 namespace graphic {
 
 
-class LinkedPlot : public Base {
+class LinkedPlot : public Base
+{
 //  Q_OBJECT
  protected:
     layout::Layout * p_layout;
     QWidget * p_plot_widget;
  
  public:
-    LinkedPlot(data::Table * data, layout::Layout * layout) : Base(data),
+    LinkedPlot(data::Table * data, layout::Layout * layout)
+      : Base(data),
         p_layout(layout) {}
 
-    void update_group_cursor_positions(double tval) {
+    void update_group_cursor_positions(double tval)
+    {
         if ("" == m_group_name) return;
 
         map<string, graphic::Base *>::iterator graphic_itr = p_layout->first();
         graphic::Base * graphic_ptr;
 
-        while (graphic_itr != p_layout->last()) {
+        while (graphic_itr != p_layout->last())
+        {
           graphic_ptr = graphic_itr->second;
           if (graphic_ptr->group() == m_group_name) graphic_ptr->update_cursor_position(tval);
           ++graphic_itr;
         }
     }
 
-    void update_group_view_limits(double xmin, double xmax) {
+    void update_group_view_limits(double xmin, double xmax)
+    {
         if ("" == m_group_name) return;
 
         map<string, graphic::Base *>::iterator graphic_itr = p_layout->first();
         graphic::Base * graphic_ptr;
 
-        while (graphic_itr != p_layout->last()) {
+        while (graphic_itr != p_layout->last())
+        {
           graphic_ptr = graphic_itr->second;
-          if (graphic_ptr->group() == m_group_name) graphic_ptr->update_view_limits(xmin, xmax);
+          
+          if (graphic_ptr->group() == m_group_name)
+            graphic_ptr->update_view_limits(xmin, xmax);
+          
           ++graphic_itr;
         }
     }

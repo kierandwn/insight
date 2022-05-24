@@ -8,7 +8,7 @@
 // either version 3 of the License,
 // or (at your option) any later version.
 //
-// attitude is distributed in the hope that it will be useful,
+// insight is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
@@ -38,6 +38,7 @@
 
 namespace insight {
 
+
 string k_USER_SPECIFIC_CONFIG_FILEPATH = QDir::homePath().toStdString() + "/.insight/.config";
 string k_DEFAULT_DB_FILEPATH = QDir::homePath().toStdString() + "/.insight/insight.db";
 
@@ -59,30 +60,32 @@ ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * p
 ApplicationMainWindow::~ApplicationMainWindow()
 {
   delete ui;
-  data::close_db();
+  data::shutdown_db();
 }
 
-void ApplicationMainWindow::update() {
+void ApplicationMainWindow::update()
+{
   map<string, graphic::Base *>::iterator p;
-  for (p = m_layout.first(); p != m_layout.last(); ++p) {
+  
+  for (p = m_layout.first(); p != m_layout.last(); ++p)
     p->second->update_after_data_load();
-  }
 }
 
-void ApplicationMainWindow::load_config() {
+void ApplicationMainWindow::load_config()
+{
   string config_filename;
   
-  if (QFileInfo(k_USER_SPECIFIC_CONFIG_FILEPATH.c_str()).exists()) {
+  if (QFileInfo(k_USER_SPECIFIC_CONFIG_FILEPATH.c_str()).exists())
     config_filename = k_USER_SPECIFIC_CONFIG_FILEPATH;
-    
-  } else {
+  
+  else
     config_filename = m_source_root_dirpath + "/config/default.config";
-    
-  }
+  
   import_from_json(config_filename);
 }
 
-void ApplicationMainWindow::import_from_json(string filename) {
+void ApplicationMainWindow::import_from_json(string filename)
+{
   ifstream ifs { filename };
   if ( !ifs.is_open() ) { cerr << "Could not open file for reading!\n"; throw; }
 
@@ -101,7 +104,8 @@ void ApplicationMainWindow::import_from_json(string filename) {
   
   string layout_filepath = layout_dirpath.append("/").append(layout_filename.c_str());
   
-  if (!QFileInfo(layout_filepath.c_str()).exists()) {
+  if (!QFileInfo(layout_filepath.c_str()).exists())
+  {
     layout_filepath = QFileDialog::getOpenFileName(this,
       tr("Load Layout File"), m_layout_dirpath.c_str(), tr("Layout File (*.layout)")).toStdString();
   }
@@ -136,7 +140,8 @@ void ApplicationMainWindow::init()
   fit_plot_area_to_main_window_area();
 }
 
-vector<string> remove_dirpath(QStringList filepaths, string dirpath) {
+vector<string> remove_dirpath(QStringList filepaths, string dirpath)
+{
   vector<string> result;
   for (QString filepath : filepaths) {
     result.push_back(filepath.toStdString().substr(dirpath.size()+1, filepath.size()));
@@ -144,7 +149,7 @@ vector<string> remove_dirpath(QStringList filepaths, string dirpath) {
   return result;
 }
 
-void ApplicationMainWindow::on_actionLoad_File_triggered()
+void ApplicationMainWindow::load_data_from_files(int layer)
 {
   QStringList filepaths = QFileDialog::getOpenFileNames(this,
     tr("Load Data File"), tr((m_source_root_dirpath+"/demo").c_str()), tr("CSV Files (*.csv)"));
@@ -165,11 +170,12 @@ void ApplicationMainWindow::on_actionLoad_File_triggered()
     for (string filename : filenames) {
       import_from_csv(filename,
                       dirpath,
+                      layer,
                       common_prefix,
-                      m_data.get_time_channel_name()
-                      );
+                      "timestamp" // m_data.get_time_channel_name()
+                      ); // //
     }
-    data::compute_math_channels(0, m_db_filepath, m_source_root_dirpath);
+    data::compute_math_channels(layer, m_db_filepath, m_source_root_dirpath);
     update();
   }
 }
@@ -180,14 +186,16 @@ void ApplicationMainWindow::resizeEvent(QResizeEvent * event)
   fit_plot_area_to_main_window_area();
 }
 
-void ApplicationMainWindow::fit_plot_area_to_main_window_area() {
+void ApplicationMainWindow::fit_plot_area_to_main_window_area()
+{
   QRect geom = geometry();
   
   ui->centralwidget->setGeometry(0, 0, geom.width(), geom.height());
   ui->PlotGrid->setGeometry(QRect(0, 0, geom.width(), geom.height()));
 }
 
-string longest_common_string_prefix(vector<string> string_list) {
+string longest_common_string_prefix(vector<string> string_list)
+{
   string lcs = string_list[0];
   
   for (string st : string_list) {
@@ -212,3 +220,37 @@ string longest_common_string_prefix(string X, string Y)
 }
 
 }  // namespace insight
+
+void insight::ApplicationMainWindow::add_empty_layer()
+{
+  int n_layer = m_data.add_layer();
+    
+  QMenu * new_layer_qmenu = new QMenu(ui->menuLayers);
+  new_layer_qmenu->setObjectName(QString::fromUtf8("menuLayer_")+QString(to_string(n_layer).c_str()));
+
+  ui->menuLayers->addAction(new_layer_qmenu->menuAction());
+  new_layer_qmenu->addAction("Import from File(s)",
+                             [this, n_layer]() { this->on_actionImport_from_Files_triggered(n_layer - 1); });
+
+  new_layer_qmenu->setTitle(QCoreApplication::translate("InsightMainWindow", ("Layer "+to_string(n_layer)).c_str(), nullptr));
+}
+
+void insight::ApplicationMainWindow::on_actionImport_from_Files_triggered(int layer)
+{
+    load_data_from_files(layer);
+
+    bool all_layers_populated = true;
+    for (int i = 0; i < m_data.get_number_of_layers(); ++i)
+    {
+      if (data::file_count_in_layer(i) == 0)
+      {
+        all_layers_populated = false;
+        break;
+      }
+    }
+        
+    if (all_layers_populated) // TODO: update check to see if all layers are populated already.
+      add_empty_layer();
+}
+
+

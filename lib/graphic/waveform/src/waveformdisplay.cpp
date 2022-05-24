@@ -2,13 +2,13 @@
 //
 // This file is part of insight.
 //
-// attitude is free software : you can redistribute it and /
+// insight is free software : you can redistribute it and /
 // or modify it under the terms of the GNU Lesser General Public License
 // as published by the Free Software Foundation,
 // either version 3 of the License,
 // or (at your option) any later version.
 //
-// attitude is distributed in the hope that it will be useful,
+// insight is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
@@ -92,21 +92,26 @@ void WaveformDisplay::define_uniform_spacing()
   double npadding = 0.1; // space betwen plots descibed as factor of plot height above
   double noffset;
   
-  for (int i = 0; i < n_groups; ++i) {
+  for (int i = 0; i < n_groups; ++i)
+  {
     noffset = ((i * (1.0 + npadding)) + (0.5 + npadding)) * nheight;
     m_waveform_groups[i]->set_dimensions(nheight, noffset);
   }
 }
 
 // Apply configuation parameters held in json_config
-void WaveformDisplay::apply_config(nlohmann::json * json_config) {
+void WaveformDisplay::apply_config(nlohmann::json * json_config)
+{
   int i = 0;
 
-  if (json_config->contains("data")) {
-    for (auto& channel_names : json_config->operator[]("data")["channel"]) {
+  if (json_config->contains("data"))
+  {
+    for (auto& channel_names : json_config->operator[]("data")["channel"])
+    {
       WaveformGroup * waveform_group = new WaveformGroup(this);
       
-      for (auto& channel_name : channel_names) {
+      for (auto& channel_name : channel_names)
+      {
         waveform_group->add_channel(channel_name);
       }
       m_waveform_groups.push_back(waveform_group);
@@ -123,20 +128,54 @@ void WaveformDisplay::apply_config(nlohmann::json * json_config) {
   define_uniform_spacing();
 }
 
-void WaveformDisplay::init() {
+void WaveformDisplay::init()
+{
   init_xlabel();
   for (size_t i = 0; i < m_waveform_groups.size(); ++i)
-    m_waveform_groups[i]->init_curves();
+    m_waveform_groups[i]->init();
   
   m_cursor.attach(this);
 }
 
-void WaveformDisplay::update_xchannel_data() {
+void WaveformDisplay::determine_zero_xvalues()
+{
+  int n_layers = m_data->get_number_of_layers();
+  
+  for (int layer = 0; layer < n_layers; ++layer)
+  {
+    double x_zero = 10e13;
+    
+    for (WaveformGroup * group : m_waveform_groups)
+    {
+      vector<string> channel_names = group->get_channel_names();
+      
+      for (string& channel_name : channel_names)
+      {
+        if (m_data->exists_in_layer(channel_name, layer))
+        {
+          data::Channel * xchannel = m_data->get(channel_name, layer)->get_time_ref();
+          
+          double current_xchannel_zero = xchannel->operator[](0);
+          x_zero = min({x_zero, current_xchannel_zero});
+        }
+      }
+    }
+    
+    for (WaveformGroup * group : m_waveform_groups)
+      group->set_x_zero_value(x_zero, layer);
+    
+    m_xzeros[layer] = x_zero;
+  }
+}
+
+void WaveformDisplay::update_xchannel_data()
+{
   int channels_to_plot = get_number_of_waveform_groups();
   if (channels_to_plot > 0) {
     string first_channel_name = m_waveform_groups[0]->get_channel_name(0);
     
-    if (m_data->exists(first_channel_name)) {
+    if (m_data->exists_in_layer(first_channel_name))
+    {
       data::Channel * xchannel = m_data->get(first_channel_name)->get_time_ref();
       m_xchannel_unit_string = xchannel->get_unit_string();
     }
@@ -145,85 +184,129 @@ void WaveformDisplay::update_xchannel_data() {
 
 void WaveformDisplay::update_after_data_load()
 {
-  int channels_to_plot = get_number_of_waveform_groups();
+  int n_layers = m_data->get_number_of_layers();
+  bool layer_added = n_layers > m_number_of_layers;
+  
+  m_number_of_layers = n_layers;
+  int n_waveform_groups = get_number_of_waveform_groups();
+  
+  if (layer_added)
+    for (int i = 0; i < n_waveform_groups; ++i)
+      m_waveform_groups[i]->add_layer();
+  
+  determine_zero_xvalues();
     
-  for (int i = 0; i < channels_to_plot; ++i)
+  for (int i = 0; i < n_waveform_groups; ++i)
     m_waveform_groups[i]->set_data_from_table(m_data);
+  
+  get_max_xrange(m_max_xbounds);
+  
+  update_view_limits(m_max_xbounds[0], m_max_xbounds[1]);
 
-  update_view_limits();
-  
-  double xlimits[2];
-  xlim(xlimits);
-  
   update_xchannel_data();
-  update_cursor_position(xlimits[0]);
+  update_cursor_position(x_denormalised(m_max_xbounds[0])); // TODO: ???
   
   replot();
   m_mouse_state = Ready;
 }
 
-void WaveformDisplay::update_view_limits()
-{
-  cursor_in_xrange();
-  double xlimits[2];
-  
-  if (xlim(xlimits)) {
-    setAxisScale(xBottom, xlimits[0], xlimits[1]);
-    replot();
-  }
-}
-
 void WaveformDisplay::update_view_limits(double xmin, double xmax)
 {
+  xmin = max(xmin, m_max_xbounds[0]);
+  xmax = min(xmax, m_max_xbounds[1]);
+  
+  double xmin_normd = x_normalised(xmin);
+  double xmax_normd = x_normalised(xmax);
+  
   int channels_to_plot = get_number_of_waveform_groups();
     
-  for (int i = 0; i < channels_to_plot; ++i) {
+  for (int i = 0; i < channels_to_plot; ++i)
     m_waveform_groups[i]->set_data_from_table(m_data, xmin, xmax);
-  }
+
   cursor_in_xrange();
     
-  setAxisScale(xBottom, xmin, xmax);
+  setAxisScale(xBottom, xmin_normd, xmax_normd);
   replot();
 }
 
-void WaveformDisplay::update_cursor_position(double x) {
-  double xcursor[2]{ x, x };
+void WaveformDisplay::update_cursor_position(double x)
+{
+  double xnorm = x_normalised(x);
+  
+  double xcursor[2]{ xnorm, xnorm };
   double ycursor[2]{ 0., 1. };
   
   cursor_in_xrange();
-  update_label_values_at(x);
+  update_label_values_at(xnorm);
   
   m_cursor.setSamples(xcursor, ycursor, 2);
-  m_xpos_cursor = x;
+  m_xpos_cursor = xnorm;
   replot();
 }
 
-void WaveformDisplay::cursor_in_xrange() {
-  double xrange[2];
-  xlim(xrange);
+void WaveformDisplay::cursor_in_xrange()
+{
+  double lbound = axisScaleDiv(xBottom).lowerBound();
+  double hbound = axisScaleDiv(xBottom).upperBound();
   
-  if (m_xpos_cursor > xrange[0] && m_xpos_cursor < xrange[1]) { m_cursor.attach(this); }
-  else { m_cursor.detach(); }
+  if (m_xpos_cursor > lbound && m_xpos_cursor < hbound)
+    m_cursor.attach(this);
+  
+  else
+    m_cursor.detach();
 }
 
-bool WaveformDisplay::xlim(double * limits) {
-  limits[0] = 10e12; limits[1] = -10e12;
+bool WaveformDisplay::xlim(double * limits)
+{
+  limits[0] = axisScaleDiv(xBottom).lowerBound();
+  limits[1] = axisScaleDiv(xBottom).upperBound();
+  
+//  limits[0] = 10e12; limits[1] = -10e12;
   bool display_active = false;
   
-  for (int i = 0; i < m_nwaveform_groups; ++i) {
-    if (m_waveform_groups[i]->any_channel_present_in(m_data)) {
+  for (int i = 0; i < m_nwaveform_groups; ++i)
+  {
+    if (m_waveform_groups[i]->any_channel_present_in(m_data))
+    {
       display_active = true;
-      limits[0] = min({m_waveform_groups[i]->xlim()[0], limits[0]});
-      limits[1] = max({m_waveform_groups[i]->xlim()[1], limits[1]});
+      break;
     }
   }
   return display_active;
 }
 
-void WaveformDisplay::update_label_values_at(double x) {
-  for (int i = 0; i < m_nwaveform_groups; ++i) {
-      m_waveform_groups[i]->set_label_values_at(x, m_data);
+void WaveformDisplay::get_max_xrange(double * xlimits)
+{
+  xlimits[0] =  10e13;
+  xlimits[1] = -10e13;
+  
+  bool plot_active = false;
+  
+  for (WaveformGroup * group : m_waveform_groups)
+  {
+    if (group->any_channel_present_in(m_data))
+    {
+      plot_active = true;
+      
+      double current_group_xlimits[2];
+      group->get_xlimits_in_data(current_group_xlimits);
+      
+      xlimits[0] = min({xlimits[0], current_group_xlimits[0]});
+      xlimits[1] = max({xlimits[1], current_group_xlimits[1]});
+    }
   }
+  if (!plot_active)
+  {
+    xlimits[0] = 0.;
+    xlimits[1] = 1.;
+  }
+}
+
+void WaveformDisplay::update_label_values_at(double x)
+{
+  for (int i = 0; i < m_nwaveform_groups; ++i)
+      m_waveform_groups[i]->set_label_values_at(x, m_data);
+  
   set_xlabel_value(x);
 }
 
@@ -233,15 +316,17 @@ void WaveformDisplay::reset()
   replot();
 }
 
-void WaveformDisplay::resizeEvent(QResizeEvent * event) {
+void WaveformDisplay::resizeEvent(QResizeEvent * event)
+{
   Base::resizeEvent(event);
 
   double xlimits[2];
   xlim(xlimits);
   
   set_xlabel_position();
-  for (int i = 0; i < m_nwaveform_groups; ++i) {
-    m_waveform_groups[i]->set_data_from_table(m_data, xlimits[0], xlimits[1]);
+  for (int i = 0; i < m_nwaveform_groups; ++i)
+  {
+    m_waveform_groups[i]->set_data_from_table(m_data);
     m_waveform_groups[i]->set_label_position();
   }
   

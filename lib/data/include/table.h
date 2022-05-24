@@ -27,6 +27,8 @@
 
 #include <QSqlQuery>
 
+#include "yaml-cpp/yaml.h"
+
 #include "channel.h"
 
 namespace insight {
@@ -40,17 +42,20 @@ void open_db(string);
 void close_db();
 
 void establish_db(string);
+void shutdown_db();
 
 void add_files_table();
 void add_units_table();
 
 void add_maths_table();
-void add_layer_table(int=0);
+void add_layer_table();
 
 void delete_layer_tables();
 void delete_maths_tables();
 
 void add_to_layer(string, int i=0);
+
+int get_no_of_layers();
 
 void add_file(string, string, string, vector<string>, string);
 void add_table(int, string, vector<string>);
@@ -63,8 +68,15 @@ int get_table_id(string);
 int get_table_count(string);
 int get_row_count(string);
 
-bool does_file_exist(string);
+int file_count_in_layer(int);
+
+bool has_been_imported_before(string);
 bool does_table_exist(string);
+
+bool is_channel_in_table(string, string);
+
+int get_tid_from_hid(string, int=0);
+int get_mid_from_hid(string, int=0);
 
 bool hid_in_layer(string, int=0);
 bool mid_in_layer(string, int=0);
@@ -73,21 +85,43 @@ void add_index_channel(string, int);
 void add_channel_data(string, string, double *, int);
 void add_channel_data(string, map<string, Channel>, vector<string>);
 
-void get_channel_data(string, string, Channel *, Channel *);
-
 void compute_math_channels(int, string, string);
 
-class Table {
+class Table
+{
 private:
-  map<string, Channel *> m_channels_in_memory;
+  vector<map<string, Channel *>> m_channels_in_memory;
+  int m_number_of_layers = 0;
+  
   string m_time_channel_name;
   string m_time_channel_unit;
+  
+//  bool m_time_is_zeroed = true;
+  
+  map<string, string> m_units;
 
 public:
-  Table() {}
+  Table()
+  {
+    add_layer();
+    
+    YAML::Node doc = YAML::LoadFile("/Users/kierandwn/projects/insight/insight/demo/px4.units");
+    for (size_t i = 0; i < doc["units"].size(); ++i)
+    {
+      YAML::const_iterator pair = doc["units"][i].begin();
+      string channel_id  = pair->first.as<string>();
+      string unit_string = pair->second.as<string>();
+      
+      if (!(m_units.find(channel_id) != m_units.end()))
+        m_units[channel_id.c_str()] = unit_string.c_str(); // c_str to ensure data is deepcopied (doesn't go void on deleteion of doc)
+    }
+  }
   ~Table() { clear(); }
+  
+  int add_layer();
+  int get_number_of_layers();
 
-  Channel * get(string id);
+  Channel * get(string, int=0);
   
   void set_time_channel_name(string channel_name) { m_time_channel_name = channel_name; }
   void set_time_channel_unit(string channel_unit) { m_time_channel_unit = channel_unit; }
@@ -95,24 +129,36 @@ public:
   string get_time_channel_name() { return m_time_channel_name; }
   string get_time_channel_unit() { return m_time_channel_unit; }
 
-  void add(string channel_name)
+  void add(string channel_name, int layer=0)
   {
-    if (m_channels_in_memory.find(channel_name) == m_channels_in_memory.end()) {
-      m_channels_in_memory[channel_name] = new Channel;
-    }
+    map<string, Channel *>& channels_in_layer = m_channels_in_memory[layer];
+    
+    if (channels_in_layer.find(channel_name) == channels_in_layer.end())
+      channels_in_layer[channel_name] = new Channel;
+
   }
 
-//  bool exists(string id) { return (!(m_channels_in_memory.find(id) == m_channels_in_memory.end())); }
-  bool exists(string id);
+  bool exists_in_layer(string, int=0);
 
-  void clear() {
-    for (map<string, Channel *>::iterator c = m_channels_in_memory.begin(); c != m_channels_in_memory.end(); ++c) {
-      delete c->second;
+  void clear()
+  {
+    for (int layer = 0; layer < m_channels_in_memory.size(); ++layer)
+    {
+      map<string, Channel *>& channels_in_layer = m_channels_in_memory[layer];
+      
+      for (map<string, Channel *>::iterator c = channels_in_layer.begin(); c != channels_in_layer.end(); ++c)
+        delete c->second;
+      
+      channels_in_layer.clear();
     }
-    m_channels_in_memory.clear();
   }
+  
+  bool get_max_bounds_in_data(string, int, double *);
+  bool get_max_bounds_in_data(string, double *);
+  bool get_max_bounds_in_data(vector<string>, int, double *);
+  bool get_max_bounds_in_data(vector<string>, double *);
 
-  Channel * operator[] (string id) { return m_channels_in_memory[id]; }
+//  Channel * operator[] (string id) { return m_channels_in_memory[id]; }
 };
 
 }  // namespace data

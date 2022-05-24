@@ -3,6 +3,9 @@ LAYOUT_INCLUDE_PATH = "$$PWD/include"
 
 GRAPHIC_INCLUDE_PATH = "$$PWD/graphic/include"
 
+FORMS += \
+    $$PWD/ui/mainwindow.ui
+
 SOURCES += \
     $$LAYOUT_SRC_PATH/grid.cpp \
     $$LAYOUT_SRC_PATH/mainwindow.cpp

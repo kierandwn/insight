@@ -186,12 +186,12 @@ void WaveformDisplay::update_after_data_load()
 {
   int n_layers = m_data->get_number_of_layers();
   bool layer_added = n_layers > m_number_of_layers;
-  m_number_of_layers = n_layers;
   
+  m_number_of_layers = n_layers;
   int n_waveform_groups = get_number_of_waveform_groups();
   
-  for (int i = 0; i < n_waveform_groups; ++i)
-    if (layer_added)
+  if (layer_added)
+    for (int i = 0; i < n_waveform_groups; ++i)
       m_waveform_groups[i]->add_layer();
   
   determine_zero_xvalues();
@@ -204,7 +204,7 @@ void WaveformDisplay::update_after_data_load()
   update_view_limits(m_max_xbounds[0], m_max_xbounds[1]);
 
   update_xchannel_data();
-  update_cursor_position(x_denormalised(m_max_xbounds[0]));
+  update_cursor_position(x_denormalised(m_max_xbounds[0])); // TODO: ???
   
   replot();
   m_mouse_state = Ready;
@@ -221,7 +221,7 @@ void WaveformDisplay::update_view_limits(double xmin, double xmax)
   int channels_to_plot = get_number_of_waveform_groups();
     
   for (int i = 0; i < channels_to_plot; ++i)
-    m_waveform_groups[i]->set_data_from_table(m_data, xmin_normd, xmax_normd);
+    m_waveform_groups[i]->set_data_from_table(m_data, xmin, xmax);
 
   cursor_in_xrange();
     
@@ -297,8 +297,8 @@ void WaveformDisplay::get_max_xrange(double * xlimits)
   }
   if (!plot_active)
   {
-    xlimits[0] = 0;
-    xlimits[1] = 1;
+    xlimits[0] = 0.;
+    xlimits[1] = 1.;
   }
 }
 
@@ -326,7 +326,7 @@ void WaveformDisplay::resizeEvent(QResizeEvent * event)
   set_xlabel_position();
   for (int i = 0; i < m_nwaveform_groups; ++i)
   {
-    m_waveform_groups[i]->set_data_from_table(m_data, xlimits[0], xlimits[1]);
+    m_waveform_groups[i]->set_data_from_table(m_data);
     m_waveform_groups[i]->set_label_position();
   }
   

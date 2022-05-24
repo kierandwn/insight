@@ -56,8 +56,13 @@ class DataXYDisplay : public LinkedPlot
     
   vector<DataXYGroup *> m_data_curves;
   
-  int m_ncurves;
-  int m_cursor_track_curve = 0;
+  int m_ncurves = 0;
+  int m_nlayers = 0;
+  
+  int m_panning_crosshair = -1;
+  
+  vector<string> m_xchannel_names;
+  vector<string> m_ychannel_names;
   
   string m_xaxis_unit_string = "-";
   string m_yaxis_unit_string = "-";
@@ -71,10 +76,23 @@ class DataXYDisplay : public LinkedPlot
                                 double ymin,
                                 double ymax );
   void update_axes_unit_strings();
+  
+  bool m_indicator_lines_at_zero = true;
+  
+  double m_padding_scalar = .04;
+  
     
 public:
   DataXYDisplay(data::Table *, layout::Layout *);
   virtual ~DataXYDisplay() {} // TODO: resolve data leak in m_data_curves
+  
+  virtual void apply_config(nlohmann::json *) override;
+  void init () override;
+  virtual void init_curves()=0;
+  
+  void init_labels();
+  void init_cursor_position();
+  void init_mean_lines();
 
   int get_number_of_scatter_pairs() { return m_ncurves; }
   void update_cursor_position(double=0.) override;
@@ -82,14 +100,12 @@ public:
   void set_label_positions();
   
   void update_after_data_load () override;
-  void update_view_limits(double, double) override;
-  virtual void update_mean_lines()=0;
-    
-  void init () override;
+  void update_mean_lines();
   
-  void init_labels();
-  void init_cursor_position();
-  void init_mean_lines();
+  void update_view_limits(double, double) override;
+  void update_axes_scales();
+  
+//  virtual void add_layer()=0;
   
   void descriptive_mean_labels();
   
@@ -98,6 +114,9 @@ public:
   bool xlim(double *);
   bool ylim(double *);
   
+  void update_plot_limits();
+  void update_plot_limits(double *, double *);
+  
   void mousePressEvent(QMouseEvent *) override;
   void mouseMoveEvent(QMouseEvent *) override;
   void mouseReleaseEvent(QMouseEvent *) override;
@@ -105,26 +124,35 @@ public:
   void wheelEvent(QWheelEvent * event) override;
   
   void resizeEvent(QResizeEvent * event) override;
+  
+  bool get_total_data_ranges(double *, double *);
 };
 
-class ScatterDisplay : public virtual DataXYDisplay { // TODO: difference between scatter/line implemented as a factory? seems unnecessary to have different plot classes?
+class ScatterDisplay : public virtual DataXYDisplay // TODO: difference between scatter/line implemented as a factory? seems unnecessary to have different plot classes?
+{
+ protected:
+  bool m_indicator_lines_at_zero = false;
+  
  public:
   ScatterDisplay(data::Table * t, layout::Layout * l) : DataXYDisplay(t, l) {}
   ~ScatterDisplay() {}
   
-  void apply_config(nlohmann::json *) override;
+  void init_curves() override;
   
-  void update_mean_lines() override;
+//  void apply_config(nlohmann::json *) override;
+//  void update_mean_lines() override;
 };
 
-class LineDisplay : public virtual DataXYDisplay {
+class LineDisplay : public virtual DataXYDisplay
+{
  public:
   LineDisplay(data::Table * t, layout::Layout * l) : DataXYDisplay(t, l) {}
   ~LineDisplay() {}
   
-  void apply_config(nlohmann::json *) override;
+  void init_curves() override;
   
-  void update_mean_lines() override;
+//  void apply_config(nlohmann::json *) override;
+//  void update_mean_lines() override;
 };
 
 }  // namespace graphic

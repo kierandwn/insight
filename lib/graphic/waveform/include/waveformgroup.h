@@ -48,16 +48,16 @@ class WaveformGroup
   QLabel m_label;
   QLabel m_metrics;
     
-  bool m_zeroed_xdomain = true;
+  bool m_zeroed_xdomain = false;
   vector<double> m_zero_points_x{0.};
     
   vector<string> m_channel_names;
   vector<string> m_unit_strings;
-
- public:
+  
   double m_normalised_height;
   double m_normalised_yoffset;
-    
+
+ public:
   WaveformGroup(graphic::Base *);
     
   void init();
@@ -81,7 +81,7 @@ class WaveformGroup
   
   void set_zero_line_position(double, double);
   
-  void get_xlimits_in_data(double *);
+  bool get_xlimits_in_data(double *, bool=false);
   
   double x_normalised(double x, int layer) { return x - m_zero_points_x[layer]; }
   double x_denormalised(double x, int layer) { return x + m_zero_points_x[layer]; }
@@ -97,6 +97,11 @@ class WaveformGroup
   void set_x_zero_value(double zero_value, int layer) { m_zero_points_x[layer] = zero_value; }
   
   bool any_channel_present_in(data::Table *);
+  
+  double get_normalised_plot_position() { return m_normalised_yoffset; }
+  double get_normalised_plot_height()   { return m_normalised_height; }
+  
+  void set_normalised_plot_height(double height) { m_normalised_height = height; }
 };
 
 bool channel_and_time_present_in(string, data::Table *, int);

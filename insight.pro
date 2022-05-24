@@ -1,8 +1,9 @@
+TEMPLATE = app
+CONFIG += c++11
+
 QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
-CONFIG += c++11
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -17,12 +18,10 @@ include ( lib/data/data.pro )
 include ( lib/graphic/graphic.pro )
 include ( lib/layout/layout.pro )
 include ( lib/csv/csv.pro )
+include ( lib/yaml-cpp/yaml.pri )
 
 SOURCES += \
     main.cpp
-
-FORMS += \
-    ui/mainwindow.ui
 
 DISTFILES += \
     config/layout.config

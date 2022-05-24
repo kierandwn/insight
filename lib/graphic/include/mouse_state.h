@@ -25,7 +25,7 @@ namespace graphic {
 
 
 enum MouseDragMode {
-  Init, Ready, Pan, CursorDrag
+  Init, Ready, Pan, CursorDrag, DragAndDropReconfigureReady, DragAndDropReconfigure
 };
 
 class MouseState {

@@ -27,6 +27,8 @@
 
 #include <QSqlQuery>
 
+#include "yaml-cpp/yaml.h"
+
 #include "channel.h"
 
 namespace insight {
@@ -85,17 +87,34 @@ void add_channel_data(string, map<string, Channel>, vector<string>);
 
 void compute_math_channels(int, string, string);
 
-class Table {
+class Table
+{
 private:
   vector<map<string, Channel *>> m_channels_in_memory;
   int m_number_of_layers = 0;
   
   string m_time_channel_name;
   string m_time_channel_unit;
+  
+//  bool m_time_is_zeroed = true;
+  
+  map<string, string> m_units;
 
 public:
-  Table() {
+  Table()
+  {
     add_layer();
+    
+    YAML::Node doc = YAML::LoadFile("/Users/kierandwn/projects/insight/insight/demo/px4.units");
+    for (size_t i = 0; i < doc["units"].size(); ++i)
+    {
+      YAML::const_iterator pair = doc["units"][i].begin();
+      string channel_id  = pair->first.as<string>();
+      string unit_string = pair->second.as<string>();
+      
+      if (!(m_units.find(channel_id) != m_units.end()))
+        m_units[channel_id.c_str()] = unit_string.c_str(); // c_str to ensure data is deepcopied (doesn't go void on deleteion of doc)
+    }
   }
   ~Table() { clear(); }
   
@@ -114,23 +133,30 @@ public:
   {
     map<string, Channel *>& channels_in_layer = m_channels_in_memory[layer];
     
-    if (channels_in_layer.find(channel_name) == channels_in_layer.end()) {
+    if (channels_in_layer.find(channel_name) == channels_in_layer.end())
       channels_in_layer[channel_name] = new Channel;
-    }
+
   }
 
   bool exists_in_layer(string, int=0);
 
-  void clear() {
-    for (int layer = 0; layer < m_channels_in_memory.size(); ++layer) {
+  void clear()
+  {
+    for (int layer = 0; layer < m_channels_in_memory.size(); ++layer)
+    {
       map<string, Channel *>& channels_in_layer = m_channels_in_memory[layer];
       
-      for (map<string, Channel *>::iterator c = channels_in_layer.begin(); c != channels_in_layer.end(); ++c) {
+      for (map<string, Channel *>::iterator c = channels_in_layer.begin(); c != channels_in_layer.end(); ++c)
         delete c->second;
-      }
+      
       channels_in_layer.clear();
     }
   }
+  
+  bool get_max_bounds_in_data(string, int, double *);
+  bool get_max_bounds_in_data(string, double *);
+  bool get_max_bounds_in_data(vector<string>, int, double *);
+  bool get_max_bounds_in_data(vector<string>, double *);
 
 //  Channel * operator[] (string id) { return m_channels_in_memory[id]; }
 };

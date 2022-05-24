@@ -63,27 +63,29 @@ ApplicationMainWindow::~ApplicationMainWindow()
   data::shutdown_db();
 }
 
-void ApplicationMainWindow::update() {
+void ApplicationMainWindow::update()
+{
   map<string, graphic::Base *>::iterator p;
-  for (p = m_layout.first(); p != m_layout.last(); ++p) {
+  
+  for (p = m_layout.first(); p != m_layout.last(); ++p)
     p->second->update_after_data_load();
-  }
 }
 
-void ApplicationMainWindow::load_config() {
+void ApplicationMainWindow::load_config()
+{
   string config_filename;
   
-  if (QFileInfo(k_USER_SPECIFIC_CONFIG_FILEPATH.c_str()).exists()) {
+  if (QFileInfo(k_USER_SPECIFIC_CONFIG_FILEPATH.c_str()).exists())
     config_filename = k_USER_SPECIFIC_CONFIG_FILEPATH;
-    
-  } else {
+  
+  else
     config_filename = m_source_root_dirpath + "/config/default.config";
-    
-  }
+  
   import_from_json(config_filename);
 }
 
-void ApplicationMainWindow::import_from_json(string filename) {
+void ApplicationMainWindow::import_from_json(string filename)
+{
   ifstream ifs { filename };
   if ( !ifs.is_open() ) { cerr << "Could not open file for reading!\n"; throw; }
 
@@ -102,7 +104,8 @@ void ApplicationMainWindow::import_from_json(string filename) {
   
   string layout_filepath = layout_dirpath.append("/").append(layout_filename.c_str());
   
-  if (!QFileInfo(layout_filepath.c_str()).exists()) {
+  if (!QFileInfo(layout_filepath.c_str()).exists())
+  {
     layout_filepath = QFileDialog::getOpenFileName(this,
       tr("Load Layout File"), m_layout_dirpath.c_str(), tr("Layout File (*.layout)")).toStdString();
   }
@@ -169,8 +172,8 @@ void ApplicationMainWindow::load_data_from_files(int layer)
                       dirpath,
                       layer,
                       common_prefix,
-                      m_data.get_time_channel_name()
-                      );
+                      "timestamp" // m_data.get_time_channel_name()
+                      ); // //
     }
     data::compute_math_channels(layer, m_db_filepath, m_source_root_dirpath);
     update();

@@ -559,17 +559,19 @@ Channel * Table::get(string id, int layer)
     if (table_id.find("math") == 0)
     {
       string math_table_id;
-      if (table_id == "math") math_table_id = channel_id;
-      else {
+      if (table_id == "math")
+        math_table_id = channel_id;
+      
+      else
         math_table_id = table_id.substr(table_id.find("::")+2, table_id.size());
-      }
       
       time_channel_id = get_math_channel_data(math_table_id, channel_id, layer, data_channel);
       time_id = table_id+"::"+time_channel_id;
       
       bool time_channel_in_memory = channels_in_layer.find(time_id) != channels_in_layer.end();
       
-      if (!time_channel_in_memory) {
+      if (!time_channel_in_memory)
+      {
         time_channel = new Channel;
         get_math_channel_data(math_table_id, time_channel_id, layer, time_channel);
         
@@ -586,7 +588,8 @@ Channel * Table::get(string id, int layer)
       time_id = table_id+"::"+time_channel_id;
       bool time_channel_in_memory = channels_in_layer.find(time_id) != channels_in_layer.end();
       
-      if (!time_channel_in_memory) {
+      if (!time_channel_in_memory)
+      {
         time_channel = new Channel;
         get_channel_data(table_id, time_channel_id, layer, time_channel);
         
@@ -602,10 +605,15 @@ Channel * Table::get(string id, int layer)
       get_channel_data(table_id, time_channel_id, layer, time_channel);
     }
     // set unit strings
-    string unit_string = get_unit_string(table_id, channel_id);
+    string unit_string = "-"; // get_unit_string(table_id, channel_id);
+//    data_channel->set_unit_string(unit_string);
+    
+    if (m_units.find(id) != m_units.end())
+      unit_string = m_units[id];
+    
     data_channel->set_unit_string(unit_string);
     
-    unit_string = get_unit_string(table_id, time_channel_id);
+    unit_string = "-"; // get_unit_string(table_id, time_channel_id);
     time_channel->set_unit_string(unit_string);
     
     data_channel->update_time_channel_ptr(time_channel);
@@ -656,6 +664,90 @@ bool Table::exists_in_layer(string id, int layer)
       return hid_in_layer(table_id) && is_channel_in_table(channel_id, "data_"+to_string(tid));
     }
   }
+}
+
+bool Table::get_max_bounds_in_data(string channel_name, int layer, double * bounds)
+{
+  if (!exists_in_layer(channel_name, layer))
+    return false;
+  
+  else
+  {
+    Channel * data_channel = get(channel_name, layer);
+    bounds[0] = data_channel->min();
+    bounds[1] = data_channel->max();
+    return true;
+  }
+}
+
+bool Table::get_max_bounds_in_data(string channel_name, double * bounds)
+{
+  bool data_found = false;
+  
+  bounds[0] =  10e+13;
+  bounds[1] = -10e+13;
+  
+  for (int layer = 0; layer < get_number_of_layers(); ++layer)
+  {
+    double layer_bounds[2];
+    
+    if (!get_max_bounds_in_data(channel_name, layer, layer_bounds))
+      continue;
+    
+    else
+    {
+      data_found = true;
+      bounds[0] = min({layer_bounds[0], bounds[0]});
+      bounds[1] = max({layer_bounds[1], bounds[1]});
+    }
+  }
+  return data_found;
+}
+
+bool Table::get_max_bounds_in_data(vector<string> channel_names, int layer, double * bounds)
+{
+  double channel_bounds[2];
+  bool data_found = false;
+  
+  bounds[0] =  10e+13;
+  bounds[1] = -10e+13;
+  
+  for (string& channel_name : channel_names)
+  {
+    if (!get_max_bounds_in_data(channel_name, layer, channel_bounds))
+      continue;
+      
+    else
+    {
+      data_found = true;
+      bounds[0] = min({bounds[0], channel_bounds[0]});
+      bounds[1] = max({bounds[1], channel_bounds[1]});
+    }
+  }
+  return data_found;
+}
+
+bool Table::get_max_bounds_in_data(vector<string> channel_names, double * bounds)
+{
+  double channel_bounds[2];
+  bool data_found = false;
+  
+  bounds[0] =  10e+13;
+  bounds[1] = -10e+13;
+  
+  for (string& channel_name : channel_names)
+  {
+    if (!get_max_bounds_in_data(channel_name, channel_bounds))
+      continue;
+      
+    else
+    {
+      data_found = true;
+      bounds[0] = min({bounds[0], channel_bounds[0]});
+      bounds[1] = max({bounds[1], channel_bounds[1]});
+    }
+  }
+  return data_found;
 }
 
 void compute_math_channels(int layer, string db_filepath, string source_root_dirpath)

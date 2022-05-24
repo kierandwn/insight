@@ -70,7 +70,7 @@ private:
   string m_xchannel_name = "time";
   string m_xchannel_unit_string = "-";
   
-  bool m_normalised_x = true;
+  bool m_normalised_x = false;
   vector<double> m_xzeros{ 0. };
   
   int m_number_of_layers = 1;
@@ -160,6 +160,34 @@ public:
     {
       return x;
     }
+  }
+  
+  bool calculate_maximum_xdomain(double * xbounds)
+  {
+    bool data_found = false;
+    
+    xbounds[0] =  10e+13;
+    xbounds[1] = -10e+13;
+    
+    for (int layer = 0; layer < m_number_of_layers; ++layer)
+    {
+      for (WaveformGroup * group : m_waveform_groups)
+      {
+        vector<string> channel_names = group->get_channel_names();
+        for (string& channel : channel_names)
+        {
+          if (m_data->exists_in_layer(channel, layer))
+          {
+            data_found = true;
+            
+            data::Channel * data_channel = m_data->get(channel, layer);
+            xbounds[0] = min({xbounds[0], data_channel->get_time_ref()->min()});
+            xbounds[1] = max({xbounds[1], data_channel->get_time_ref()->min()});
+          }
+        }
+      }
+    }
+    return data_found;
   }
 };
 

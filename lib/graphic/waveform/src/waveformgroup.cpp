@@ -82,7 +82,8 @@ void WaveformGroup::attach(int layer)
 }
 
 void WaveformGroup::set_data_from_table(data::Table * table,
-                                        double x_lbound0, double x_hbound0)
+                                        double x_lbound_denorm,
+                                        double x_hbound_denorm)
 {
   double x_lbound, x_hbound;
   
@@ -124,16 +125,16 @@ void WaveformGroup::set_data_from_table(data::Table * table,
       x0 = table->get(m_channel_names[i_waveform], i_layer)->get_time_ref()->operator[](0);
       xf = table->get(m_channel_names[i_waveform], i_layer)->get_time_ref()->operator[](n - 1);
       
-      if (m_zeroed_xdomain)
-      {
-        x_lbound = max({x_denormalised(x_lbound0, i_layer), x0});
-        x_hbound = min({x_denormalised(x_hbound0, i_layer), xf});
-      }
-      else
-      {
-        x_lbound = max({x_lbound0, x0});
-        x_hbound = min({x_hbound0, xf});
-      }
+//      if (m_zeroed_xdomain)
+//      {
+//        x_lbound = max({x_denormalised(x_lbound0, i_layer), x0});
+//        x_hbound = min({x_denormalised(x_hbound0, i_layer), xf});
+//      }
+//      else
+//      {
+        x_lbound = max({x_lbound_denorm, x0});
+        x_hbound = min({x_hbound_denorm, xf});
+//      }s
       
       if (!m_zeroed_xdomain)
         xdata = channel->get_time_data_ptr();
@@ -185,15 +186,19 @@ void WaveformGroup::set_data_from_table(data::Table * table,
     }
   }
   if (plotted)
+  {
     set_metric_values(ymin, ymax, ymean);
+    set_zero_line_position(0., 1.);
+  }
   
-  set_zero_line_position(x_lbound0, x_hbound0);
+//  set_zero_line_position(x_lbound0, x_hbound0);
+
 }
 
 void WaveformGroup::init()
 {
   init_label();
-  set_zero_line_position(0., 1.);
+//  set_zero_line_position(0., 1.);
   
   reformat();
   attach(0);
@@ -229,7 +234,7 @@ vector<int> WaveformGroup::determine_line_color(int curve, int layer)
 void WaveformGroup::set_label_position()
 {
   int label_xcoord = 5;
-  int label_ycoord = p_parent->painter_coordy_from_axis_scale(m_normalised_yoffset - m_normalised_height / 2) - m_label.sizeHint().height();
+  int label_ycoord = p_parent->painter_coordy_from_axis_scale(m_normalised_yoffset - .2 * m_normalised_height) - m_label.sizeHint().height();
   
   int metrics_xcoord = p_parent->width() - (m_metrics.sizeHint().width() + 5);
   int metrics_ycoord = p_parent->painter_coordy_from_axis_scale(m_normalised_yoffset) - 12;
@@ -294,8 +299,6 @@ void WaveformGroup::set_label_values_at(double xpos, data::Table * table)
       else
       {
         continue;
-//        value = 0.;
-//        color = kDefaultInactiveColor;
       }
       
       sprintf(&label_text[string_cursor],
@@ -335,9 +338,12 @@ void WaveformGroup::set_metric_values(double min, double max, double mean)
 
 void WaveformGroup::set_zero_line_position(double xmin, double xmax)
 {
+  double xlimits[2];
+  get_xlimits_in_data(xlimits, true); // account for normalisation if necessary
+  
   double xdata_0line[2];
-  xdata_0line[0] = xmin;
-  xdata_0line[1] = xmax;
+  xdata_0line[0] = xlimits[0];
+  xdata_0line[1] = xlimits[1];
 
   double ydata_0line[2]{
     m_normalised_yoffset,
@@ -359,7 +365,7 @@ bool WaveformGroup::any_channel_present_in(data::Table * data)
   return false;
 }
 
-void WaveformGroup::get_xlimits_in_data(double * xlimits)
+bool WaveformGroup::get_xlimits_in_data(double * xlimits, bool normalise)
 {
   data::Table * data = p_parent->get_data_table_ref();
   
@@ -369,22 +375,54 @@ void WaveformGroup::get_xlimits_in_data(double * xlimits)
   double xmin =  10e13;
   double xmax = -10e13;
   
+  double current_xchannel_min, current_xchannel_max;
+  bool data_found = false;
+  
   for (string& channel_name : channel_names)
   {
     for (int layer = 0; layer < n_layers; ++layer)
     {
-      data::Channel * xchannel = data->get(channel_name, layer)->get_time_ref();
+      if (!channel_and_time_present_in(channel_name, data, layer))
+        continue;
       
-      double current_xchannel_min = xchannel->min();
-      double current_xchannel_max = xchannel->max();
+      data::Channel * data_channel = data->get(channel_name, layer);
+      data::Channel * xchannel = data_channel->get_time_ref();
+      
+      if (normalise && m_zeroed_xdomain)
+      {
+        current_xchannel_min = x_normalised(xchannel->min(), layer);
+        current_xchannel_max = x_normalised(xchannel->max(), layer);
+      }
+      else
+      {
+        current_xchannel_min = xchannel->min();
+        current_xchannel_max = xchannel->max();
+      }
       
       xmin = min({xmin, current_xchannel_min});
       xmax = max({xmax, current_xchannel_max});
+      
+      data_found = true;
     }
   }
-  xlimits[0] = xmin;
-  xlimits[1] = xmax;
+  
+  if (data_found)
+  {
+    xlimits[0] = xmin;
+    xlimits[1] = xmax;
+  }
+  else
+  {
+    xlimits[0] = 0.;
+    xlimits[1] = 1.;
+  }
+  return data_found;
 }
+
+//bool WaveformGroup::data_is_present()
+//{
+//  for (int i = 0; i <)
+//}
 
 bool channel_and_time_present_in(string channel_name, data::Table * data, int layer)
 {

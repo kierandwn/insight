@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     ApplicationMainWindow w(dir_path);
 
-    w.show();
+    w.show(); // TODO: warning shown on this step: "SqlQuery::value: not positioned on a valid record"
     w.init();
 
     return a.exec();

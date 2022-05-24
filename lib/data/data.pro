@@ -5,6 +5,7 @@ DATA_INCLUDE_PATH = "$$PWD/include"
 
 INCLUDEPATH += \
     $$DATA_INCLUDE_PATH
+    $$PWD/../yaml-cpp/include
 
 SOURCES += \
     $$DATA_SRC_PATH/table.cpp

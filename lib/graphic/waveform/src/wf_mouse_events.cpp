@@ -17,6 +17,7 @@
 // along with insight.  If not, see <https://www.gnu.org/licenses/>.
 //
 #include "waveformdisplay.h"
+#include "painting_tools.h"
 
 #include <QMouseEvent>
 #include <QWheelEvent>
@@ -52,7 +53,7 @@ void WaveformDisplay::mousePressEvent(QMouseEvent * event)
     else
     if (m_mouse_state == DragAndDropReconfigureReady)
     {
-      double y_mouse = axis_coordy_from_painter_scale(event->y());
+      double y_mouse = axis_coordy_from_painter_scale(this, event->y());
       m_mouse_state.y(y_mouse); // only drag plot if it's within mouse is close within specified threshold.
       
       m_mouse_state = DragAndDropReconfigure;
@@ -151,7 +152,7 @@ void WaveformDisplay::wheelEvent(QWheelEvent * event)
     double scroll_speed_scalar = .001;
     double vertical_scroll_delta = event->angleDelta().y();
     
-    double y_mouse = axis_coordy_from_painter_scale(event->y());
+    double y_mouse = axis_coordy_from_painter_scale(this, event->y());
 //    m_mouse_state.y(y_mouse);
     
     double * delta_ys = new double[m_waveform_groups.size()];

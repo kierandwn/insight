@@ -308,7 +308,7 @@ void DataXYDisplay::reset()
 
 void DataXYDisplay::resizeEvent(QResizeEvent * event)
 {
-  Base::resizeEvent(event);
+  QwtPlot::resizeEvent(event);
   
   set_label_positions();
   update_mean_lines();
@@ -357,14 +357,14 @@ void DataXYDisplay::apply_config(nlohmann::json * json_config)
 void ScatterDisplay::init_curves()
 {
   for (int i = 0; i < m_ncurves; ++i)
-    m_data_curves.push_back(new ScatterGroup(this, m_xchannel_names[i], m_ychannel_names[i])); // TODO: free this memory?
+    m_data_curves.push_back(new ScatterGroup(get_data_table_ref(), this, m_xchannel_names[i], m_ychannel_names[i])); // TODO: free this memory?
   
 }
 
 void LineDisplay::init_curves()
 {
   for (int i = 0; i < m_ncurves; ++i)
-    m_data_curves.push_back(new LineGroup(this, m_xchannel_names[i], m_ychannel_names[i]));
+    m_data_curves.push_back(new LineGroup(get_data_table_ref(), this, m_xchannel_names[i], m_ychannel_names[i]));
   
 }
 

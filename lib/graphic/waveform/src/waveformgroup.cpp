@@ -17,6 +17,7 @@
 // along with insight.  If not, see <https://www.gnu.org/licenses/>.
 //
 #include "waveformgroup.h"
+#include "ApplicationInterface.h"
 
 #include <string>
 #include <cmath>
@@ -28,16 +29,18 @@
 #include <qwt_plot_item.h>
 
 #include "defaults.h"
+#include "painting_tools.h"
 
 
 namespace insight {
 namespace graphic {
 
 
-WaveformGroup::WaveformGroup(graphic::Base * parent)
-    : p_parent(parent),
-      m_label(parent),
-      m_metrics(parent)
+WaveformGroup::WaveformGroup(data::Table * data_table, QwtPlot * plot)
+    : ptr_plot_object_(plot),
+      ptr_insight_data_layer_(data_table),
+      m_label(plot),
+      m_metrics(plot)
 {
     m_curves.push_back(vector<QwtPlotCurve * >());
     m_zero_line.setPen(QColor(0, 0, 0, 100));
@@ -76,9 +79,9 @@ void WaveformGroup::add_layer()
 void WaveformGroup::attach(int layer)
 {
   for (size_t curve = 0; curve < m_curves[layer].size(); ++curve)
-    m_curves[layer][curve]->attach(p_parent);
+    m_curves[layer][curve]->attach(ptr_plot_object_);
   
-  m_zero_line.attach(p_parent);
+  m_zero_line.attach(ptr_plot_object_);
 }
 
 void WaveformGroup::set_data_from_table(data::Table * table,
@@ -234,10 +237,10 @@ vector<int> WaveformGroup::determine_line_color(int curve, int layer)
 void WaveformGroup::set_label_position()
 {
   int label_xcoord = 5;
-  int label_ycoord = p_parent->painter_coordy_from_axis_scale(m_normalised_yoffset - .2 * m_normalised_height) - m_label.sizeHint().height();
+  int label_ycoord = painter_coordy_from_axis_scale(ptr_plot_object_, m_normalised_yoffset - .2 * m_normalised_height) - m_label.sizeHint().height();
   
-  int metrics_xcoord = p_parent->width() - (m_metrics.sizeHint().width() + 5);
-  int metrics_ycoord = p_parent->painter_coordy_from_axis_scale(m_normalised_yoffset) - 12;
+  int metrics_xcoord = ptr_plot_object_->width() - (m_metrics.sizeHint().width() + 5);
+  int metrics_ycoord = painter_coordy_from_axis_scale(ptr_plot_object_, m_normalised_yoffset) - 12;
   
   m_label.setGeometry(label_xcoord, label_ycoord, m_label.sizeHint().width(),
                                                   m_label.sizeHint().height() );
@@ -264,7 +267,7 @@ void WaveformGroup::set_label_values_at(double xpos, data::Table * table)
   int unit_strings_total_length = 0;
 
   size_t n_channels = m_channel_names.size();
-  int n_layers = p_parent->get_data_table_ref()->get_number_of_layers();
+  int n_layers = ptr_insight_data_layer_->get_number_of_layers();
   
   for (size_t i = 0; i < n_channels; ++i)
   {
@@ -367,9 +370,9 @@ bool WaveformGroup::any_channel_present_in(data::Table * data)
 
 bool WaveformGroup::get_xlimits_in_data(double * xlimits, bool normalise)
 {
-  data::Table * data = p_parent->get_data_table_ref();
+//  data::Table * data = p_parent->get_data_table_ref();
   
-  int n_layers = data->get_number_of_layers();
+  int n_layers = ptr_insight_data_layer_->get_number_of_layers();
   vector<string> channel_names = get_channel_names();
   
   double xmin =  10e13;
@@ -382,10 +385,10 @@ bool WaveformGroup::get_xlimits_in_data(double * xlimits, bool normalise)
   {
     for (int layer = 0; layer < n_layers; ++layer)
     {
-      if (!channel_and_time_present_in(channel_name, data, layer))
+      if (!channel_and_time_present_in(channel_name, ptr_insight_data_layer_, layer))
         continue;
       
-      data::Channel * data_channel = data->get(channel_name, layer);
+      data::Channel * data_channel = ptr_insight_data_layer_->get(channel_name, layer);
       data::Channel * xchannel = data_channel->get_time_ref();
       
       if (normalise && m_zeroed_xdomain)

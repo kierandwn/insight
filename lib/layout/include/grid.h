@@ -25,7 +25,7 @@
 
 #include <QGridLayout>
 
-#include "insight_graphic_base.h"
+#include "ApplicationInterface.h"
 //#include "table.h"
 
 #include "lib/json/single_include/nlohmann/json.hpp"
@@ -39,17 +39,17 @@ class Grid
 {
  protected:
   int m_size[2];
-  std::map<string, graphic::Base *> m_map;
+  std::map<string, graphic::ApplicationInterface *> m_map;
 
  public:
   Grid() : m_size{0, 0} {}
   Grid(int rows, int cols) : m_size{rows, cols} {}
 
-  map<string, graphic::Base *>::iterator first();
-  map<string, graphic::Base *>::iterator next();
-  map<string, graphic::Base *>::iterator last();
+  map<string, graphic::ApplicationInterface *>::iterator first();
+  map<string, graphic::ApplicationInterface *>::iterator next();
+  map<string, graphic::ApplicationInterface *>::iterator last();
 
-  std::map<string, graphic::Base *>& map();
+  std::map<string, graphic::ApplicationInterface *>& map();
   
   void resize();
 };
@@ -63,7 +63,7 @@ class Layout : public Grid
   Layout() {}
 
   void import_from_config(string, QGridLayout *, data::Table *);
-  std::map<string, graphic::Base *> import_from_config(nlohmann::json, QGridLayout *, data::Table *);
+  std::map<string, graphic::ApplicationInterface *> import_from_config(nlohmann::json, QGridLayout *, data::Table *);
 };
 
 }  // namespace layout

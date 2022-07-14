@@ -26,7 +26,7 @@
 
 #include "lib/json/single_include/nlohmann/json.hpp"
 
-#include "insight_graphic_base.h"
+#include "ApplicationInterface.h"
 #include "waveformdisplay.h"
 #include "scatterdisplay.h"
 
@@ -37,19 +37,19 @@ namespace layout {
 
 using json = nlohmann::json;
 
-map<string, graphic::Base *>::iterator Grid::first() { return m_map.begin(); }
-map<string, graphic::Base *>::iterator Grid::last()  { return m_map.end(); }
+map<string, graphic::ApplicationInterface *>::iterator Grid::first() { return m_map.begin(); }
+map<string, graphic::ApplicationInterface *>::iterator Grid::last()  { return m_map.end(); }
 
-map<string, graphic::Base *>& Grid::map() { return m_map; }
+map<string, graphic::ApplicationInterface *>& Grid::map() { return m_map; }
 
-map<string, graphic::Base *> Layout::import_from_config(json jsonConfig, QGridLayout * grid, data::Table * data)
+map<string, graphic::ApplicationInterface *> Layout::import_from_config(json jsonConfig, QGridLayout * grid, data::Table * data)
 {
   int i = 0;
   string id, typ, first_id;
 
 //  graphic::WaveformDisplay * plot;
     
-  std::map<string, graphic::Base *> mp;
+  std::map<string, graphic::ApplicationInterface *> mp;
 
   grid->setSpacing(0);
   grid->setContentsMargins(0, 0, 0, 0);
@@ -100,7 +100,7 @@ map<string, graphic::Base *> Layout::import_from_config(json jsonConfig, QGridLa
       grid->addLayout(childGrid, i % rows, i / rows);
       i++;
 
-      std::map<string, graphic::Base *> sub_mp = import_from_config( child_config, childGrid, data );
+      std::map<string, graphic::ApplicationInterface *> sub_mp = import_from_config( child_config, childGrid, data );
       mp.insert( sub_mp.begin(), sub_mp.end() );
     }
   }
@@ -115,7 +115,7 @@ void Layout::import_from_config( std::string filename, QGridLayout * grid, data:
   json config;
   ifs >> config;
 
-  std::map<string, graphic::Base *> mp = import_from_config( config, grid, data );
+  std::map<string, graphic::ApplicationInterface *> mp = import_from_config( config, grid, data );
   m_map.insert( mp.begin(), mp.end() );
 }
 

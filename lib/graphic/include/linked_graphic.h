@@ -2,13 +2,13 @@
 //
 // This file is part of insight.
 //
-// attitude is free software : you can redistribute it and /
+// insight is free software : you can redistribute it and /
 // or modify it under the terms of the GNU Lesser General Public License
 // as published by the Free Software Foundation,
 // either version 3 of the License,
 // or (at your option) any later version.
 //
-// attitude is distributed in the hope that it will be useful,
+// insight is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
@@ -20,7 +20,7 @@
 #define INSIGHT_LINKED_GRAPHIC_H_
 #pragma once
 
-#include "insight_graphic_base.h"
+#include "ApplicationInterface.h"
 
 #include "grid.h"
 #include "table.h"
@@ -29,24 +29,23 @@ namespace insight {
 namespace graphic {
 
 
-class LinkedPlot : public Base
+class LinkedPlot : public ApplicationInterface
 {
-//  Q_OBJECT
  protected:
     layout::Layout * p_layout;
     QWidget * p_plot_widget;
  
  public:
     LinkedPlot(data::Table * data, layout::Layout * layout)
-      : Base(data),
+      : ApplicationInterface(data),
         p_layout(layout) {}
 
     void update_group_cursor_positions(double tval)
     {
         if ("" == m_group_name) return;
 
-        map<string, graphic::Base *>::iterator graphic_itr = p_layout->first();
-        graphic::Base * graphic_ptr;
+        map<string, graphic::ApplicationInterface *>::iterator graphic_itr = p_layout->first();
+        graphic::ApplicationInterface * graphic_ptr;
 
         while (graphic_itr != p_layout->last())
         {
@@ -60,8 +59,8 @@ class LinkedPlot : public Base
     {
         if ("" == m_group_name) return;
 
-        map<string, graphic::Base *>::iterator graphic_itr = p_layout->first();
-        graphic::Base * graphic_ptr;
+        map<string, graphic::ApplicationInterface *>::iterator graphic_itr = p_layout->first();
+        graphic::ApplicationInterface * graphic_ptr;
 
         while (graphic_itr != p_layout->last())
         {

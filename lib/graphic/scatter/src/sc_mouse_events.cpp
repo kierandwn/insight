@@ -2,13 +2,13 @@
 //
 // This file is part of insight.
 //
-// attitude is free software : you can redistribute it and /
+// insight is free software : you can redistribute it and /
 // or modify it under the terms of the GNU Lesser General Public License
 // as published by the Free Software Foundation,
 // either version 3 of the License,
 // or (at your option) any later version.
 //
-// attitude is distributed in the hope that it will be useful,
+// insight is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
@@ -26,6 +26,7 @@
 
 #include "scattergroup.h"
 #include "channel.h"
+#include "painting_tools.h"
 
 namespace insight {
 namespace graphic {
@@ -135,8 +136,8 @@ void DataXYDisplay::wheelEvent(QWheelEvent * event)
   double xrange = x_hbound - x_lbound;
   double yrange = y_hbound - y_lbound;
 
-  double x_mouse = axis_coordx_from_painter_scale(event->position().x());
-  double y_mouse = axis_coordy_from_painter_scale(event->position().y());
+  double x_mouse = axis_coordx_from_painter_scale(this, event->position().x());
+  double y_mouse = axis_coordy_from_painter_scale(this, event->position().y());
   
   double lhs_scaling = (x_mouse - x_lbound) / xrange;
   double bottom_scaling = (y_mouse - y_lbound) / yrange;

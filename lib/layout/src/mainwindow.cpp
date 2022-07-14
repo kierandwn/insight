@@ -65,7 +65,7 @@ ApplicationMainWindow::~ApplicationMainWindow()
 
 void ApplicationMainWindow::update()
 {
-  map<string, graphic::Base *>::iterator p;
+  map<string, graphic::ApplicationInterface *>::iterator p;
   
   for (p = m_layout.first(); p != m_layout.last(); ++p)
     p->second->update_after_data_load();
@@ -131,7 +131,7 @@ void ApplicationMainWindow::init()
   background_palette.setColor(QPalette::Window, QColor(255, 255, 255, 255));
   setPalette(background_palette);
   
-  map<string, graphic::Base *>::iterator p;
+  map<string, graphic::ApplicationInterface *>::iterator p;
   for (p = m_layout.first(); p != m_layout.last(); ++p) {
     p->second->init();
   }

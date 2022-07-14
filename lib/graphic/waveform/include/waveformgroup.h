@@ -28,7 +28,7 @@
 
 #include <qwt_plot_curve.h>
 
-#include "insight_graphic_base.h"
+#include "ApplicationInterface.h"
 #include "table.h"
 
 
@@ -40,7 +40,11 @@ using namespace std;
 class WaveformGroup
 {
  private:
-  graphic::Base * p_parent;
+  QwtPlot * ptr_plot_object_;
+  data::Table * ptr_insight_data_layer_;
+
+//  graphic::ApplicationInterface * p_parent;
+
     
   vector<vector<QwtPlotCurve *>> m_curves;
   QwtPlotCurve m_zero_line;
@@ -58,7 +62,7 @@ class WaveformGroup
   double m_normalised_yoffset;
 
  public:
-  WaveformGroup(graphic::Base *);
+  WaveformGroup(data::Table *, QwtPlot *);
     
   void init();
   void reformat();

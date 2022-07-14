@@ -25,7 +25,7 @@
 #include <qwt_plot_item.h>
 
 #include "defaults.h"
-#include "insight_graphic_base.h"
+#include "ApplicationInterface.h"
 #include "grid.h"
 
 namespace insight {
@@ -108,7 +108,7 @@ void WaveformDisplay::apply_config(nlohmann::json * json_config)
   {
     for (auto& channel_names : json_config->operator[]("data")["channel"])
     {
-      WaveformGroup * waveform_group = new WaveformGroup(this);
+      WaveformGroup * waveform_group = new WaveformGroup(m_data, this);
       
       for (auto& channel_name : channel_names)
       {
@@ -318,7 +318,7 @@ void WaveformDisplay::reset()
 
 void WaveformDisplay::resizeEvent(QResizeEvent * event)
 {
-  Base::resizeEvent(event);
+  QwtPlot::resizeEvent(event);
 
   double xlimits[2];
   xlim(xlimits);

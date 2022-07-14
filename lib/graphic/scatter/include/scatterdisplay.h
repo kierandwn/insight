@@ -2,13 +2,13 @@
 //
 // This file is part of insight.
 //
-// attitude is free software : you can redistribute it and /
+// insight is free software : you can redistribute it and /
 // or modify it under the terms of the GNU Lesser General Public License
 // as published by the Free Software Foundation,
 // either version 3 of the License,
 // or (at your option) any later version.
 //
-// attitude is distributed in the hope that it will be useful,
+// insight is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
@@ -26,14 +26,17 @@
 #include "ui_scatter.h"
 #include "linked_graphic.h"
 
+#include <qwt_plot.h>
+
 #include <QLabel>
 
-#include "scattergroup.h"
+#include "ApplicationInterface.h"
 #include "mouse_state.h"
 #include "vlabel.h"
 #include "table.h"
 #include "grid.h"
 #include "mainwindow.h"
+#include "scattergroup.h"
 
 #include "lib/json/single_include/nlohmann/json.hpp"
 
@@ -42,7 +45,7 @@ namespace graphic {
 
 using namespace std;
 
-class DataXYDisplay : public LinkedPlot
+class DataXYDisplay : public QwtPlot, public LinkedPlot
 {
   Q_OBJECT
  protected:
@@ -80,6 +83,16 @@ class DataXYDisplay : public LinkedPlot
   bool m_indicator_lines_at_zero = true;
   
   double m_padding_scalar = .04;
+  
+//  double inline axis_coordx_from_painter_scale(int i) {
+//    QwtScaleMap map = canvasMap(xBottom);
+//    return map.transform(i);
+//  }
+  
+//  int inline axis_coordx_from_painter_scale(double d) {
+//    QwtScaleMap map = canvasMap(xBottom);
+//    return map.invTransform(d);
+//  }
   
     
 public:

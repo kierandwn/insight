@@ -29,6 +29,7 @@
 #include <QLabel>
 #include <QWidget>
 
+#include <qwt_plot.h>
 #include <qwt_plot_curve.h>
 
 #include "waveformgroup.h"
@@ -45,7 +46,7 @@ namespace graphic {
 using namespace std;
 
 
-class WaveformDisplay : public LinkedPlot
+class WaveformDisplay : public QwtPlot, public LinkedPlot
 {
   Q_OBJECT
 private:
@@ -74,6 +75,16 @@ private:
   vector<double> m_xzeros{ 0. };
   
   int m_number_of_layers = 1;
+  
+  double inline axis_coordx_from_painter_scale(int i) {
+    QwtScaleMap map = canvasMap(xBottom);
+    return map.transform(i);
+  }
+  
+  int inline axis_coordx_from_painter_scale(double d) {
+    QwtScaleMap map = canvasMap(xBottom);
+    return map.invTransform(d);
+  }
 
 public:
   WaveformDisplay(data::Table *, layout::Layout *);

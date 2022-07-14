@@ -17,7 +17,7 @@ INCLUDEPATH += \
 HEADERS += \
     $$WAVEFORM_INCLUDE_PATH/waveformdisplay.h \
     $$WAVEFORM_INCLUDE_PATH/waveformgroup.h \
-    $$GRAPHIC_INCLUDE_PATH/insight_graphic_base.h \
+    $$GRAPHIC_INCLUDE_PATH/ApplicationInterface.h \
     $$GRAPHIC_INCLUDE_PATH/linked_graphic.h
 
 FORMS += \

@@ -2,7 +2,7 @@
 //
 // This file is part of insight.
 //
-// attitude is free software : you can redistribute it and /
+// insight is free software : you can redistribute it and /
 // or modify it under the terms of the GNU Lesser General Public License
 // as published by the Free Software Foundation,
 // either version 3 of the License,
@@ -29,7 +29,7 @@
 #include <qwt_plot_curve.h>
 #include <qwt_plot_grid.h>
 #include <qwt_symbol.h>
-#include <qwt_legend.h>
+//#include <qwt_legend.h>
 
 #include "grid.h"
 #include "table.h"
@@ -59,8 +59,11 @@ ApplicationMainWindow::ApplicationMainWindow(string source_root_dir, QWidget * p
 
 ApplicationMainWindow::~ApplicationMainWindow()
 {
-  delete ui;
-  data::shutdown_db();
+    ofstream ofs { k_USER_SPECIFIC_CONFIG_FILEPATH };
+    ofs << AppJsonConfig_;
+
+    delete ui;
+    data::shutdown_db();
 }
 
 void ApplicationMainWindow::update()
@@ -82,6 +85,7 @@ void ApplicationMainWindow::load_config()
     config_filename = m_source_root_dirpath + "/config/default.config";
   
   import_from_json(config_filename);
+  resize(m_mainwindow_size[0], m_mainwindow_size[1]);
 }
 
 void ApplicationMainWindow::import_from_json(string filename)
@@ -89,18 +93,17 @@ void ApplicationMainWindow::import_from_json(string filename)
   ifstream ifs { filename };
   if ( !ifs.is_open() ) { cerr << "Could not open file for reading!\n"; throw; }
 
-  nlohmann::json app_config;
-  ifs >> app_config;
+  ifs >> AppJsonConfig_;
   
-  string db_filepath = app_config["db"];
+  string db_filepath = AppJsonConfig_["db"];
   if ( db_filepath == "" ) {
     m_db_filepath = k_DEFAULT_DB_FILEPATH;
   } else {
     m_db_filepath = db_filepath;
   }
   
-  string layout_filename = app_config["layout_filename"];
-  string layout_dirpath  = app_config["layout_dirpath"];
+  string layout_filename = AppJsonConfig_["layout_filename"];
+  string layout_dirpath  = AppJsonConfig_["layout_dirpath"];
   
   string layout_filepath = layout_dirpath.append("/").append(layout_filename.c_str());
   
@@ -115,11 +118,11 @@ void ApplicationMainWindow::import_from_json(string filename)
 //  m_time_channel_name = app_config["time_channel"];
 //  m_time_channel_unit = app_config["time_unit"];
   
-  m_data.set_time_channel_name(app_config["time_channel"]);
-  m_data.set_time_channel_unit(app_config["time_unit"]);
+  m_data.set_time_channel_name(AppJsonConfig_["time_channel"]);
+  m_data.set_time_channel_unit(AppJsonConfig_["time_unit"]);
   
-  m_mainwindow_size[0] = app_config["main_window_size"][0];
-  m_mainwindow_size[1] = app_config["main_window_size"][1];
+  m_mainwindow_size[0] = AppJsonConfig_["main_window_size"][0];
+  m_mainwindow_size[1] = AppJsonConfig_["main_window_size"][1];
 }
 
 
@@ -184,6 +187,10 @@ void ApplicationMainWindow::resizeEvent(QResizeEvent * event)
 {
   QMainWindow::resizeEvent(event);
   fit_plot_area_to_main_window_area();
+
+  QSize sz = this->size();
+  AppJsonConfig_["main_window_size"][0] = sz.width();
+  AppJsonConfig_["main_window_size"][1] = sz.height();
 }
 
 void ApplicationMainWindow::fit_plot_area_to_main_window_area()
@@ -253,4 +260,13 @@ void insight::ApplicationMainWindow::on_actionImport_from_Files_triggered(int la
       add_empty_layer();
 }
 
+void insight::ApplicationMainWindow::on_actionSave_As_triggered()
+{
+    QFileDialog dialog(this);
+    dialog.setFileMode(QFileDialog::AnyFile);
 
+    QString filepath = dialog.getSaveFileName(this,
+      tr("Save Layout File"), tr((m_source_root_dirpath+"/demo").c_str()), tr("Insight Layout File, JSON (*.json)"));
+
+    m_layout.saveToFile( filepath.toStdString() );
+}

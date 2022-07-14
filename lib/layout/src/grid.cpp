@@ -2,13 +2,13 @@
 //
 // This file is part of insight.
 //
-// attitude is free software : you can redistribute it and /
+// insight is free software : you can redistribute it and /
 // or modify it under the terms of the GNU Lesser General Public License
 // as published by the Free Software Foundation,
 // either version 3 of the License,
 // or (at your option) any later version.
 //
-// attitude is distributed in the hope that it will be useful,
+// insight is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
@@ -46,8 +46,6 @@ map<string, graphic::ApplicationInterface *> Layout::import_from_config(json jso
 {
   int i = 0;
   string id, typ, first_id;
-
-//  graphic::WaveformDisplay * plot;
     
   std::map<string, graphic::ApplicationInterface *> mp;
 
@@ -66,13 +64,13 @@ map<string, graphic::ApplicationInterface *> Layout::import_from_config(json jso
 
     typ = child_config["type"];
     if (i == 0) first_id = id;
-      
+
     if ( typ == "Waveform" )
     {
       graphic::WaveformDisplay * plot = new graphic::WaveformDisplay(data, this);
       plot->apply_config(&child_config);
       grid->addWidget(plot, i % rows, i / rows);
-      
+
       mp[id] = plot;
       i++;
     }
@@ -112,11 +110,19 @@ void Layout::import_from_config( std::string filename, QGridLayout * grid, data:
   ifstream ifs { filename };
   if ( !ifs.is_open() ) { cerr << "Could not open file for reading!\n"; throw; }
 
-  json config;
-  ifs >> config;
+  ifs >> GridJsonConfig_;
 
-  std::map<string, graphic::ApplicationInterface *> mp = import_from_config( config, grid, data );
+  std::map<string, graphic::ApplicationInterface *> mp = import_from_config( GridJsonConfig_, grid, data );
   m_map.insert( mp.begin(), mp.end() );
+}
+
+void Layout::saveToFile(string filepath)
+{
+    ofstream ofs { filepath };
+    if ( !ofs.is_open() ) { cerr << "Could not open file for writing!\n"; throw; }
+
+    ofs << GridJsonConfig_;
+//    ofs << std::setw(4) << AppJsonConfig_;
 }
 
 //void Grid::resize() {

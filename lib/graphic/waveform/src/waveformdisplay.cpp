@@ -134,7 +134,7 @@ void WaveformDisplay::init()
   for (size_t i = 0; i < m_waveform_groups.size(); ++i)
     m_waveform_groups[i]->init();
   
-  m_cursor.attach(this);
+//  m_cursor.attach(this);
 }
 
 void WaveformDisplay::determine_zero_xvalues()
@@ -250,8 +250,9 @@ void WaveformDisplay::cursor_in_xrange()
   double hbound = axisScaleDiv(xBottom).upperBound();
   
   if (m_xpos_cursor > lbound && m_xpos_cursor < hbound)
-    m_cursor.attach(this);
-  
+  {
+//    m_cursor.attach(this);
+  }
   else
     m_cursor.detach();
 }

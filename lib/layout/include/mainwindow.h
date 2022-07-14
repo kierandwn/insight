@@ -21,6 +21,7 @@
 #pragma once
 
 #include "ui_mainwindow.h"
+#include "lib/json/single_include/nlohmann/json.hpp"
 
 #include <string.h>
 
@@ -51,6 +52,8 @@ class ApplicationMainWindow : public QMainWindow
   Q_OBJECT
  private:
   Ui::InsightMainWindow * ui;
+  nlohmann::json AppJsonConfig_;
+
   string m_source_root_dirpath;
   
   string m_layout_dirpath;
@@ -82,6 +85,7 @@ class ApplicationMainWindow : public QMainWindow
   void on_actionImport_from_Files_triggered(int=0);
   
   void resizeEvent(QResizeEvent * event) override;
+  void on_actionSave_As_triggered();
 };
 
 

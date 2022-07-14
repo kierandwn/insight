@@ -93,7 +93,7 @@ void WaveformGroup::set_data_from_table(data::Table * table,
   int n_layers = table->get_number_of_layers();
   size_t n_waveforms = m_channel_names.size();
   
-  double ymax, ymin, ymean;
+  double ymax = 0., ymin = 0., ymean = 0.;
   bool plotted = false;
   
   double x0, xf;
@@ -188,11 +188,11 @@ void WaveformGroup::set_data_from_table(data::Table * table,
         delete[] xdata;
     }
   }
-  if (plotted)
-  {
+//  if (plotted)
+//  {
     set_metric_values(ymin, ymax, ymean);
     set_zero_line_position(0., 1.);
-  }
+//  }
   
 //  set_zero_line_position(x_lbound0, x_hbound0);
 
@@ -201,7 +201,7 @@ void WaveformGroup::set_data_from_table(data::Table * table,
 void WaveformGroup::init()
 {
   init_label();
-//  set_zero_line_position(0., 1.);
+  set_zero_line_position(0., 1.);
   
   reformat();
   attach(0);

@@ -88,6 +88,10 @@ private:
 
 public:
   WaveformDisplay(data::Table *, layout::Layout *);
+  ~WaveformDisplay()
+  {
+      std::cout << "testing." << std::endl;
+  }
     
   void mousePressEvent(QMouseEvent *) override;
   void mouseMoveEvent(QMouseEvent *) override;

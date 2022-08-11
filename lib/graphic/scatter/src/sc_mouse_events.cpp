@@ -66,7 +66,7 @@ void DataXYDisplay::mousePressEvent(QMouseEvent * event)
     }
   }
 
-  data::Channel * xchan = m_data->get(m_data_curves[0]->get_xchannel_name());
+  data::Channel * xchan = insight_data_ref_->get(m_data_curves[0]->get_xchannel_name());
 
   int i_closest = m_data_curves[0]->get_shadow()->closestPoint(event->pos());
   double t_val = xchan->get_time_data_ptr()[i_closest];
@@ -180,7 +180,7 @@ void DataXYDisplay::update_plot_limits()
     string xchannel_name = m_data_curves[i]->get_xchannel_name(); // TODO move this check inside update_crosshair?
     string ychannel_name = m_data_curves[i]->get_ychannel_name();
 
-    if (m_data->exists_in_layer(xchannel_name) && m_data->exists_in_layer(ychannel_name))
+    if (insight_data_ref_->exists_in_layer(xchannel_name) && insight_data_ref_->exists_in_layer(ychannel_name))
       m_data_curves[i]->update_crosshair(xbounds, ybounds);
 
   }
@@ -221,7 +221,7 @@ void DataXYDisplay::update_plot_limits(double * xbounds, double * ybounds)
     string xchannel_name = m_data_curves[i]->get_xchannel_name(); // TODO move this check inside update_crosshair?
     string ychannel_name = m_data_curves[i]->get_ychannel_name();
 
-    if (m_data->exists_in_layer(xchannel_name) && m_data->exists_in_layer(ychannel_name))
+    if (insight_data_ref_->exists_in_layer(xchannel_name) && insight_data_ref_->exists_in_layer(ychannel_name))
       m_data_curves[i]->update_crosshair(xbounds_for_crosshair, ybounds_for_crosshair);
 
   }

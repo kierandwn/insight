@@ -16,6 +16,5 @@ INCLUDEPATH += \
 
 HEADERS += \
     $$LAYOUT_INCLUDE_PATH/grid.h \
-    $$LAYOUT_INCLUDE_PATH/mainwindow.h
+    $$LAYOUT_INCLUDE_PATH/mainwindow.h \
     $$GRAPHIC_INCLUDE_PATH/insight_graphic_base.h
-    $$GRAPHIC_INCLUDE_PATH/linked_graphic.h

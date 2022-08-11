@@ -68,9 +68,11 @@ ApplicationMainWindow::~ApplicationMainWindow()
 
 void ApplicationMainWindow::update()
 {
-  map<string, graphic::ApplicationInterface *>::iterator p;
+  map<string, graphic::InsightGraphic *>::iterator p;
+
+//  std::map<std::string, graphic::InsightGraphic *>::iterator linked_graphic_group;
   
-  for (p = m_layout.first(); p != m_layout.last(); ++p)
+  for (p = m_layout.map().begin(); p != m_layout.map().end(); ++p)
     p->second->update_after_data_load();
 }
 
@@ -134,8 +136,9 @@ void ApplicationMainWindow::init()
   background_palette.setColor(QPalette::Window, QColor(255, 255, 255, 255));
   setPalette(background_palette);
   
-  map<string, graphic::ApplicationInterface *>::iterator p;
-  for (p = m_layout.first(); p != m_layout.last(); ++p) {
+  map<string, graphic::InsightGraphic *>::iterator p;
+  for (p = m_layout.map().begin(); p != m_layout.map().end(); ++p)
+  {
     p->second->init();
   }
   update();

@@ -21,7 +21,9 @@
 #pragma once
 
 #include "ui_waveform.h"
-#include "linked_graphic.h"
+#include "ApplicationInterface.h"
+
+//#include "linked_graphic.h"
 
 #include <vector>
 #include <string>
@@ -46,7 +48,7 @@ namespace graphic {
 using namespace std;
 
 
-class WaveformDisplay : public QwtPlot, public LinkedPlot
+class WaveformDisplay : public QwtPlot, public InsightGraphic
 {
   Q_OBJECT
 private:
@@ -191,11 +193,11 @@ public:
         vector<string> channel_names = group->get_channel_names();
         for (string& channel : channel_names)
         {
-          if (m_data->exists_in_layer(channel, layer))
+          if (insight_data_ref_->exists_in_layer(channel, layer))
           {
             data_found = true;
             
-            data::Channel * data_channel = m_data->get(channel, layer);
+            data::Channel * data_channel = insight_data_ref_->get(channel, layer);
             xbounds[0] = min({xbounds[0], data_channel->get_time_ref()->min()});
             xbounds[1] = max({xbounds[1], data_channel->get_time_ref()->min()});
           }

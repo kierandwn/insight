@@ -33,7 +33,7 @@ namespace graphic {
 
 
 WaveformDisplay::WaveformDisplay(data::Table * data, layout::Layout * layout)
-    : LinkedPlot(data, layout),
+    : InsightGraphic(data),
       m_xlabel(this)
 {
   p_ui->setupUi(this);
@@ -108,7 +108,7 @@ void WaveformDisplay::apply_config(nlohmann::json * json_config)
   {
     for (auto& channel_names : json_config->operator[]("data")["channel"])
     {
-      WaveformGroup * waveform_group = new WaveformGroup(m_data, this);
+      WaveformGroup * waveform_group = new WaveformGroup(insight_data_ref_, this);
       
       for (auto& channel_name : channel_names)
       {
@@ -139,7 +139,7 @@ void WaveformDisplay::init()
 
 void WaveformDisplay::determine_zero_xvalues()
 {
-  int n_layers = m_data->get_number_of_layers();
+  int n_layers = insight_data_ref_->get_number_of_layers();
   
   for (int layer = 0; layer < n_layers; ++layer)
   {
@@ -151,9 +151,9 @@ void WaveformDisplay::determine_zero_xvalues()
       
       for (string& channel_name : channel_names)
       {
-        if (m_data->exists_in_layer(channel_name, layer))
+        if (insight_data_ref_->exists_in_layer(channel_name, layer))
         {
-          data::Channel * xchannel = m_data->get(channel_name, layer)->get_time_ref();
+          data::Channel * xchannel = insight_data_ref_->get(channel_name, layer)->get_time_ref();
           
           double current_xchannel_zero = xchannel->operator[](0);
           x_zero = min({x_zero, current_xchannel_zero});
@@ -174,9 +174,9 @@ void WaveformDisplay::update_xchannel_data()
   if (channels_to_plot > 0) {
     string first_channel_name = m_waveform_groups[0]->get_channel_name(0);
     
-    if (m_data->exists_in_layer(first_channel_name))
+    if (insight_data_ref_->exists_in_layer(first_channel_name))
     {
-      data::Channel * xchannel = m_data->get(first_channel_name)->get_time_ref();
+      data::Channel * xchannel = insight_data_ref_->get(first_channel_name)->get_time_ref();
       m_xchannel_unit_string = xchannel->get_unit_string();
     }
   }
@@ -184,7 +184,7 @@ void WaveformDisplay::update_xchannel_data()
 
 void WaveformDisplay::update_after_data_load()
 {
-  int n_layers = m_data->get_number_of_layers();
+  int n_layers = insight_data_ref_->get_number_of_layers();
   bool layer_added = n_layers > m_number_of_layers;
   
   m_number_of_layers = n_layers;
@@ -197,7 +197,7 @@ void WaveformDisplay::update_after_data_load()
   determine_zero_xvalues();
     
   for (int i = 0; i < n_waveform_groups; ++i)
-    m_waveform_groups[i]->set_data_from_table(m_data);
+    m_waveform_groups[i]->set_data_from_table(insight_data_ref_);
   
   get_max_xrange(m_max_xbounds);
   
@@ -221,7 +221,7 @@ void WaveformDisplay::update_view_limits(double xmin, double xmax)
   int channels_to_plot = get_number_of_waveform_groups();
     
   for (int i = 0; i < channels_to_plot; ++i)
-    m_waveform_groups[i]->set_data_from_table(m_data, xmin, xmax);
+    m_waveform_groups[i]->set_data_from_table(insight_data_ref_, xmin, xmax);
 
   cursor_in_xrange();
     
@@ -267,7 +267,7 @@ bool WaveformDisplay::xlim(double * limits)
   
   for (int i = 0; i < m_nwaveform_groups; ++i)
   {
-    if (m_waveform_groups[i]->any_channel_present_in(m_data))
+    if (m_waveform_groups[i]->any_channel_present_in(insight_data_ref_))
     {
       display_active = true;
       break;
@@ -285,7 +285,7 @@ void WaveformDisplay::get_max_xrange(double * xlimits)
   
   for (WaveformGroup * group : m_waveform_groups)
   {
-    if (group->any_channel_present_in(m_data))
+    if (group->any_channel_present_in(insight_data_ref_))
     {
       plot_active = true;
       
@@ -306,7 +306,7 @@ void WaveformDisplay::get_max_xrange(double * xlimits)
 void WaveformDisplay::update_label_values_at(double x)
 {
   for (int i = 0; i < m_nwaveform_groups; ++i)
-      m_waveform_groups[i]->set_label_values_at(x, m_data);
+      m_waveform_groups[i]->set_label_values_at(x, insight_data_ref_);
   
   set_xlabel_value(x);
 }
@@ -327,7 +327,7 @@ void WaveformDisplay::resizeEvent(QResizeEvent * event)
   set_xlabel_position();
   for (int i = 0; i < m_nwaveform_groups; ++i)
   {
-    m_waveform_groups[i]->set_data_from_table(m_data);
+    m_waveform_groups[i]->set_data_from_table(insight_data_ref_);
     m_waveform_groups[i]->set_label_position();
   }
   

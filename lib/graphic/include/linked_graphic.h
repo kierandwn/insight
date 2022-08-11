@@ -29,14 +29,14 @@ namespace insight {
 namespace graphic {
 
 
-class LinkedPlot : public ApplicationInterface
+class LinkedPlotx : public ApplicationInterface
 {
  protected:
     layout::Layout * p_layout;
     QWidget * p_plot_widget;
  
  public:
-    LinkedPlot(data::Table * data, layout::Layout * layout)
+    LinkedPlotx(data::Table * data, layout::Layout * layout)
       : ApplicationInterface(data),
         p_layout(layout) {}
 

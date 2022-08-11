@@ -39,7 +39,7 @@ namespace graphic {
 
 
 DataXYDisplay::DataXYDisplay(data::Table * data, layout::Layout * layout)
-    : LinkedPlot(data, layout),
+    : InsightGraphic(data),
       m_mean_xlabel(this),
       m_mean_ylabel(this)
 {
@@ -149,7 +149,7 @@ void DataXYDisplay::descriptive_mean_labels()
 
 void DataXYDisplay::update_after_data_load()
 {
-  int n_layers = m_data->get_number_of_layers();
+  int n_layers = insight_data_ref_->get_number_of_layers();
   bool layer_added = n_layers > m_nlayers;
   
   m_nlayers = n_layers;
@@ -233,8 +233,8 @@ void DataXYDisplay::update_axes_unit_strings()
     xchannel_name = m_data_curves[0]->get_xchannel_name();
     ychannel_name = m_data_curves[0]->get_ychannel_name();
     
-    m_xaxis_unit_string = m_data->get(xchannel_name)->get_unit_string();
-    m_yaxis_unit_string = m_data->get(ychannel_name)->get_unit_string();
+    m_xaxis_unit_string = insight_data_ref_->get(xchannel_name)->get_unit_string();
+    m_yaxis_unit_string = insight_data_ref_->get(ychannel_name)->get_unit_string();
   }
   
   // if n_curves > 1, check that unit strings are the same, otherwise, use '-'
@@ -249,8 +249,8 @@ void DataXYDisplay::update_axes_unit_strings()
         xchannel_name = m_data_curves[i]->get_xchannel_name();
         ychannel_name = m_data_curves[i]->get_ychannel_name();
         
-        xaxis_unit_string_to_test = m_data->get(xchannel_name)->get_unit_string();
-        yaxis_unit_string_to_test = m_data->get(ychannel_name)->get_unit_string();
+        xaxis_unit_string_to_test = insight_data_ref_->get(xchannel_name)->get_unit_string();
+        yaxis_unit_string_to_test = insight_data_ref_->get(ychannel_name)->get_unit_string();
         
         if (!(xaxis_unit_string_to_test == m_xaxis_unit_string))
           m_xaxis_unit_string = '-';
@@ -318,7 +318,7 @@ void DataXYDisplay::resizeEvent(QResizeEvent * event)
     string xchannel_name = m_data_curves[0]->get_xchannel_name();
     string ychannel_name = m_data_curves[0]->get_ychannel_name();
     
-    if (m_data->exists_in_layer(xchannel_name) && m_data->exists_in_layer(ychannel_name)) // TODO move this check inside update_crosshair?
+    if (insight_data_ref_->exists_in_layer(xchannel_name) && insight_data_ref_->exists_in_layer(ychannel_name)) // TODO move this check inside update_crosshair?
       m_data_curves[i]->update_crosshair();
   }
   replot();
@@ -412,8 +412,8 @@ bool DataXYDisplay::get_total_data_ranges(double * xrange, double * yrange)
     x_channel_names.push_back(m_data_curves[i]->get_xchannel_name());
     y_channel_names.push_back(m_data_curves[i]->get_ychannel_name());
   }
-  if (!(m_data->get_max_bounds_in_data(x_channel_names, xrange) &&
-        m_data->get_max_bounds_in_data(y_channel_names, yrange)))
+  if (!(insight_data_ref_->get_max_bounds_in_data(x_channel_names, xrange) &&
+        insight_data_ref_->get_max_bounds_in_data(y_channel_names, yrange)))
     return false;
   
   else

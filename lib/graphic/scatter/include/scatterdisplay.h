@@ -24,7 +24,7 @@
 #include <string>
 
 #include "ui_scatter.h"
-#include "linked_graphic.h"
+//#include "linked_graphic.h"
 
 #include <qwt_plot.h>
 
@@ -45,7 +45,7 @@ namespace graphic {
 
 using namespace std;
 
-class DataXYDisplay : public QwtPlot, public LinkedPlot
+class DataXYDisplay : public QwtPlot, public InsightGraphic
 {
   Q_OBJECT
  protected:

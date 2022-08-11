@@ -20,11 +20,12 @@
 #define INSIGHT_GRAPHIC_BASE_H
 #pragma once
 
-//#include <qwt_plot.h>
-
+#include <qwt_plot.h>
+#include <QWidget>
 
 #include <vector>
 
+//#include "grid.h"
 #include "table.h"
 #include "lib/json/single_include/nlohmann/json.hpp"
 
@@ -34,9 +35,15 @@ namespace graphic {
 using namespace std;
 
 
-class ApplicationInterface {
- protected:
-  data::Table * m_data;
+class InsightGraphic
+{
+protected:
+  data::Table * insight_data_ref_;
+//  layout::Layout * insight_layout_ref_;
+//  QWidget * p_plot_widget;
+
+  InsightGraphic * first_in_group_ = nullptr;
+  InsightGraphic * next_in_group_ = nullptr;
    
   string m_group_name = "";
   
@@ -53,8 +60,8 @@ class ApplicationInterface {
 //    return map.invTransform(d);
 //  }
 
- public:
-  ApplicationInterface(data::Table * data) : m_data(data) {}
+public:
+  InsightGraphic(data::Table * data) : insight_data_ref_(data) {}
   
   virtual void update_after_data_load () {}
   
@@ -64,17 +71,94 @@ class ApplicationInterface {
   virtual void init()   = 0;
   virtual void apply_config(nlohmann::json *) = 0;
   virtual void reset () = 0;
+
+  void SetRefToNextInGroup(InsightGraphic * n)
+  {
+      next_in_group_ = n;
+  }
+
+  void SetRefToFirstInGroup(InsightGraphic * f)
+  {
+      first_in_group_ = f;
+  }
+
+  InsightGraphic * next_in_group()
+  {
+      return next_in_group_;
+  }
+
+  InsightGraphic * first_in_group()
+  {
+      return first_in_group_;
+  }
     
-  data::Table * get_data_table_ref() { return m_data; }
+  data::Table * get_data_table_ref() { return insight_data_ref_; }
   
   string group() { return m_group_name; }
-  void update_data_ref(data::Table * data) { m_data = data; }
+  void update_data_ref(data::Table * data) { insight_data_ref_ = data; }
   
 //  int painter_coordx_from_axis_scale(double x) { return painter_coord_from_axis_scale(x, xBottom); }
 //  int painter_coordy_from_axis_scale(double y) { return painter_coord_from_axis_scale(y, yLeft); }
 //
 //  double axis_coordx_from_painter_scale(int x) { return axes_coord_from_painter_scale(x, xBottom); }
 //  double axis_coordy_from_painter_scale(int y) { return axes_coord_from_painter_scale(y, yLeft); }
+
+//  void update_group_cursor_positions(double tval)
+//  {
+//      if ("" == m_group_name) return;
+
+//      map<string, InsightGraphic *>::iterator graphic_itr = insight_layout_ref_->first();
+//      InsightGraphic * graphic_ptr;
+
+//      graphic::InsightGraphic * current_graphic_in_group =
+
+//      while (graphic_itr != insight_layout_ref_->last())
+//      {
+//        graphic_ptr = graphic_itr->second;
+//        if (graphic_ptr->group() == m_group_name) graphic_ptr->update_cursor_position(tval);
+//        ++graphic_itr;
+//      }
+//  }
+
+//  void update_group_view_limits(double xmin, double xmax)
+//  {
+//      if ("" == m_group_name) return;
+
+//      map<string, InsightGraphic *>::iterator graphic_itr = insight_layout_ref_->first();
+//      InsightGraphic * graphic_ptr;
+
+//      while (graphic_itr != insight_layout_ref_->last())
+//      {
+//        graphic_ptr = graphic_itr->second;
+
+//        if (graphic_ptr->group() == m_group_name)
+//          graphic_ptr->update_view_limits(xmin, xmax);
+
+//        ++graphic_itr;
+//      }
+//  }
+
+    void update_group_cursor_positions(double selected_value_indepvar)
+    {
+        graphic::InsightGraphic * current_graphic_in_group = first_in_group_;
+
+        while (current_graphic_in_group)
+        {
+            current_graphic_in_group->update_cursor_position(selected_value_indepvar);
+            current_graphic_in_group = current_graphic_in_group->next_in_group();
+        }
+    }
+
+    void update_group_view_limits(double min_value_indepvar, double max_value_indepvar)
+    {
+        graphic::InsightGraphic * current_graphic_in_group = first_in_group_;
+
+        while (current_graphic_in_group)
+        {
+            current_graphic_in_group->update_view_limits(min_value_indepvar, max_value_indepvar);
+            current_graphic_in_group = current_graphic_in_group->next_in_group();
+        }
+    }
 };
 
 }  // namespace graphic

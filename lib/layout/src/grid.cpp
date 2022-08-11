@@ -36,18 +36,42 @@ namespace insight {
 namespace layout {
 
 using json = nlohmann::json;
+using graphic_map = std::map<std::string, graphic::InsightGraphic *>;
 
-map<string, graphic::ApplicationInterface *>::iterator Grid::first() { return m_map.begin(); }
-map<string, graphic::ApplicationInterface *>::iterator Grid::last()  { return m_map.end(); }
+inline void UpdateGroupReferences(std::string group_name,
+                        graphic_map& first_added_to_group,
+                        graphic_map& last_added_to_group,
+                        graphic::InsightGraphic * current_graphic_ref)
+{
+    bool group_exists_already = last_added_to_group.find(group_name) == last_added_to_group.end();
 
-map<string, graphic::ApplicationInterface *>& Grid::map() { return m_map; }
+    if ( !(group_name == "") )
+    {
+        if ( group_exists_already )
+        {
+            graphic::InsightGraphic * g = last_added_to_group[group_name];
+            g->SetRefToNextInGroup(current_graphic_ref);
+        }
+        else
+        {
+            first_added_to_group[group_name] = current_graphic_ref;
+        }
+        current_graphic_ref->SetRefToFirstInGroup(first_added_to_group[group_name]);
+        last_added_to_group[group_name] = current_graphic_ref;
+    }
+}
 
-map<string, graphic::ApplicationInterface *> Layout::import_from_config(json jsonConfig, QGridLayout * grid, data::Table * data)
+//map<string, graphic::InsightGraphic *>::iterator Grid::first() { return m_map.begin(); }
+//map<string, graphic::InsightGraphic *>::iterator Grid::last()  { return m_map.end(); }
+
+map<string, graphic::InsightGraphic *>& Layout::map() { return m_map; }
+
+map<string, graphic::InsightGraphic *> Layout::import_from_config(json jsonConfig, QGridLayout * grid, data::Table * data)
 {
   int i = 0;
-  string id, typ, first_id;
+  string id, graphic_type; // , first_id;
     
-  std::map<string, graphic::ApplicationInterface *> mp;
+  std::map<string, graphic::InsightGraphic *> mp;
 
   grid->setSpacing(0);
   grid->setContentsMargins(0, 0, 0, 0);
@@ -57,15 +81,18 @@ map<string, graphic::ApplicationInterface *> Layout::import_from_config(json jso
 
   json children = jsonConfig["children"];
 
+  std::map<std::string, graphic::InsightGraphic *> first_added_to_group;
+  std::map<std::string, graphic::InsightGraphic *> previous_added_to_group;
+
   for ( json::iterator child = children.begin(); child != children.end(); ++child )
   {
     id = child.key();
     json child_config = child.value();
 
-    typ = child_config["type"];
-    if (i == 0) first_id = id;
+    graphic_type = child_config["type"];
+//    if (i == 0) first_id = id;
 
-    if ( typ == "Waveform" )
+    if ( graphic_type == "Waveform" )
     {
       graphic::WaveformDisplay * plot = new graphic::WaveformDisplay(data, this);
       plot->apply_config(&child_config);
@@ -73,8 +100,14 @@ map<string, graphic::ApplicationInterface *> Layout::import_from_config(json jso
 
       mp[id] = plot;
       i++;
+
+//      UpdateGroupReferences(child_config["group"],
+//              first_added_to_group,
+//              previous_added_to_group,
+//              plot
+//              );
     }
-    if ( typ == "Scatter" )
+    if ( graphic_type == "Scatter" )
     {
       graphic::ScatterDisplay * plot = new graphic::ScatterDisplay(data, this);
       plot->apply_config(&child_config);
@@ -82,8 +115,14 @@ map<string, graphic::ApplicationInterface *> Layout::import_from_config(json jso
       grid->addWidget(plot, i % rows, i / rows);
       mp[id] = plot;
       i++;
+
+//      UpdateGroupReferences(child_config["group"],
+//              first_added_to_group,
+//              previous_added_to_group,
+//              plot
+//              );
     }
-    if ( typ == "Line" )
+    if ( graphic_type == "Line" )
     {
       graphic::LineDisplay * plot = new graphic::LineDisplay(data, this);
       plot->apply_config(&child_config);
@@ -91,14 +130,20 @@ map<string, graphic::ApplicationInterface *> Layout::import_from_config(json jso
       grid->addWidget(plot, i % rows, i / rows);
       mp[id] = plot;
       i++;
+
+//      UpdateGroupReferences(child_config["group"],
+//              first_added_to_group,
+//              previous_added_to_group,
+//              plot
+//              );
     }
-    else if ( typ == "Grid" )
+    else if ( graphic_type == "Grid" )
     {
       QGridLayout * childGrid = new QGridLayout;
       grid->addLayout(childGrid, i % rows, i / rows);
       i++;
 
-      std::map<string, graphic::ApplicationInterface *> sub_mp = import_from_config( child_config, childGrid, data );
+      std::map<string, graphic::InsightGraphic *> sub_mp = import_from_config( child_config, childGrid, data );
       mp.insert( sub_mp.begin(), sub_mp.end() );
     }
   }
@@ -112,7 +157,7 @@ void Layout::import_from_config( std::string filename, QGridLayout * grid, data:
 
   ifs >> GridJsonConfig_;
 
-  std::map<string, graphic::ApplicationInterface *> mp = import_from_config( GridJsonConfig_, grid, data );
+  std::map<string, graphic::InsightGraphic *> mp = import_from_config( GridJsonConfig_, grid, data );
   m_map.insert( mp.begin(), mp.end() );
 }
 

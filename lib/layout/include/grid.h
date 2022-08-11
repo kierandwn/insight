@@ -26,7 +26,7 @@
 #include <QGridLayout>
 
 #include "ApplicationInterface.h"
-//#include "table.h"
+#include "table.h"
 
 #include "lib/json/single_include/nlohmann/json.hpp"
 
@@ -37,35 +37,36 @@ using namespace std;
 
 class Grid
 {
- protected:
+protected:
     nlohmann::json GridJsonConfig_;
-
     int m_size[2];
-    std::map<string, graphic::ApplicationInterface *> m_map;
 
 public:
     Grid() : m_size{0, 0} {}
     Grid(int rows, int cols) : m_size{rows, cols} {}
 
-    map<string, graphic::ApplicationInterface *>::iterator first();
-    map<string, graphic::ApplicationInterface *>::iterator next();
-    map<string, graphic::ApplicationInterface *>::iterator last();
+//    map<string, graphic::InsightGraphic *>::iterator first();
+//    map<string, graphic::InsightGraphic *>::iterator next();
+//    map<string, graphic::InsightGraphic *>::iterator last();
 
-    std::map<string, graphic::ApplicationInterface *>& map();
+//    std::map<string, graphic::InsightGraphic *>& map();
 
     void resize();
 };
 
 class Layout : public Grid
 {
- private:
+private:
 //  QGridLayout * m_plotgrid;
+    std::map<string, graphic::InsightGraphic *> m_map;
 
- public:
+public:
   Layout() {}
 
+  std::map<string, graphic::InsightGraphic *>& map();
+
   void import_from_config(string, QGridLayout *, data::Table *);
-  std::map<string, graphic::ApplicationInterface *> import_from_config(nlohmann::json, QGridLayout *, data::Table *);
+  std::map<string, graphic::InsightGraphic *> import_from_config(nlohmann::json, QGridLayout *, data::Table *);
 
   void saveToFile(string);
 };

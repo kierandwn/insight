@@ -177,7 +177,7 @@ void WaveformDisplay::wheelEvent(QWheelEvent * event)
     double new_height     = max(0., current_height + scroll_speed_scalar * vertical_scroll_delta);
     
     m_waveform_groups[closest_waveform_index]->set_normalised_plot_height(new_height);
-    m_waveform_groups[closest_waveform_index]->set_data_from_table(m_data, m_max_xbounds[0], m_max_xbounds[1]);
+    m_waveform_groups[closest_waveform_index]->set_data_from_table(insight_data_ref_, m_max_xbounds[0], m_max_xbounds[1]);
     
     replot();
   }
